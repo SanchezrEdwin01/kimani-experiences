@@ -1,0 +1,12 @@
+.floating-button-layout__container {
+	position: relative;
+	padding-bottom: 4rem;
+	width: 100%;
+
+	.floatingButton {
+		position: fixed;
+		bottom: 2rem;
+		right: 2rem;
+		z-index: 100;
+	}
+}

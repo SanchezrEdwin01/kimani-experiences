@@ -1,0 +1,15 @@
+mutation CreateTopCategory($name: String!, $slug: String!, $seoTitle: String, $seoDescription: String) {
+	categoryCreate(
+		input: { name: $name, slug: $slug, seo: { title: $seoTitle, description: $seoDescription } }
+	) {
+		category {
+			id
+			name
+			slug
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

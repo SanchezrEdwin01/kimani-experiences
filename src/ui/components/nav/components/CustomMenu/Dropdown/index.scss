@@ -1,0 +1,96 @@
+/* Dropdown Styles */
+.dropdown {
+	position: absolute;
+	display: inline-block;
+	left: 1px;
+	top: 6px;
+	height: 22px;
+	width: 25px;
+	z-index: 20;
+	cursor: pointer;
+}
+
+.selected-option {
+	/* border: 1px solid #ccc; */
+	cursor: pointer;
+}
+
+.options-container {
+	max-height: 0px; /* Set the maximum height to show 5 options */
+	overflow-y: auto;
+	position: absolute;
+	/* overflow: hidden; */
+	transition: max-height 0.3s ease-in-out;
+	top: 22px;
+	left: -215px;
+	width: 240px;
+	background-color: #3f4040;
+	box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+	border: none;
+	padding: 0 20px;
+	border-radius: 6px;
+}
+
+.option {
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	padding-left: 10px;
+	cursor: pointer;
+	color: white;
+	font-size: 0.8rem;
+	font-weight: 300;
+	background-color: #3f4040;
+	width: 100%;
+	transition: all 0.2s ease-in-out;
+	&:hover {
+		background-color: #484848fe;
+	}
+	border-bottom: 1px solid rgba(236, 236, 236, 0.2);
+}
+
+.option p {
+	margin: 0;
+}
+
+.options-container.open {
+	max-height: 350px; /* Set the maximum height for dropdown to show options */
+	padding-bottom: 10px;
+}
+
+.menuWrap {
+	background-color: transparent;
+}
+
+.menuTitle {
+	font-size: 0.7rem;
+	background-color: #3f4040;
+	padding-top: 10px;
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+.menuIcon {
+	width: 10px;
+	height: 10px;
+	margin-right: 5px;
+	margin-left: auto;
+	filter: brightness(0) invert(1);
+}
+
+#backButton {
+	margin-bottom: 20px;
+}
+
+.spacer {
+	width: 15px;
+	height: 15px;
+}
+
+@media only screen and (min-width: 768px) {
+	.options-container,
+	.options-container.open {
+		margin: 0;
+		top: 100%;
+	}
+}

@@ -1,0 +1,51 @@
+.header {
+	background-color: #020202;
+	margin: 0;
+	width: 100%;
+	border-radius: 0 0 16px 16px;
+	overflow: hidden;
+
+	padding: 9px 20px 12px;
+	z-index: 20;
+	position: relative;
+
+	.hero {
+		height: calc(56px * 0.7);
+		display: flex;
+		align-items: center;
+		border-radius: 0 0 16px 16px;
+		justify-content: space-between;
+		padding: 0;
+		font-weight: 600;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		gap: 0;
+	}
+}
+
+.header .logo img {
+	filter: brightness(0) invert(1);
+}
+
+.menu {
+	position: relative;
+	z-index: 10000;
+
+	.items {
+		color: white;
+		display: flex;
+		align-items: center;
+	}
+
+	.items svg {
+		color: white;
+	}
+}
+
+.logo {
+	picture {
+		display: block;
+		width: 96px;
+		max-height: 24px;
+	}
+}

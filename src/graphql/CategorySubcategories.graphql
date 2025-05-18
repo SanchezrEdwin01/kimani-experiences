@@ -1,0 +1,18 @@
+# src/graphql/Category/CategorySubcategories.graphql
+query CategorySubcategories($slug: String!) {
+	category(slug: $slug) {
+		children(first: 100) {
+			edges {
+				node {
+					id
+					name
+					slug
+					backgroundImage {
+						url
+						alt
+					}
+				}
+			}
+		}
+	}
+}

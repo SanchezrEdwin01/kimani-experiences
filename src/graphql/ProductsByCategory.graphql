@@ -1,0 +1,34 @@
+# src/graphql/Category/ProductsByCategory.graphql
+query ProductsByCategory($slug: String!) {
+	category(slug: $slug) {
+		products(first: 100, channel: "default-channel") {
+			edges {
+				node {
+					id
+					name
+					slug
+					pricing {
+						priceRange {
+							start {
+								gross {
+									amount
+									currency
+								}
+							}
+							stop {
+								gross {
+									amount
+									currency
+								}
+							}
+						}
+					}
+					thumbnail(size: 1024, format: WEBP) {
+						url
+						alt
+					}
+				}
+			}
+		}
+	}
+}

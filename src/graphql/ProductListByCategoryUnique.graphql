@@ -1,0 +1,66 @@
+# src/graphql/ProductListByCategoryUnique.graphql
+fragment ProductListItemNoReviews on Product {
+	id
+	name
+	slug
+	thumbnail {
+		url
+		alt
+	}
+	metadata {
+		key
+		value
+	}
+	channelListings {
+		channel {
+			name
+			slug
+		}
+	}
+	attributes {
+		attribute {
+			name
+		}
+		values {
+			value
+			name
+			id
+			slug
+		}
+	}
+	pricing {
+		priceRange {
+			start {
+				gross {
+					amount
+					currency
+				}
+			}
+			stop {
+				gross {
+					amount
+					currency
+				}
+			}
+		}
+	}
+	category {
+		id
+		name
+		slug
+		__typename
+	}
+}
+
+query ProductListByCategoryUnique($slug: String!) {
+	category(slug: $slug) {
+		name
+		products(first: 100, channel: "default-channel") {
+			edges {
+				node {
+					...ProductListItemNoReviews
+				}
+			}
+		}
+	}
+}

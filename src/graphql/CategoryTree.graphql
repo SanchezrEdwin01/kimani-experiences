@@ -1,0 +1,25 @@
+query CategoryTree($slug: String!) {
+	category(slug: $slug) {
+		id
+		name
+		slug
+		children(first: 100) {
+			edges {
+				node {
+					id
+					name
+					slug
+					children(first: 100) {
+						edges {
+							node {
+								id
+								name
+								slug
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,28 @@
+mutation CreateServiceProduct(
+	$name: String!
+	$slug: String!
+	$productType: ID!
+	$category: ID!
+	$description: JSONString!
+	$attributes: [AttributeValueInput!]!
+) {
+	productCreate(
+		input: {
+			name: $name
+			slug: $slug
+			productType: $productType
+			category: $category
+			description: $description
+			chargeTaxes: false
+			attributes: $attributes
+		}
+	) {
+		product {
+			id
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

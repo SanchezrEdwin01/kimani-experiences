@@ -1,0 +1,14 @@
+mutation AddProductReview($productId: ID!, $key: String!, $value: String!) {
+	updateMetadata(id: $productId, input: [{ key: $key, value: $value }]) {
+		item {
+			metadata {
+				key
+				value
+			}
+		}
+		metadataErrors {
+			field
+			code
+		}
+	}
+}

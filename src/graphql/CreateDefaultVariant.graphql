@@ -1,0 +1,11 @@
+mutation CreateDefaultVariant($productId: ID!, $sku: String!) {
+	productVariantCreate(input: { product: $productId, sku: $sku, trackInventory: false, attributes: [] }) {
+		productVariant {
+			id
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

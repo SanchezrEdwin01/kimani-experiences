@@ -1,0 +1,19 @@
+mutation PublishVariantInChannel($variantId: ID!, $channelId: ID!, $price: PositiveDecimal!) {
+	productVariantChannelListingUpdate(id: $variantId, input: [{ channelId: $channelId, price: $price }]) {
+		variant {
+			channelListings {
+				channel {
+					slug
+				}
+				price {
+					amount
+					currency
+				}
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

@@ -1,0 +1,14 @@
+mutation DeleteProductReview($productId: ID!, $keys: [String!]!) {
+	deleteMetadata(id: $productId, keys: $keys) {
+		item {
+			metadata {
+				key
+				value
+			}
+		}
+		metadataErrors {
+			field
+			code
+		}
+	}
+}

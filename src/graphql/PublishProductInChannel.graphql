@@ -1,0 +1,20 @@
+mutation PublishProductInChannel($productId: ID!, $channelId: ID!) {
+	productChannelListingUpdate(
+		id: $productId
+		input: { updateChannels: [{ channelId: $channelId, isPublished: true, visibleInListings: true }] }
+	) {
+		product {
+			channelListings {
+				channel {
+					slug
+				}
+				isPublished
+				visibleInListings
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

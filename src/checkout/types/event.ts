@@ -1,0 +1,40 @@
+export interface Event {
+	_id: string;
+	title: string;
+	event_type: string;
+	start_date: string;
+	end_date: string;
+	city: string;
+	area?: string;
+	address?: string;
+	hide_address?: boolean;
+	allow_plus_one?: boolean;
+	allow_plus_one_amount?: number;
+	requires_plus_one_info?: boolean;
+	requires_rsvp_approval?: boolean;
+	show_to_non_members?: boolean;
+	managers?: string[];
+	sponsors?: string[];
+	hosts?: Array<{ name: string; id: number }>;
+	saved?: boolean;
+	created_by?: string;
+	ticket_config?: {
+		is_paid: boolean;
+		member_price?: string;
+		member_max_tickets?: number;
+		non_member_price?: string;
+		non_member_max_tickets?: number;
+		allow_multiple_tickets?: boolean;
+		processing_fee_percentage?: string | number | null;
+	};
+	currency?: "usd" | "euro";
+	attachments?: string[];
+	gallery?: string[];
+	created_at: string;
+	imageUrl?: string;
+	description?: string;
+	sponsor1?: string;
+	sponsor2?: string;
+	is_saved?: boolean;
+	thumbnail?: string;
+}

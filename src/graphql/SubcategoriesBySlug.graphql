@@ -1,0 +1,25 @@
+# src/graphql/SubcategoriesBySlug.graphql
+query SubcategoriesBySlug($slug: String!) {
+	category(slug: $slug) {
+		id
+		name
+		slug
+		backgroundImage {
+			url
+			alt
+		}
+		children(first: 100) {
+			edges {
+				node {
+					id
+					name
+					slug
+					backgroundImage {
+						url
+						alt
+					}
+				}
+			}
+		}
+	}
+}

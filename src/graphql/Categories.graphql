@@ -1,0 +1,26 @@
+# src/graphql/Category/Categories.graphql
+query Categories {
+	categories(first: 100, level: 0) {
+		edges {
+			node {
+				id
+				name
+				slug
+				backgroundImage {
+					url
+					alt
+				}
+			}
+		}
+	}
+}
+
+fragment Category on Category {
+	id
+	name
+	slug
+	backgroundImage {
+		url
+		alt
+	}
+}

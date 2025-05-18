@@ -1,0 +1,221 @@
+.formContainer {
+	background: #121212;
+	color: #fff;
+	padding: 20px;
+	max-width: 500px;
+	margin: 0 auto;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+.imageUpload {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+	gap: 0.5rem;
+	height: 200px;
+	background: #1e1e1e;
+	border-radius: 8px;
+	padding: 0 1rem;
+
+	&.hasImages {
+		justify-content: flex-start;
+	}
+}
+
+.thumbWrapper {
+	position: relative;
+	overflow: hidden;
+	flex: 0 0 auto;
+	height: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.uploadButton {
+	width: 56px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #2c2c2c;
+	border: none;
+	border-radius: 8px;
+	color: #fff;
+	font-size: 24px;
+	font-weight: 700;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+	transition: background 0.2s;
+
+	&:hover {
+		background: #3a3a3a;
+	}
+}
+
+.deleteButton {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 24px;
+	height: 24px;
+	border: none;
+	background: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	border-radius: 50%;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1;
+
+	&:hover {
+		background: rgba(255, 0, 0, 0.8);
+	}
+}
+
+.thumbnail {
+	height: 100%;
+	width: auto;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+.formRow {
+	display: flex;
+	gap: 12px;
+}
+
+.formGroup {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.dimensionsGroup {
+	flex: 0.7;
+}
+
+.unitGroup {
+	flex: 0.3;
+}
+
+.fullWidthSeparator {
+	width: 100%;
+	border: none;
+	border-bottom: 1px solid #2c2c2c;
+	margin: 15px 0;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+	background: #1e1e1e;
+	border: none;
+	border-radius: 4px;
+	padding: 12px;
+	color: #fff;
+	font-size: 14px;
+	width: 100%;
+}
+
+.formGroup select {
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: calc(100% - 10px) center;
+	padding-right: 30px;
+}
+
+.sectionTitle {
+	font-size: 16px;
+	font-weight: 500;
+	margin: 10px 0 4px;
+	color: #fff;
+}
+
+.helperText {
+	font-size: 12px;
+	color: #aaa;
+	margin: 0 0 6px;
+}
+
+.dimensionsInput {
+	text-align: center;
+}
+
+.unitSelector select {
+	min-width: 60px;
+}
+
+.certificateButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: #1e1e1e;
+	border: none;
+	border-radius: 4px;
+	padding: 12px;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	width: 100%;
+
+	svg {
+		width: 20px;
+		height: 20px;
+
+		circle,
+		path {
+			stroke: #fff;
+			fill: none;
+		}
+
+		path {
+			fill: #fff;
+		}
+	}
+}
+
+.fileIcon {
+	font-size: 16px;
+}
+
+.submitButton {
+	background: #ffcc00;
+	color: #000;
+	font-weight: bold;
+	padding: 12px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 16px;
+	margin-top: 8px;
+}
+.successWrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	background: rgba(142, 137, 137, 0.95);
+	z-index: 1000;
+	text-align: center;
+}
+
+.errorText {
+	color: red;
+	font-size: 0.85rem;
+	margin-top: 4px;
+}

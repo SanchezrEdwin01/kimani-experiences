@@ -1,0 +1,13 @@
+mutation DeleteCategory($id: ID!) {
+	categoryDelete(id: $id) {
+		category {
+			id
+			name
+			slug
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

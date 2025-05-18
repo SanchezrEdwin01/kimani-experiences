@@ -1,0 +1,2 @@
+# Ignorar declaraciones TS que no están cubiertas por el tsconfig
+src/checkout/types/**/*.d.ts

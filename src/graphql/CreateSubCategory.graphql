@@ -1,0 +1,29 @@
+mutation CreateSubCategory(
+	$name: String!
+	$slug: String!
+	$seoTitle: String
+	$seoDescription: String
+	$parent: ID
+) {
+	categoryCreate(
+		input: { name: $name, slug: $slug, seo: { title: $seoTitle, description: $seoDescription } }
+		parent: $parent
+	) {
+		category {
+			id
+			name
+			slug
+			seoTitle
+			seoDescription
+			parent {
+				id
+				name
+				slug
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

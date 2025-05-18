@@ -1,0 +1,36 @@
+fragment ChoiceFields on AttributeValue {
+	id
+	name
+	slug
+}
+
+fragment AttributeWithChoices on Attribute {
+	id
+	name
+	slug
+	inputType
+	choices(first: 100) {
+		edges {
+			node {
+				...ChoiceFields
+			}
+		}
+	}
+}
+
+fragment ProductTypeWithChoicesFields on ProductType {
+	id
+	name
+	productAttributes {
+		...AttributeWithChoices
+	}
+	variantAttributes {
+		...AttributeWithChoices
+	}
+}
+
+query GetProductTypeWithChoices($id: ID!) {
+	productType(id: $id) {
+		...ProductTypeWithChoicesFields
+	}
+}

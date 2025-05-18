@@ -1,0 +1,17 @@
+mutation AddCategoryImage($id: ID!, $image: Upload!, $alt: String!) {
+	categoryUpdate(id: $id, input: { backgroundImage: $image, backgroundImageAlt: $alt }) {
+		category {
+			id
+			name
+			slug
+			backgroundImage {
+				url
+				alt
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

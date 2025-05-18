@@ -1,0 +1,26 @@
+query CategoriesWithSubcategories {
+	categories(first: 100, level: 0) {
+		edges {
+			node {
+				...CategoryFields
+				children(first: 100) {
+					edges {
+						node {
+							...CategoryFields
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+fragment CategoryFields on Category {
+	id
+	name
+	slug
+	backgroundImage {
+		url
+		alt
+	}
+}

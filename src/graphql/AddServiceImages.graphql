@@ -1,0 +1,14 @@
+mutation AddServiceImage($product: ID!, $image: Upload!, $alt: String) {
+	productMediaCreate(input: { product: $product, image: $image, alt: $alt }) {
+		media {
+			id
+			url
+			alt
+			sortOrder
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

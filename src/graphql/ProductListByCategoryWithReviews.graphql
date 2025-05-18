@@ -1,0 +1,25 @@
+fragment ProductListItemWithReviews on Product {
+	id
+	name
+	slug
+	category {
+		slug
+	}
+	thumbnail {
+		url
+		alt
+	}
+}
+
+query ProductListByCategoryWithReviews($slug: String!) {
+	category(slug: $slug) {
+		name
+		products(first: 100, channel: "default-channel") {
+			edges {
+				node {
+					...ProductListItemWithReviews
+				}
+			}
+		}
+	}
+}

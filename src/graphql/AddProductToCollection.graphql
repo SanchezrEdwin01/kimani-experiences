@@ -1,0 +1,18 @@
+mutation AddProductToCollection($collectionId: ID!, $productId: ID!) {
+	collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
+		collection {
+			products(first: 5) {
+				edges {
+					node {
+						id
+						name
+					}
+				}
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

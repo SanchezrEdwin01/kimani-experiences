@@ -1,0 +1,19 @@
+mutation UpdateCategory($id: ID!, $name: String, $slug: String, $seoTitle: String, $seoDescription: String) {
+	categoryUpdate(
+		id: $id
+		input: { name: $name, slug: $slug, seo: { title: $seoTitle, description: $seoDescription } }
+	) {
+		category {
+			id
+			name
+			slug
+			seoTitle
+			seoDescription
+			updatedAt
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

@@ -1,0 +1,14 @@
+mutation UpdateProductAvailability($productId: ID!, $availability: String!) {
+	updateMetadata(id: $productId, input: [{ key: "availability", value: $availability }]) {
+		item {
+			metadata {
+				key
+				value
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

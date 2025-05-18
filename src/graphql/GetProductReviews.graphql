@@ -1,0 +1,10 @@
+query GetProductReviews($slug: String!, $channel: String!) {
+	product(slug: $slug, channel: $channel) {
+		id
+		name
+		metadata {
+			key
+			value
+		}
+	}
+}

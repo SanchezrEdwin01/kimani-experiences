@@ -1,0 +1,93 @@
+# src/graphql/ProductDetailsBySlug.graphql
+query ProductDetailsBySlug($slug: String!, $channel: String!) {
+	product(slug: $slug, channel: $channel) {
+		id
+		name
+		slug
+		description
+		seoTitle
+		seoDescription
+		created
+		updatedAt
+		category {
+			id
+			name
+			slug
+		}
+		productType {
+			id
+			name
+			slug
+		}
+		attributes {
+			attribute {
+				id
+				name
+				slug
+				inputType
+			}
+			values {
+				name
+				value
+			}
+		}
+		variants {
+			id
+			name
+			sku
+			attributes {
+				attribute {
+					slug
+				}
+				values {
+					name
+				}
+			}
+			pricing {
+				price {
+					gross {
+						amount
+						currency
+					}
+					net {
+						amount
+						currency
+					}
+					tax {
+						amount
+						currency
+					}
+				}
+				onSale
+				discount {
+					gross {
+						amount
+						currency
+					}
+				}
+			}
+			channelListings {
+				channel {
+					slug
+				}
+			}
+		}
+		thumbnail(size: 512) {
+			url
+			alt
+		}
+		media {
+			id
+			url
+			alt
+			sortOrder
+		}
+		channelListings {
+			channel {
+				slug
+			}
+			isPublished
+			availableForPurchaseAt
+		}
+	}
+}

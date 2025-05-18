@@ -1,0 +1,18 @@
+.category-banner {
+	width: 100%;
+	padding: 0 0 10px;
+	position: relative;
+	z-index: 5;
+	background: #1a1a1a;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	&__title {
+		margin-bottom: 16px;
+		text-align: center;
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: white;
+	}
+}
