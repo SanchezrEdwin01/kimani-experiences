@@ -21,6 +21,8 @@ export const CategoryList = ({
 		? categories.filter((category) => (category.parent as { id: string } | null)?.id === filterParentId)
 		: categories;
 
+	// Sort categories by name
+
 	return (
 		<section className="manage-categories-container mt-8 px-6 py-8">
 
