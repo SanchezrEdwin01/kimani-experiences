@@ -23,7 +23,7 @@ import {
 } from "@/gql/graphql";
 import "react-phone-input-2/lib/style.css";
 import "./index.scss";
-import successAnimation from "@/ui/components/nav/components/animation/Animation - 1747544233336.json";
+import { SuccessAnimation } from "@/ui/components/nav/components/animation";
 
 interface DayHours {
 	enabled: boolean;
@@ -772,7 +772,7 @@ export function ServiceForm() {
 			{showSuccess && (
 				<div className="successWrapper">
 					<Lottie
-						animationData={successAnimation}
+						animationData={SuccessAnimation}
 						loop={false}
 						autoplay
 						style={{ height: 200, width: 200 }}
