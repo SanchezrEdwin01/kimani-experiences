@@ -146,7 +146,12 @@ export function ArtForm() {
 		];
 
 		requiredFields.forEach(({ key, label }) => {
-			if (!form[key] || form[key].toString().trim() === "") {
+			const value = form[key];
+			if (
+				value === undefined ||
+				value === null ||
+				(typeof value === "string" && value.trim() === "")
+			) {
 				errors[key] = `${label} is required.`;
 			}
 		});

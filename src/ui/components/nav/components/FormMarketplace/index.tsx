@@ -246,7 +246,9 @@ export function ServiceForm() {
 		];
 
 		requiredFields.forEach(({ key, label }) => {
-			if (!formData[key] || formData[key].toString().trim() === "") {
+			const value = formData[key];
+
+			if (!value || String(value).trim() === "") {
 				errors[key] = `${label} is required.`;
 			}
 		});
