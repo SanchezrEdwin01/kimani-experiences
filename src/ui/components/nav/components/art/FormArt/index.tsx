@@ -16,7 +16,7 @@ import {
 	AddServiceImageDocument,
 	type CategoryTreeQuery,
 } from "@/gql/graphql";
-import successAnimation from "@/ui/components/nav/components/animation/Animation - 1747544233336.json";
+import { SuccessAnimation } from "@/ui/components/nav/components/animation";
 
 interface ArtFormData {
 	title: string;
@@ -147,11 +147,7 @@ export function ArtForm() {
 
 		requiredFields.forEach(({ key, label }) => {
 			const value = form[key];
-			if (
-				value === undefined ||
-				value === null ||
-				(typeof value === "string" && value.trim() === "")
-			) {
+			if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
 				errors[key] = `${label} is required.`;
 			}
 		});
@@ -498,7 +494,7 @@ export function ArtForm() {
 			{showSuccess && (
 				<div className={styles.successWrapper}>
 					<Lottie
-						animationData={successAnimation}
+						animationData={SuccessAnimation}
 						loop={false}
 						autoplay
 						style={{ height: 200, width: 200 }}

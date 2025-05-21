@@ -18,7 +18,7 @@ import {
 	AddServiceImageDocument,
 } from "@/gql/graphql";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
-import successAnimation from "@/ui/components/nav/components/animation/Animation - 1747544233336.json";
+import { SuccessAnimation } from "@/ui/components/nav/components/animation";
 
 export interface RealEstateFormData {
 	title: string;
@@ -697,7 +697,7 @@ export function RealEstateForm() {
 			{showSuccess && (
 				<div className={styles.successWrapper}>
 					<Lottie
-						animationData={successAnimation}
+						animationData={SuccessAnimation}
 						loop={false}
 						autoplay
 						style={{ height: 200, width: 200 }}
