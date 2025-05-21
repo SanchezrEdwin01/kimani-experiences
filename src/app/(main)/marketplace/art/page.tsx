@@ -90,6 +90,11 @@ export default function ArtProductsClientPage() {
 		void fetchProducts();
 	}, []);
 
+	/**
+	 * useEffect to update filteredProducts when allProducts or filters change.
+	 * Handles filtering by search, location, main category, subcategory, price range, and sorting.
+	 */
+
 	const subCategoryOptionsForModal = useMemo(() => {
 		const map = new Map<string, string>();
 		let productsToConsider = allProducts;
