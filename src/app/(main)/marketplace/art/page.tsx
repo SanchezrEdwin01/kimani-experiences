@@ -64,6 +64,8 @@ export default function ArtProductsClientPage() {
 	const [activeTab, setActiveTab] = useState<Tab>("explore");
 	const [loading, setLoading] = useState(true);
 
+	//use effect
+
 	useEffect(() => {
 		async function fetchProducts() {
 			setLoading(true);
