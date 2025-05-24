@@ -16,24 +16,17 @@ export function CategoryElement({
 }: {
 	category: CategoryFragment;
 	loading?: "eager" | "lazy";
-	itemSpecificViewRouteValue?: string; // ej: ADMIN_EVENT_PLANNING o ADMIN_ART_CATEGORY_CONTENT_VALUE
+	itemSpecificViewRouteValue?: string;
 }) {
 	const router = useRouter();
 	const { deleteCategory, isDeleting } = useDeleteCategory();
 	const [showConfirm, setShowConfirm] = useState(false);
 
 	const handleView = () => {
-		// Usar itemSpecificViewRouteValue si se proporciona, de lo contrario, usar ADMIN_EVENT_PLANNING por defecto
 		const routeValue = itemSpecificViewRouteValue || ADMIN_EVENT_PLANNING;
 		const routeConfig = TYPES.find((type) => type.value === routeValue);
 
 		if (routeConfig) {
-			// Para rutas que necesitan un ID de categoría (ej. ver sub-subcategorías o contenido específico)
-			// Asumimos que la ruta base está en routeConfig.route y añadimos el ID de la categoría actual.
-			// Esto podría necesitar un patrón más explícito si las rutas varían mucho.
-			// Ejemplo: "marketplace/art/admin-categories" se convierte en "marketplace/art/admin-categories/categoryId/event-planning"
-			// O si la ruta ya es específica como "marketplace/.../event-planning", solo se añade el parent.
-			// Por ahora, asumimos que la ruta en TYPES es la base para la lista de sub-items.
 			void router.push(`/${routeConfig.route}?parent=${category.id}`);
 		} else {
 			console.warn(`Route configuration not found for value: ${routeValue}`);

@@ -11,7 +11,7 @@ import {
 	type ProductListItemNoReviewsFragment,
 } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
-import { ClickableProductList } from "@/ui/components/nav/components/RealState/product-details/ClickableProductList";
+import { ClickableProductList } from "@/ui/components/nav/components/art/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	ART_CATEGORY_SLUG,

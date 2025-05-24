@@ -6,11 +6,17 @@ import { useCreateSubCategory } from "@/checkout/hooks/useCreateSubCategory";
 import { uploadGraphQL } from "@/lib/graphql";
 import { AddCategoryImageDocument, type TypedDocumentString } from "@/gql/graphql";
 
+interface ValidationError {
+	field: string;
+	message: string;
+}
+
 export function NewCategoryForm() {
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [file, setFile] = useState<File | null>(null);
 	const [altText, setAltText] = useState("");
+	const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
 	const formatSlug = (text: string) => text.toLowerCase().replace(/\s+/g, "_");
 
@@ -31,6 +37,16 @@ export function NewCategoryForm() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setValidationErrors([]);
+
+		if (!file || !altText.trim()) {
+			const newErrors: ValidationError[] = [];
+			if (!file) newErrors.push({ field: "Image", message: "Image is required" });
+			if (!altText.trim()) newErrors.push({ field: "Alt text", message: "Alt text is required" });
+			setValidationErrors(newErrors);
+			return;
+		}
+
 		const newId = await createSubCategory({ name, slug, parent: "Q2F0ZWdvcnk6MzE=" });
 		if (newId && file) {
 			await uploadGraphQL(
@@ -50,18 +66,28 @@ export function NewCategoryForm() {
 			</div>
 
 			<div className={styles.field}>
-				<label htmlFor="image">Imagen</label>
-				<input id="image" type="file" accept="image/*" onChange={handleFileChange} />
+				<label htmlFor="image">Imagen *</label>
+				<input id="image" type="file" accept="image/*" onChange={handleFileChange} required />
 			</div>
 
 			<div className={styles.field}>
-				<label htmlFor="alt">Alt text</label>
-				<input id="alt" type="text" value={altText} onChange={(e) => setAltText(e.target.value)} />
+				<label htmlFor="alt">Alt text *</label>
+				<input id="alt" type="text" value={altText} onChange={(e) => setAltText(e.target.value)} required />
 			</div>
 
 			<button className={styles.button} type="submit" disabled={loading}>
 				{loading ? "Creating…" : "Create category"}
 			</button>
+
+			{validationErrors.length > 0 && (
+				<ul className={styles.errors}>
+					{validationErrors.map((err, i) => (
+						<li key={i}>
+							<strong>{err.field}</strong>: {err.message}
+						</li>
+					))}
+				</ul>
+			)}
 
 			{errors.length > 0 && (
 				<ul className={styles.errors}>

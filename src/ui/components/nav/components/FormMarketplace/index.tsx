@@ -260,7 +260,6 @@ export function ServiceForm() {
 			errors["hour"] = "At least one open hour (start and end)";
 		}
 
-		// Check for image upload
 		if (filesToUpload.length === 0) {
 			errors["images"] = "At least one image is required.";
 		}
