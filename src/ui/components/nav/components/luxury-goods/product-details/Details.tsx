@@ -203,10 +203,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 								{getAttr("external-link")}
 							</a>
 						</div>
-						<div className={styles.buttonGroup}>
-							<button className={styles.deleteButton}>Delete</button>
-							<button className={styles.editButton}>Edit</button>
-						</div>
 					</section>
 					<hr className={styles.divider} />
 				</>

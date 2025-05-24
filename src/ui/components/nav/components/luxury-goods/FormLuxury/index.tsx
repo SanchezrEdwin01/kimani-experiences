@@ -47,6 +47,7 @@ export function LuxuryGoodsForm() {
 		brandName: "",
 	});
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+	const [errors, setErrors] = useState<{ imageError?: string }>({});
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
@@ -157,6 +158,14 @@ export function LuxuryGoodsForm() {
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 
+		if (filesToUpload.length === 0) {
+			setErrors((prev) => ({ ...prev, imageError: "Al menos una imagen es requerida" }));
+			window.scrollTo({ top: 0, behavior: "smooth" });
+			return;
+		}
+
+		setErrors((prev) => ({ ...prev, imageError: undefined }));
+
 		const descriptionJSON = JSON.stringify({
 			blocks: [{ type: "paragraph", data: { text: form.description } }],
 			version: "2.0",
@@ -251,6 +260,15 @@ export function LuxuryGoodsForm() {
 					style={{ display: "none" }}
 				/>
 			</div>
+			{errors.imageError && (
+				<p className={styles.errorMessage} style={{ color: "red", marginTop: "5px" }}>
+					{errors.imageError}
+				</p>
+			)}
+			<div className={styles.requiredField} style={{ fontSize: "14px", marginTop: "5px" }}>
+				* Imagen requerida
+			</div>
+
 			<div className={styles.formGroup}>
 				<input name="title" value={form.title} onChange={handleChange} placeholder="Title of luxury good" />
 			</div>

@@ -1,9 +1,9 @@
 import React from "react";
 import { ProductList } from "./product-list/ProductList";
-import { type ProductListItemNoReviewsFragment } from "@/gql/graphql";
+import { type ProductListItemFragment } from "@/gql/graphql";
 
 interface ClickableProductListProps {
-	products: readonly ProductListItemNoReviewsFragment[];
+	products: readonly ProductListItemFragment[];
 	categoryName: string;
 }
 

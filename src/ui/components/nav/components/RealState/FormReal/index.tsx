@@ -364,41 +364,63 @@ export function RealEstateForm() {
 
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
-			<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
-				{filesToUpload.map((file, idx) => {
-					const objectUrl = URL.createObjectURL(file);
-					return (
-						<div className={styles.thumbWrapper} key={idx}>
-							<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
-								×
-							</button>
-							<Image
-								src={objectUrl}
-								alt={`Image ${idx + 1}`}
-								width={700}
-								height={400}
-								className={styles.thumbnail}
-							/>
-						</div>
-					);
-				})}
+			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
+				<h3 className={styles.sectionTitle} style={{ marginBottom: "0.5rem" }}>
+					Images <span style={{ color: "red" }}>*</span>
+				</h3>
+				<p className={styles.helperText}>At least one image is required</p>
+				<div
+					className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""} ${
+						submitted && fieldErrors.images ? styles.errorBorder : ""
+					}`}
+				>
+					{filesToUpload.map((file, idx) => {
+						const objectUrl = URL.createObjectURL(file);
+						return (
+							<div className={styles.thumbWrapper} key={idx}>
+								<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
+									×
+								</button>
+								<Image
+									src={objectUrl}
+									alt={`Image ${idx + 1}`}
+									width={700}
+									height={400}
+									className={styles.thumbnail}
+								/>
+							</div>
+						);
+					})}
 
-				<div className={styles.thumbWrapper}>
-					<button type="button" onClick={() => fileInputRef.current?.click()} className={styles.uploadButton}>
-						＋
-					</button>
+					<div className={styles.thumbWrapper}>
+						<button
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+							className={styles.uploadButton}
+						>
+							＋
+						</button>
+					</div>
+
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						accept="image/*"
+						onChange={handleFilesChange}
+						style={{ display: "none" }}
+					/>
 				</div>
-
-				<input
-					ref={fileInputRef}
-					type="file"
-					multiple
-					accept="image/*"
-					onChange={handleFilesChange}
-					style={{ display: "none" }}
-				/>
 			</div>
-			{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
+			{submitted && fieldErrors.images && (
+				<small
+					className={styles.errorText}
+					style={{ display: "block", marginTop: "0.25rem", marginBottom: "1rem", color: "red" }}
+				>
+					{fieldErrors.images}
+				</small>
+			)}
+
 			<div className={styles.formGroup}>
 				{fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 				<input
@@ -589,7 +611,7 @@ export function RealEstateForm() {
 				{fieldErrors.sizeUnit && <small className={styles.errorText}>{fieldErrors.sizeUnit}</small>}
 				<select id="size-unit" name="sizeUnit" value={formData.sizeUnit} onChange={handleChange}>
 					<option value="" disabled>
-						Selecciona una unidad
+						Select a unit
 					</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIx">sqft</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIy">sqm</option>

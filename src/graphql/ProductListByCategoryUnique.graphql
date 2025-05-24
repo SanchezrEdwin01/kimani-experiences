@@ -3,6 +3,7 @@ fragment ProductListItemNoReviews on Product {
 	id
 	name
 	slug
+	description
 	thumbnail {
 		url
 		alt

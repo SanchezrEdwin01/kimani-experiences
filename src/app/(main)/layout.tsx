@@ -11,7 +11,9 @@ export const metadata = {
 export default function MainLayout(props: { children: ReactNode }) {
 	return (
 		<>
-			<Header />
+			<div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+				<Header />
+			</div>
 			<div className="bg-gray flex min-h-[calc(100dvh-64px)] flex-col text-white">
 				<main className="flex-1">{props.children}</main>
 			</div>

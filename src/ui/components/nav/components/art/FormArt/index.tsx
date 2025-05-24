@@ -20,7 +20,7 @@ import { SuccessAnimation } from "@/ui/components/nav/components/animation";
 
 interface ArtFormData {
 	title: string;
-	painterName: string;
+	artisName: string;
 	artCategory: string;
 	price: string;
 	currency: string;
@@ -51,7 +51,7 @@ export function ArtForm() {
 	>([]);
 	const [form, setForm] = useState<ArtFormData>({
 		title: "",
-		painterName: "",
+		artisName: "",
 		artCategory: "",
 		price: "",
 		currency: "",
@@ -129,7 +129,7 @@ export function ArtForm() {
 		const errors: Record<string, string> = {};
 		const requiredFields: { key: keyof ArtFormData; label: string }[] = [
 			{ key: "title", label: "Title" },
-			{ key: "painterName", label: "Painter Name" },
+			{ key: "artisName", label: "Artist Name" },
 			{ key: "artCategory", label: "Category" },
 			{ key: "price", label: "Price" },
 			{ key: "currency", label: "Currency" },
@@ -157,7 +157,7 @@ export function ArtForm() {
 		}
 
 		if (filesToUpload.length === 0) {
-			errors["images"] = "At least one image is required.";
+			errors["images"] = "Image is required. Please upload at least one image.";
 		}
 
 		setFieldErrors(errors);
@@ -180,17 +180,17 @@ export function ArtForm() {
 			category: form.artCategory,
 			description: descriptionJSON,
 			attributes: [
-				{ id: "QXR0cmlidXRlOjk=", boolean: form.signature }, // allow-direct-messaging (si aplica)
-				{ id: "QXR0cmlidXRlOjQx", plainText: form.currency }, // currency → ID corregido
-				{ id: "QXR0cmlidXRlOjMw", plainText: form.painterName }, // painter-name
-				{ id: "QXR0cmlidXRlOjQy", plainText: form.artType }, // art-type
-				{ id: "QXR0cmlidXRlOjQz", plainText: form.printType }, // print-type
-				{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame }, // frame
-				{ id: "QXR0cmlidXRlOjM3", plainText: form.collection }, // collection
-				{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink }, // link-to-artwork
-				{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints || "1" }, // number-of-prints
-				{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions }, // dimensions
-				{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted }, // date-painted
+				{ id: "QXR0cmlidXRlOjk=", boolean: form.signature },
+				{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
+				{ id: "QXR0cmlidXRlOjMw", plainText: form.artisName },
+				{ id: "QXR0cmlidXRlOjQy", plainText: form.artType },
+				{ id: "QXR0cmlidXRlOjQz", plainText: form.printType },
+				{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame },
+				{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
+				{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
+				{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints || "1" },
+				{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
+				{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
 				{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 				{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
 			],
@@ -260,40 +260,50 @@ export function ArtForm() {
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
 			{/* Imagen */}
-			<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
-				{filesToUpload.map((file, idx) => {
-					const objectUrl = URL.createObjectURL(file);
-					return (
-						<div className={styles.thumbWrapper} key={idx}>
-							<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
-								×
-							</button>
-							<Image
-								src={objectUrl}
-								alt={`Image ${idx + 1}`}
-								width={700}
-								height={400}
-								className={styles.thumbnail}
-							/>
-						</div>
-					);
-				})}
-				<div className={styles.thumbWrapper}>
-					<button type="button" onClick={() => fileInputRef.current?.click()} className={styles.uploadButton}>
-						＋
-					</button>
-				</div>
+			<div className={styles.formGroup}>
+				<label className={styles.requiredField}>
+					Artwork Image <span className={styles.requiredMark}>*</span>
+				</label>
+				<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
+					{filesToUpload.map((file, idx) => {
+						const objectUrl = URL.createObjectURL(file);
+						return (
+							<div className={styles.thumbWrapper} key={idx}>
+								<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
+									×
+								</button>
+								<Image
+									src={objectUrl}
+									alt={`Image ${idx + 1}`}
+									width={700}
+									height={400}
+									className={styles.thumbnail}
+								/>
+							</div>
+						);
+					})}
+					<div className={styles.thumbWrapper}>
+						<button
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+							className={styles.uploadButton}
+						>
+							＋
+						</button>
+					</div>
 
-				<input
-					ref={fileInputRef}
-					type="file"
-					multiple
-					accept="image/*"
-					onChange={handleFilesChange}
-					style={{ display: "none" }}
-				/>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						accept="image/*"
+						onChange={handleFilesChange}
+						style={{ display: "none" }}
+						required
+					/>
+				</div>
+				{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			</div>
-			{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			<div className={styles.formGroup}>
 				{submitted && fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 				<input
@@ -312,12 +322,7 @@ export function ArtForm() {
 				{submitted && fieldErrors.painterName && (
 					<small className={styles.errorText}>{fieldErrors.painterName}</small>
 				)}
-				<input
-					name="painterName"
-					value={form.painterName}
-					onChange={handleChange}
-					placeholder="Painter name"
-				/>
+				<input name="painterName" value={form.artisName} onChange={handleChange} placeholder="Painter name" />
 			</div>
 
 			<div className={styles.formGroup}>
