@@ -11,7 +11,7 @@ import {
 	type ProductListItemNoReviewsFragment,
 } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
-import { ClickableProductList } from "@/ui/components/nav/components/RealState/product-details/ClickableProductList";
+import { ClickableProductList } from "@/ui/components/nav/components/art/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	ART_CATEGORY_SLUG,
@@ -20,6 +20,8 @@ import {
 	EVENT_TYPE_ALL,
 } from "@/checkout/utils/constants";
 import { FloatingButtonLayoutCreate } from "@/ui/components/nav/components/manageCategories/FormSubCategory/FloatButton/floatButton";
+import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
+
 
 export interface SimpleCountry {
 	name: string;
@@ -257,17 +259,19 @@ export default function ArtProductsClientPage() {
 
 	return (
 		<div className="min-h-screen pb-24">
-			<MarketplaceControls
-				sectionSlug={ART_CATEGORY_SLUG}
-				currentFilters={filters}
-				onSearchChange={handleSearchChange}
-				onLocationChange={handleLocationChange}
-				onMainCategoryChange={handleMainCategoryChange}
-				onApplyModalFilters={handleModalFiltersApply}
-				onResetAllFilters={resetAllFilters}
-				subCategoryOptionsForModal={subCategoryOptionsForModal}
-			/>
-			<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			<FluidHideOnScrollHeader>
+				<MarketplaceControls
+					sectionSlug={ART_CATEGORY_SLUG}
+					currentFilters={filters}
+					onSearchChange={handleSearchChange}
+					onLocationChange={handleLocationChange}
+					onMainCategoryChange={handleMainCategoryChange}
+					onApplyModalFilters={handleModalFiltersApply}
+					onResetAllFilters={resetAllFilters}
+					subCategoryOptionsForModal={subCategoryOptionsForModal}
+				/>
+				<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			</FluidHideOnScrollHeader>
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />

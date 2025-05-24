@@ -14,6 +14,8 @@ import { executeGraphQL } from "@/lib/graphql";
 import { ClickableProductList } from "@/ui/components/nav/components/luxury-goods/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
 import { LUXURY_GOODS_CATEGORY_SLUG, EVENT_TYPE_ALL } from "@/checkout/utils/constants";
+import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
+
 
 export interface SimpleCountry {
 	name: string;
@@ -230,17 +232,19 @@ export default function CategoryProductsClientPage() {
 
 	return (
 		<div className="min-h-screen pb-24">
-			<MarketplaceControls
-				sectionSlug={LUXURY_GOODS_CATEGORY_SLUG}
-				currentFilters={filters}
-				onSearchChange={handleSearchChange}
-				onLocationChange={handleLocationChange}
-				onMainCategoryChange={handleMainCategoryChange}
-				onApplyModalFilters={handleModalFiltersApply}
-				onResetAllFilters={resetAllFilters}
-				subCategoryOptionsForModal={subCategoryOptionsForModal}
-			/>
-			<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			<FluidHideOnScrollHeader>
+				<MarketplaceControls
+					sectionSlug={LUXURY_GOODS_CATEGORY_SLUG}
+					currentFilters={filters}
+					onSearchChange={handleSearchChange}
+					onLocationChange={handleLocationChange}
+					onMainCategoryChange={handleMainCategoryChange}
+					onApplyModalFilters={handleModalFiltersApply}
+					onResetAllFilters={resetAllFilters}
+					subCategoryOptionsForModal={subCategoryOptionsForModal}
+				/>
+				<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			</FluidHideOnScrollHeader>
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />

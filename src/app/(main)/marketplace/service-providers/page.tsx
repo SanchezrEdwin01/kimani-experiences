@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { ClientFloatingWrapper } from "../../../../ui/components/nav/components/FloatButton/FloatingWrapper";
 import { ConsoleNav, type Tab } from "@/ui/components/ConsoleNav";
 import { MarketplaceControls } from "@/ui/components/MarketplaceControls";
 import {
@@ -11,13 +11,12 @@ import {
 	type ProductListItemNoReviewsFragment,
 } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
-import { ClickableProductList } from "@/ui/components/nav/components/RealState/product-details/ClickableProductList";
+import { ClickableProductList } from "@/ui/components/nav/components/service-provider/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
-import { TYPES, EVENT_TYPE_ALL } from "@/checkout/utils/constants";
-import { FloatingButtonLayoutCreate } from "@/ui/components/nav/components/manageCategories/FormSubCategory/FloatButton/floatButton";
+import { EVENT_TYPE_ALL } from "@/checkout/utils/constants";
+import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
 
 const SERVICE_PROVIDERS_SLUG = "service-providers";
-const SERVICE_PROVIDERS_PRODUCT_CREATE_ROUTE_VALUE_EXAMPLE = "create-service-provider-route";
 
 export interface SimpleCountry {
 	name: string;
@@ -34,23 +33,6 @@ export type FiltersState = {
 	subCategorySlug?: string;
 	priceRange: { min: number; max: number };
 	sort: { field: "price" | "date"; direction: "asc" | "desc" };
-};
-
-const ClientFloatingWrapperServiceProviders = ({ children }: { children: React.ReactNode }) => {
-	const router = useRouter();
-	const handleFloatingClick = () => {
-		// Busca una ruta de creación específica para Service Providers
-		const routeConfig = TYPES.find(
-			(type) => type.value === SERVICE_PROVIDERS_PRODUCT_CREATE_ROUTE_VALUE_EXAMPLE,
-		);
-		if (routeConfig?.route) {
-			void router.push(`/${routeConfig.route}`);
-		} else {
-			console.error("Create service provider product route not found in constants");
-			alert("Navigation path for creating a service provider product is not configured.");
-		}
-	};
-	return <FloatingButtonLayoutCreate onClick={handleFloatingClick}>{children}</FloatingButtonLayoutCreate>;
 };
 
 export default function ServiceProvidersClientPage() {
@@ -251,23 +233,25 @@ export default function ServiceProvidersClientPage() {
 
 	return (
 		<div className="min-h-screen pb-24">
-			<MarketplaceControls
-				sectionSlug={SERVICE_PROVIDERS_SLUG}
-				currentFilters={filters}
-				onSearchChange={handleSearchChange}
-				onLocationChange={handleLocationChange}
-				onMainCategoryChange={handleMainCategoryChange}
-				onApplyModalFilters={handleModalFiltersApply}
-				onResetAllFilters={resetAllFilters}
-				subCategoryOptionsForModal={subCategoryOptionsForModal}
-			/>
-			<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			<FluidHideOnScrollHeader>
+				<MarketplaceControls
+					sectionSlug={SERVICE_PROVIDERS_SLUG}
+					currentFilters={filters}
+					onSearchChange={handleSearchChange}
+					onLocationChange={handleLocationChange}
+					onMainCategoryChange={handleMainCategoryChange}
+					onApplyModalFilters={handleModalFiltersApply}
+					onResetAllFilters={resetAllFilters}
+					subCategoryOptionsForModal={subCategoryOptionsForModal}
+				/>
+				<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			</FluidHideOnScrollHeader>
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />
 				</div>
 			) : (
-				<ClientFloatingWrapperServiceProviders>
+				<ClientFloatingWrapper>
 					<ClickableProductList
 						products={shown}
 						categoryName={
@@ -277,7 +261,7 @@ export default function ServiceProvidersClientPage() {
 								: SERVICE_PROVIDERS_SLUG)
 						}
 					/>
-				</ClientFloatingWrapperServiceProviders>
+				</ClientFloatingWrapper>
 			)}
 		</div>
 	);

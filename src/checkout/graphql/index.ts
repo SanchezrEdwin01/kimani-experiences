@@ -1,5 +1,5 @@
 // THIS FILE IS GENERATED WITH `pnpm generate`
-import gql from "graphql-tag";
+import { gql } from "graphql-tag";
 import * as Urql from "urql";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
