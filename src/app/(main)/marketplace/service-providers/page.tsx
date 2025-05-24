@@ -14,6 +14,7 @@ import { executeGraphQL } from "@/lib/graphql";
 import { ClickableProductList } from "@/ui/components/nav/components/service-provider/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
 import { EVENT_TYPE_ALL } from "@/checkout/utils/constants";
+import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
 
 const SERVICE_PROVIDERS_SLUG = "service-providers";
 
@@ -232,17 +233,19 @@ export default function ServiceProvidersClientPage() {
 
 	return (
 		<div className="min-h-screen pb-24">
-			<MarketplaceControls
-				sectionSlug={SERVICE_PROVIDERS_SLUG}
-				currentFilters={filters}
-				onSearchChange={handleSearchChange}
-				onLocationChange={handleLocationChange}
-				onMainCategoryChange={handleMainCategoryChange}
-				onApplyModalFilters={handleModalFiltersApply}
-				onResetAllFilters={resetAllFilters}
-				subCategoryOptionsForModal={subCategoryOptionsForModal}
-			/>
-			<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			<FluidHideOnScrollHeader>
+				<MarketplaceControls
+					sectionSlug={SERVICE_PROVIDERS_SLUG}
+					currentFilters={filters}
+					onSearchChange={handleSearchChange}
+					onLocationChange={handleLocationChange}
+					onMainCategoryChange={handleMainCategoryChange}
+					onApplyModalFilters={handleModalFiltersApply}
+					onResetAllFilters={resetAllFilters}
+					subCategoryOptionsForModal={subCategoryOptionsForModal}
+				/>
+				<ConsoleNav activeTab={activeTab} onTabChange={handleTabChangeWithLoading} />
+			</FluidHideOnScrollHeader>
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />

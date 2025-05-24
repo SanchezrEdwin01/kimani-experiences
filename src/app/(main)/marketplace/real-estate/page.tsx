@@ -14,6 +14,7 @@ import { ClickableProductList } from "@/ui/components/nav/components/RealState/p
 import { Loader } from "@/ui/atoms/Loader";
 import { REAL_ESTATE_CATEGORY_SLUG, EVENT_TYPE_ALL } from "@/checkout/utils/constants";
 import { ClientFloatingWrapperReal } from "@/ui/components/nav/components/RealState/FloatButton/FloatingWrapper";
+import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
 
 export interface SimpleCountry {
 	name: string;
@@ -223,19 +224,20 @@ export default function CategoryProductsClientPage() {
 
 	return (
 		<div className="min-h-screen pb-24">
-			<MarketplaceControls
-				sectionSlug={REAL_ESTATE_CATEGORY_SLUG}
-				currentFilters={filters}
-				onSearchChange={handleSearchChange}
-				onLocationChange={handleLocationChange}
-				onMainCategoryChange={handleMainCategoryChange}
-				onApplyModalFilters={handleModalFiltersApply}
-				onResetAllFilters={resetAllFilters}
-				subCategoryOptionsForModal={subCategoryOptionsForModal}
-			/>
+			<FluidHideOnScrollHeader>
+				<MarketplaceControls
+					sectionSlug={REAL_ESTATE_CATEGORY_SLUG}
+					currentFilters={filters}
+					onSearchChange={handleSearchChange}
+					onLocationChange={handleLocationChange}
+					onMainCategoryChange={handleMainCategoryChange}
+					onApplyModalFilters={handleModalFiltersApply}
+					onResetAllFilters={resetAllFilters}
+					subCategoryOptionsForModal={subCategoryOptionsForModal}
+				/>
 
-			<ConsoleNav activeTab={activeTab} onTabChange={setActiveTab} />
-
+				<ConsoleNav activeTab={activeTab} onTabChange={setActiveTab} />
+			</FluidHideOnScrollHeader>
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />
