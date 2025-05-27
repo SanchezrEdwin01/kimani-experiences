@@ -1,10 +1,11 @@
 "use client";
-
 import React, { useState, useRef, type ChangeEvent, useEffect } from "react";
 import slugify from "slugify";
 import Image from "next/image";
 import { Country, State, City } from "country-state-city";
+import convert from "heic-convert/browser";
 import styles from "./LuxuryGoodsForm.module.scss";
+import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
 	CreateServiceProductDocument,
@@ -50,6 +51,7 @@ export function LuxuryGoodsForm() {
 	const [errors, setErrors] = useState<{ imageError?: string }>({});
 	const [successMessage, setSuccessMessage] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [isLoading, setIsLoading] = useState(false);
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
@@ -183,80 +185,190 @@ export function LuxuryGoodsForm() {
 		e.preventDefault();
 		setSuccessMessage("");
 
-		if (filesToUpload.length === 0) {
-			setErrors((prev) => ({ ...prev, imageError: "At least one image is required" }));
-			window.scrollTo({ top: 0, behavior: "smooth" });
-			return;
-		}
+		setIsLoading(true);
 
-		setErrors((prev) => ({ ...prev, imageError: undefined }));
-
-		const descriptionJSON = JSON.stringify({
-			blocks: [{ type: "paragraph", data: { text: form.description } }],
-			version: "2.0",
-		});
-
-		const createVars = {
-			name: form.title,
-			slug: slugify(form.title, { lower: true }),
-			productType: "UHJvZHVjdFR5cGU6Mw==",
-			category: form.category,
-			description: descriptionJSON,
-			attributes: [
-				{ id: "QXR0cmlidXRlOjEx", plainText: form.city },
-				{ id: "QXR0cmlidXRlOjQw", plainText: form.country },
-				{ id: "QXR0cmlidXRlOjQ1", plainText: form.state },
-				{ id: "QXR0cmlidXRlOjE0", numeric: form.zip },
-				{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
-				{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition },
-				{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
-				{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
-				{ id: "QXR0cmlidXRlOjIy", plainText: "" },
-				{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
-			],
-		};
-
-		const createRes = await executeGraphQL(CreateServiceProductDocument, {
-			variables: createVars,
-		});
-		const productId = createRes.productCreate?.product?.id;
-		if (!productId) return;
-
-		const variantRes = await executeGraphQL(CreateDefaultVariantDocument, {
-			variables: { productId, sku: `${createVars.slug}-DEFAULT` },
-		});
-		const variantId = variantRes.productVariantCreate?.productVariant?.id;
-		if (!variantId) return;
-
-		await executeGraphQL(PublishProductInChannelDocument, {
-			variables: { productId, channelId: "Q2hhbm5lbDox" },
-		});
-		await executeGraphQL(PublishVariantInChannelDocument, {
-			variables: { variantId, channelId: "Q2hhbm5lbDox", price: parseFloat(form.price) },
-		});
-
-		await executeGraphQL(AddProductToCollectionDocument, {
-			variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
-		});
-
-		if (filesToUpload.length) {
-			for (let i = 0; i < filesToUpload.length; i++) {
-				await uploadGraphQL(AddServiceImageDocument, {
-					product: productId,
-					image: filesToUpload[i],
-					alt: `${form.title}-${i}`,
-				});
+		try {
+			if (filesToUpload.length === 0) {
+				setErrors((prev) => ({ ...prev, imageError: "At least one image is required" }));
+				window.scrollTo({ top: 0, behavior: "smooth" });
+				return;
 			}
-		}
 
-		// Show success message and clear form
-		setSuccessMessage("Form submitted successfully!");
-		clearForm();
-		window.scrollTo({ top: 0, behavior: "smooth" });
+			setErrors((prev) => ({ ...prev, imageError: undefined }));
+
+			const descriptionJSON = JSON.stringify({
+				blocks: [{ type: "paragraph", data: { text: form.description } }],
+				version: "2.0",
+			});
+
+			const createVars = {
+				name: form.title,
+				slug: slugify(form.title, { lower: true }),
+				productType: "UHJvZHVjdFR5cGU6Mw==",
+				category: form.category,
+				description: descriptionJSON,
+				attributes: [
+					{ id: "QXR0cmlidXRlOjEx", plainText: form.city },
+					{ id: "QXR0cmlidXRlOjQw", plainText: form.country },
+					{ id: "QXR0cmlidXRlOjQ1", plainText: form.state },
+					{ id: "QXR0cmlidXRlOjE0", numeric: form.zip },
+					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
+					{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition },
+					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
+					{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
+					{ id: "QXR0cmlidXRlOjIy", plainText: "" },
+					{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
+				],
+			};
+
+			const createRes = await executeGraphQL(CreateServiceProductDocument, {
+				variables: createVars,
+			});
+			const productId = createRes.productCreate?.product?.id;
+			if (!productId) return;
+
+			const variantRes = await executeGraphQL(CreateDefaultVariantDocument, {
+				variables: { productId, sku: `${createVars.slug}-DEFAULT` },
+			});
+			const variantId = variantRes.productVariantCreate?.productVariant?.id;
+			if (!variantId) return;
+
+			await executeGraphQL(PublishProductInChannelDocument, {
+				variables: { productId, channelId: "Q2hhbm5lbDox" },
+			});
+			await executeGraphQL(PublishVariantInChannelDocument, {
+				variables: { variantId, channelId: "Q2hhbm5lbDox", price: parseFloat(form.price) },
+			});
+
+			await executeGraphQL(AddProductToCollectionDocument, {
+				variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
+			});
+
+			function detectImageFormat(uint8Array: Uint8Array): string {
+				if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
+					return "jpeg";
+				}
+
+				if (
+					uint8Array[0] === 0x89 &&
+					uint8Array[1] === 0x50 &&
+					uint8Array[2] === 0x4e &&
+					uint8Array[3] === 0x47
+				) {
+					return "png";
+				}
+
+				if (uint8Array.length > 12) {
+					const ftypCheck =
+						uint8Array[4] === 0x66 &&
+						uint8Array[5] === 0x74 &&
+						uint8Array[6] === 0x79 &&
+						uint8Array[7] === 0x70;
+
+					if (ftypCheck) {
+						const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
+						if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
+							return "heic";
+						}
+					}
+				}
+
+				if (
+					uint8Array.length > 12 &&
+					uint8Array[0] === 0x52 &&
+					uint8Array[1] === 0x49 &&
+					uint8Array[2] === 0x46 &&
+					uint8Array[3] === 0x46 &&
+					uint8Array[8] === 0x57 &&
+					uint8Array[9] === 0x45 &&
+					uint8Array[10] === 0x42 &&
+					uint8Array[11] === 0x50
+				) {
+					return "webp";
+				}
+
+				return "unknown";
+			}
+
+			if (filesToUpload.length) {
+				console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
+				for (let i = 0; i < filesToUpload.length; i++) {
+					let fileToSend = filesToUpload[i];
+					console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
+
+					if (/\.heic$/i.test(fileToSend.name)) {
+						console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
+						const arrayBuffer = await fileToSend.arrayBuffer();
+						console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
+						const uint8ArrayInput = new Uint8Array(arrayBuffer);
+
+						const actualFormat = detectImageFormat(uint8ArrayInput);
+						console.log(`🔍  Formato detectado: ${actualFormat}`);
+
+						if (actualFormat === "heic") {
+							console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
+
+							try {
+								const outputBuffer: ArrayBuffer = await convert({
+									buffer: uint8ArrayInput.buffer,
+									format: "JPEG",
+									quality: 0.8,
+								});
+								console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
+								const blob = new Blob([outputBuffer], { type: "image/jpeg" });
+								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+									type: "image/jpeg",
+								});
+								console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
+							} catch (conversionError) {
+								console.error("Error durante la conversión HEIC:", conversionError);
+								throw conversionError;
+							}
+						} else if (actualFormat === "jpeg") {
+							console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
+							const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
+							fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+								type: "image/jpeg",
+							});
+							console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
+						} else {
+							console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
+						}
+					} else {
+						console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
+					}
+
+					console.log(`🚀  Subiendo ${fileToSend.name}...`);
+					await uploadGraphQL(AddServiceImageDocument, {
+						product: productId,
+						image: fileToSend,
+						alt: `${form.title}-${i}`,
+					});
+					console.log(`🎉  Subida completada para ${fileToSend.name}`);
+				}
+				console.log("🏁  Todas las imágenes procesadas y subidas.");
+			}
+
+			setSuccessMessage("Form submitted successfully!");
+			clearForm();
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		} catch (error) {
+			console.error("Error submitting form:", error);
+			setErrors((prev) => ({ ...prev, imageError: "An error occurred while submitting the form." }));
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		} finally {
+			setIsLoading(false);
+		}
 	}
 
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
+			{isLoading && (
+				<div className={styles.loadingOverlay}>
+					{" "}
+					<Loader />
+				</div>
+			)}
 			{successMessage && (
 				<div
 					style={{
