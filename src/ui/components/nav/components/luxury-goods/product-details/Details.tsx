@@ -76,6 +76,15 @@ export function ProductPage({ slug }: ProductPageProps) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
+	// Logging para depuración
+	useEffect(() => {
+		if (product) {
+			console.log("Product media:", product.media);
+			console.log("Product thumbnail:", product.thumbnail);
+			console.log("Final productImages array:", productImages);
+		}
+	}, [product, productImages]);
+
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
 
@@ -89,6 +98,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					fill
 					sizes="100vw"
 					className={styles.hero}
+					style={{ objectFit: "cover" }}
 				/>
 				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
 					<ArrowLeftIcon />
@@ -102,15 +112,31 @@ export function ProductPage({ slug }: ProductPageProps) {
 					</button>
 				</div>
 				{productImages.length > 1 && (
-					<div className={styles.galleryControls}>
-						{productImages.map((_, idx) => (
-							<button
-								key={idx}
-								className={`${styles.galleryDot} ${idx === currentImageIndex ? styles.active : ""}`}
-								onClick={() => setCurrentImageIndex(idx)}
-								aria-label={`View image ${idx + 1}`}
-							/>
-						))}
+					<div className={styles.galleryNavigation}>
+						<button
+							className={styles.prevBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1))
+							}
+							aria-label="Previous image"
+						>
+							<ArrowLeftIcon />
+						</button>
+
+						{/* Agregar contador de imágenes */}
+						<div className={styles.imageCounter}>
+							{currentImageIndex + 1} / {productImages.length}
+						</div>
+
+						<button
+							className={styles.nextBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1))
+							}
+							aria-label="Next image"
+						>
+							<ArrowLeftIcon style={{ transform: "rotate(180deg)" }} />
+						</button>
 					</div>
 				)}
 			</div>
@@ -137,6 +163,18 @@ export function ProductPage({ slug }: ProductPageProps) {
 				{city && <p className={styles.cityDisplay}>{city}</p>}
 			</div>
 
+			{/* Review Section - User of listing agent */}
+			<section>
+				<div className={styles.ambassadorInfo}>
+					<div className={styles.ambassadorIcon}>
+						<Image src="/luxury-profile.jpg" alt="Listing Agent" width={48} height={48} />
+					</div>
+					<div className={styles.ambassadorDetails}>
+						<p>User of listing agent</p>
+						<p className={styles.ambassadorName}>Type of member</p>
+					</div>
+				</div>
+			</section>
 			<hr className={styles.divider} />
 
 			{/* Description */}

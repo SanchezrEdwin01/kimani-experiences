@@ -48,6 +48,7 @@ export function LuxuryGoodsForm() {
 	});
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const [errors, setErrors] = useState<{ imageError?: string }>({});
+	const [successMessage, setSuccessMessage] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
@@ -155,11 +156,35 @@ export function LuxuryGoodsForm() {
 		setForm((prev) => ({ ...prev, city: e.target.value }));
 	}
 
+	function clearForm() {
+		setForm({
+			title: "",
+			category: "",
+			city: "",
+			zip: "",
+			area: "",
+			state: "",
+			country: "",
+			priceOption: "",
+			price: "",
+			currency: "",
+			condition: "",
+			description: "",
+			externalLink: "",
+			brandName: "",
+		});
+		setFilesToUpload([]);
+		setStates([]);
+		setCities([]);
+		setErrors({});
+	}
+
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
+		setSuccessMessage("");
 
 		if (filesToUpload.length === 0) {
-			setErrors((prev) => ({ ...prev, imageError: "Al menos una imagen es requerida" }));
+			setErrors((prev) => ({ ...prev, imageError: "At least one image is required" }));
 			window.scrollTo({ top: 0, behavior: "smooth" });
 			return;
 		}
@@ -187,7 +212,7 @@ export function LuxuryGoodsForm() {
 				{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 				{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
 				{ id: "QXR0cmlidXRlOjIy", plainText: "" },
-				{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink },
+				{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
 			],
 		};
 
@@ -223,10 +248,30 @@ export function LuxuryGoodsForm() {
 				});
 			}
 		}
+
+		// Show success message and clear form
+		setSuccessMessage("Form submitted successfully!");
+		clearForm();
+		window.scrollTo({ top: 0, behavior: "smooth" });
 	}
 
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
+			{successMessage && (
+				<div
+					style={{
+						backgroundColor: "#d4edda",
+						color: "#155724",
+						padding: "10px",
+						borderRadius: "4px",
+						marginBottom: "20px",
+						border: "1px solid #c3e6cb",
+					}}
+				>
+					{successMessage}
+				</div>
+			)}
+
 			<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
 				{filesToUpload.map((file, idx) => {
 					const objectUrl = URL.createObjectURL(file);
@@ -265,9 +310,6 @@ export function LuxuryGoodsForm() {
 					{errors.imageError}
 				</p>
 			)}
-			<div className={styles.requiredField} style={{ fontSize: "14px", marginTop: "5px" }}>
-				* Imagen requerida
-			</div>
 
 			<div className={styles.formGroup}>
 				<input name="title" value={form.title} onChange={handleChange} placeholder="Title of luxury good" />

@@ -32,6 +32,7 @@ const config: CodegenConfig = {
 				scalars: {
 					Date: "string",
 					DateTime: "string",
+					Hour: "string",
 					Day: "number",
 					Decimal: "number",
 					GenericScalar: "unknown",
