@@ -1,10 +1,10 @@
-.form-container {
+.formContainer {
 	background-color: #121212;
 	color: #6c6b6b;
 	padding: 20px;
 	border-radius: 8px;
 	margin: auto;
-	margin-top: 20px;
+	margin-top: 1px;
 	width: 100%;
 	max-width: 500px;
 
@@ -12,23 +12,30 @@
 	grid-template-columns: 1fr;
 	row-gap: 20px;
 
-	/* imagen siempre full-width */
-	.image-upload {
-		background: #1e1e1e;
-		height: 160px;
+	.imageUpload {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 6px;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		gap: 0.5rem;
+		height: 250px;
+		background: #1e1e1e;
+		border-radius: 8px;
+		padding: 0 1rem;
 
-		button {
-			font-size: 24px;
-			background: transparent;
-			border: 2px dashed #444;
-			color: #6c6b6b;
-			padding: 10px 20px;
-			cursor: pointer;
-			border-radius: 20px;
+		&.hasImages {
+			justify-content: flex-start;
+
+			.thumbWrapper.addButton {
+				margin-left: auto;
+				margin-right: auto;
+			}
+		}
+
+		&.errorBorder {
+			border: 1px solid red;
 		}
 	}
 
@@ -57,47 +64,46 @@
 		background-position: calc(100% - 10px) center;
 	}
 
-	.section-title {
+	.sectionTitle {
 		font-size: 16px;
 		font-weight: bold;
 		margin-bottom: 10px;
 	}
 
-	.section-divider {
+	.sectionDivider {
 		height: 1px;
 		background-color: #333;
 		margin: 10px 0;
 		width: 100%;
 	}
 
-	/* MOBILE: a colum */
 	.location {
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 10px;
 	}
 
-	.city-zip-row {
+	.cityZipRow {
 		display: flex;
 		justify-content: space-between;
 		width: 100%;
 	}
 
-	.city-zip-row select,
-	.city-zip-row .zip-code {
+	.cityZipRow select,
+	.cityZipRow .zipCode {
 		width: 48%;
 		padding: 8px;
 		border-radius: 4px;
 	}
-	.city-zip-row select {
+	.cityZipRow select {
 		margin-right: 4%;
 	}
-	.open-hours {
+	.openHours {
 		display: flex;
 		flex-direction: column;
 		gap: 0;
 
-		.day-row {
+		.dayRow {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
@@ -105,7 +111,7 @@
 			border-radius: 0;
 			position: relative;
 
-			.day-info {
+			.dayInfo {
 				display: flex;
 				align-items: center;
 				gap: 10px;
@@ -125,7 +131,7 @@
 				}
 			}
 
-			.add-hours-button {
+			.addHoursButton {
 				background: none;
 				border: none;
 				color: #fff;
@@ -139,36 +145,36 @@
 			}
 		}
 
-		.day-separator {
+		.daySeparator {
 			border: none;
 			border-top: 1px solid #333;
 			margin: 0;
 			width: 100%;
 		}
 
-		.day-row:first-child {
+		.dayRow:first-child {
 			border-top-left-radius: 4px;
 			border-top-right-radius: 4px;
 		}
-		.day-row:last-child {
+		.dayRow:last-child {
 			border-bottom-left-radius: 4px;
 			border-bottom-right-radius: 4px;
 		}
 	}
 
-	.provider-details {
+	.providerDetails {
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 10px;
 
-		.phone-input {
+		.phoneInput {
 			display: flex;
 			align-items: center;
 			background: #1e1e1e;
 			border-radius: 5px;
 			overflow: hidden;
 
-			.country-code {
+			.countryCode {
 				display: flex;
 				align-items: center;
 				padding: 0 10px;
@@ -247,7 +253,7 @@
 		}
 	}
 
-	.submit-button {
+	.submitButton {
 		background-color: #ffcc00;
 		color: #000;
 		font-weight: bold;
@@ -257,46 +263,46 @@
 		padding: 12px;
 	}
 
-	/* TABLET: dos columnas en secciones */
 	@media (min-width: 640px) {
-		.location {
-			grid-template-columns: repeat(2, 1fr);
+		max-width: 500px;
 
-			.zip-code {
-				grid-column: 2;
+		.location {
+			grid-template-columns: 1fr;
+
+			.zipCode {
+				grid-column: auto;
 			}
 		}
 
-		.open-hours {
-			display: grid;
-			grid-template-columns: repeat(2, 1fr);
+		.openHours {
+			display: flex;
+			flex-direction: column;
 		}
 
-		.provider-details {
-			grid-template-columns: repeat(2, 1fr);
+		.providerDetails {
+			grid-template-columns: 1fr;
 		}
 	}
 
-	/* DESKTOP: más espacio y columnas extra */
 	@media (min-width: 1024px) {
-		max-width: 800px;
+		max-width: 500px;
 
-		.open-hours {
-			grid-template-columns: repeat(4, 1fr);
+		.openHours {
+			display: flex;
+			flex-direction: column;
 		}
 
-		.provider-details {
-			grid-template-columns: repeat(3, 1fr);
+		.providerDetails {
+			grid-template-columns: 1fr;
 		}
 
-		/* submit full-width bajo grid de 2/3 cols */
-		.submit-button {
-			grid-column: 1 / -1;
+		.submitButton {
+			grid-column: auto;
 		}
 	}
 }
 
-.modal-overlay {
+.modalOverlay {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -306,33 +312,38 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+
+	.timeLabel {
+		display: block;
+		margin-bottom: 1rem;
+	}
+
+	input[type="time"] {
+		background-color: #fff;
+		color: #000;
+		border: 1px solid #ccc;
+		padding: 0.5rem;
+		width: 50%;
+		border-radius: 4px;
+	}
+
+	.modal {
+		background: #333;
+		color: #fff;
+		padding: 1.5rem;
+		border-radius: 8px;
+		width: 300px;
+
+		.modalActions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 0.5rem;
+			margin-top: 1rem;
+		}
+	}
 }
-.time-label {
-	display: block;
-	margin-bottom: 1rem;
-}
-input[type="time"] {
-	background-color: #fff;
-	color: #000;
-	border: 1px solid #ccc;
-	padding: 0.5rem;
-	width: 50%;
-	border-radius: 4px;
-}
-.modal {
-	background: #333;
-	color: #fff;
-	padding: 1.5rem;
-	border-radius: 8px;
-	width: 300px;
-}
-.modal-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 0.5rem;
-	margin-top: 1rem;
-}
-.add-hours-button {
+
+.addHoursButton {
 	background: none;
 	border: none;
 	color: #fff;
@@ -340,7 +351,7 @@ input[type="time"] {
 	cursor: pointer;
 }
 
-.images-uploader {
+.imagesUploader {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -349,23 +360,39 @@ input[type="time"] {
 	overflow-y: hidden;
 	gap: 0.5rem;
 	margin-bottom: 1rem;
-	height: 160px;
-	background: #555;
-	border-radius: 6px;
+	height: 250px;
+	background: #1e1e1e;
+	border-radius: 8px;
 	padding: 0 1rem;
+
+	&.hasImages {
+		justify-content: flex-start;
+
+		.thumbWrapper.addButton {
+			margin-left: auto;
+			margin-right: auto;
+		}
+	}
 }
 
-.images-uploader:has(.thumb-wrapper:not(.add-button)) {
-	justify-content: flex-start;
-}
-
-.thumb-wrapper.add-button {
+.thumbWrapper {
+	position: relative;
+	overflow: hidden;
+	flex: 0 0 auto;
 	height: 100%;
 	display: flex;
 	align-items: center;
+
+	&.addButton {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto;
+	}
 }
 
-.plus-btn {
+.plusBtn {
 	width: 56px;
 	height: 56px;
 	display: flex;
@@ -375,7 +402,7 @@ input[type="time"] {
 	border: none;
 	border-radius: 8px;
 	color: #fff;
-	font-size: 1.5rem;
+	font-size: 24px;
 	font-weight: 700;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 	cursor: pointer;
@@ -386,22 +413,28 @@ input[type="time"] {
 	}
 }
 
-.thumb-wrapper {
-	position: relative;
-	overflow: hidden;
-	flex: 0 0 auto;
-	height: 100%;
+.uploadButton {
+	width: 56px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #2c2c2c;
+	border: none;
+	border-radius: 8px;
+	color: #fff;
+	font-size: 24px;
+	font-weight: 700;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+	transition: background 0.2s;
+
+	&:hover {
+		background: #3a3a3a;
+	}
 }
 
-.thumb-wrapper .thumb {
-	height: 100%;
-	width: auto;
-	object-fit: cover;
-	border-radius: 4px;
-}
-
-// eliminar imagen
-.delete-btn {
+.deleteBtn {
 	position: absolute;
 	top: 4px;
 	right: 4px;
@@ -418,30 +451,33 @@ input[type="time"] {
 	align-items: center;
 	justify-content: center;
 	z-index: 1;
-}
-.delete-btn:hover {
-	background: rgba(255, 0, 0, 0.8);
+
+	&:hover {
+		background: rgba(255, 0, 0, 0.8);
+	}
 }
 
 .thumb {
-	border-radius: 4px;
+	height: 100%;
+	width: auto;
 	object-fit: cover;
+	border-radius: 4px;
 	margin-bottom: 0.25rem;
 }
 
-.alt-input {
+.altInput {
 	width: 100%;
 	font-size: 0.75rem;
 	padding: 2px;
 	text-align: center;
 }
 
-.custom-phone-container .flag-dropdown {
+.customPhoneContainer :global(.flag-dropdown) {
 	background-color: #1e1e1e !important;
 	border: 1px solid #444 !important;
 }
 
-.custom-phone-container .country-list {
+.customPhoneContainer :global(.country-list) {
 	background-color: #1e1e1e !important;
 	color: white !important;
 	border: 1px solid #444;
@@ -449,18 +485,18 @@ input[type="time"] {
 	overflow-y: auto;
 }
 
-.custom-phone-container .country {
+.customPhoneContainer :global(.country) {
 	background-color: #1e1e1e !important;
 	color: white !important;
 }
 
-.custom-phone-container .country:hover,
-.custom-phone-container .country.highlight {
+.customPhoneContainer :global(.country:hover),
+.customPhoneContainer :global(.country.highlight) {
 	background-color: #333 !important;
 	color: white !important;
 }
 
-.custom-phone-container .selected-flag {
+.customPhoneContainer :global(.selected-flag) {
 	background-color: #1e1e1e !important;
 	color: white !important;
 	border: 1px solid #444 !important;

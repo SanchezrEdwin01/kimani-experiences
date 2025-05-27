@@ -246,7 +246,6 @@ export function RealEstateForm() {
 			{ key: "bedrooms", label: "Bedrooms" },
 			{ key: "bathrooms", label: "Bathrooms" },
 			{ key: "parkingNumber", label: "ParkingNumber" },
-			{ key: "externalLink", label: "ExternalLink" },
 		];
 
 		requiredFields.forEach(({ key, label }) => {
@@ -365,10 +364,6 @@ export function RealEstateForm() {
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
 			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
-				<h3 className={styles.sectionTitle} style={{ marginBottom: "0.5rem" }}>
-					Images <span style={{ color: "red" }}>*</span>
-				</h3>
-				<p className={styles.helperText}>At least one image is required</p>
 				<div
 					className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""} ${
 						submitted && fieldErrors.images ? styles.errorBorder : ""

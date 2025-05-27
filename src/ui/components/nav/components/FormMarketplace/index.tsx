@@ -1,4 +1,3 @@
-// src/components/ServiceForm.tsx
 "use client";
 
 import React, { useState, type ChangeEvent, useRef, useEffect } from "react";
@@ -9,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Country, State, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import Lottie from "lottie-react";
+import styles from "./index.module.scss";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import {
 	CategoryTreeDocument,
@@ -22,7 +22,6 @@ import {
 	UpdateProductMetadataDocument,
 } from "@/gql/graphql";
 import "react-phone-input-2/lib/style.css";
-import "./index.scss";
 import successAnimation from "@/ui/components/nav/components/animation/Animation - 1747544233336.json";
 
 interface DayHours {
@@ -413,13 +412,13 @@ export function ServiceForm() {
 	}
 
 	return (
-		<form className="form-container" onSubmit={handleSubmit}>
-			<div className={`images-uploader ${filesToUpload.length ? "has-images" : ""}`}>
+		<form className={styles.formContainer} onSubmit={handleSubmit}>
+			<div className={`${styles.imagesUploader} ${filesToUpload.length ? styles.hasImages : ""}`}>
 				{filesToUpload.map((file, idx) => {
 					const objectUrl = URL.createObjectURL(file);
 					return (
-						<div className="thumb-wrapper" key={idx}>
-							<button type="button" className="delete-btn" onClick={() => handleRemove(idx)}>
+						<div className={styles.thumbWrapper} key={idx}>
+							<button type="button" className={styles.deleteBtn} onClick={() => handleRemove(idx)}>
 								×
 							</button>
 							<Image
@@ -427,14 +426,19 @@ export function ServiceForm() {
 								alt={alts[idx] || `Image ${idx + 1}`}
 								width={700}
 								height={400}
-								className="thumb"
+								className={styles.thumb}
 							/>
 						</div>
 					);
 				})}
-				<div className="thumb-wrapper add-button">
-					<button type="button" onClick={() => fileInputRef.current?.click()} className="plus-btn">
-						+
+				<div className={`${styles.thumbWrapper} ${styles.addButton}`}>
+					<button
+						type="button"
+						onClick={() => fileInputRef.current?.click()}
+						className={styles.uploadButton}
+						style={{ fontSize: "23px" }}
+					>
+						＋
 					</button>
 				</div>
 				<input
@@ -446,10 +450,12 @@ export function ServiceForm() {
 					style={{ display: "none" }}
 				/>
 			</div>
-			{submitted && fieldErrors.images && <small className="errorText">{fieldErrors.images}</small>}
-			{submitted && fieldErrors.title && <small className="errorText">{fieldErrors.title}</small>}
+			{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
+			{submitted && fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 			<input type="text" name="title" placeholder="Title of the service" onChange={handleChange} />
-			{submitted && fieldErrors.subcategory && <small className="errorText">{fieldErrors.subcategory}</small>}
+			{submitted && fieldErrors.subcategory && (
+				<small className={styles.errorText}>{fieldErrors.subcategory}</small>
+			)}
 			<select name="subcategory" value={formData.subcategory} onChange={handleChange}>
 				<option value="">Service type</option>
 				{categories.map((cat) => (
@@ -462,7 +468,9 @@ export function ServiceForm() {
 					</optgroup>
 				))}
 			</select>
-			{submitted && fieldErrors.discount && <small className="errorText">{fieldErrors.discount}</small>}
+			{submitted && fieldErrors.discount && (
+				<small className={styles.errorText}>{fieldErrors.discount}</small>
+			)}
 			<input
 				type="number"
 				name="discount"
@@ -486,17 +494,23 @@ export function ServiceForm() {
 					}
 				}}
 			/>
-			{submitted && fieldErrors.description && <small className="errorText">{fieldErrors.description}</small>}
+			{submitted && fieldErrors.description && (
+				<small className={styles.errorText}>{fieldErrors.description}</small>
+			)}
 			<textarea name="description" placeholder="Description" rows={3} onChange={handleChange} />
 
-			<div className="section-divider" />
+			<div className={styles.sectionDivider} />
 
 			<div>
-				<div className="section-title">Location details</div>
-				<div className="location">
-					{submitted && fieldErrors.address && <small className="errorText">{fieldErrors.address}</small>}
+				<div className={styles.sectionTitle}>Location details</div>
+				<div className={styles.location}>
+					{submitted && fieldErrors.address && (
+						<small className={styles.errorText}>{fieldErrors.address}</small>
+					)}
 					<input type="text" name="address" placeholder="Address" onChange={handleChange} />
-					{submitted && fieldErrors.country && <small className="errorText">{fieldErrors.country}</small>}
+					{submitted && fieldErrors.country && (
+						<small className={styles.errorText}>{fieldErrors.country}</small>
+					)}
 					<select name="country" value={formData.country} onChange={handleCountryChange}>
 						<option value="">Select Country</option>
 						{countries.map((c) => (
@@ -505,7 +519,7 @@ export function ServiceForm() {
 							</option>
 						))}
 					</select>
-					{submitted && fieldErrors.state && <small className="errorText">{fieldErrors.state}</small>}
+					{submitted && fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
 					<select name="state" value={formData.state} onChange={handleStateChange} disabled={!states.length}>
 						<option value="">State</option>
 						{states.map((s) => (
@@ -515,8 +529,8 @@ export function ServiceForm() {
 						))}
 					</select>
 
-					<div className="city-zip-row">
-						{submitted && fieldErrors.city && <small className="errorText">{fieldErrors.city}</small>}
+					<div className={styles.cityZipRow}>
+						{submitted && fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
 						<select name="city" onChange={handleCityChange} disabled={!cities.length}>
 							<option value="">City</option>
 							{cities.map((ct) => (
@@ -525,23 +539,25 @@ export function ServiceForm() {
 								</option>
 							))}
 						</select>
-						{submitted && fieldErrors.zip && <small className="errorText">{fieldErrors.zip}</small>}
+						{submitted && fieldErrors.zip && <small className={styles.errorText}>{fieldErrors.zip}</small>}
 						<input
 							type="text"
 							name="zip"
 							placeholder="Zip code"
-							className="zip-code"
+							className={styles.zipCode}
 							onChange={handleChange}
 						/>
 					</div>
 				</div>
 			</div>
 
-			<div className="section-divider" />
+			<div className={styles.sectionDivider} />
 
-			<div className="section-title">Time zone</div>
-			<label className="timezone-select">
-				{submitted && fieldErrors.defaultTz && <small className="errorText">{fieldErrors.defaultTz}</small>}
+			<div className={styles.sectionTitle}>Time zone</div>
+			<label className={styles.timezoneSelect}>
+				{submitted && fieldErrors.defaultTz && (
+					<small className={styles.errorText}>{fieldErrors.defaultTz}</small>
+				)}
 				<select
 					name="defaultTz"
 					value={formData.defaultTz}
@@ -565,15 +581,15 @@ export function ServiceForm() {
 				</select>
 			</label>
 
-			<div className="section-divider" />
+			<div className={styles.sectionDivider} />
 
-			<div className="section-title">Open hours</div>
-			{submitted && fieldErrors.hour && <small className="errorText">{fieldErrors.hour}</small>}
-			<div className="open-hours">
+			<div className={styles.sectionTitle}>Open hours</div>
+			{submitted && fieldErrors.hour && <small className={styles.errorText}>{fieldErrors.hour}</small>}
+			<div className={styles.openHours}>
 				{Object.entries(formData.hours).map(([day, dayData], idx, arr) => (
 					<React.Fragment key={day}>
-						<label className="day-row">
-							<div className="day-info">
+						<label className={styles.dayRow}>
+							<div className={styles.dayInfo}>
 								<input
 									type="checkbox"
 									name="hours"
@@ -584,23 +600,23 @@ export function ServiceForm() {
 								<span>{day}</span>
 							</div>
 							{dayData.enabled ? (
-								<button type="button" className="add-hours-button" onClick={() => setEditingDay(day)}>
+								<button type="button" className={styles.addHoursButton} onClick={() => setEditingDay(day)}>
 									{dayData.start && dayData.end ? `${dayData.start} - ${dayData.end}` : "Add hours"}
 								</button>
 							) : (
-								<span className="status">Closed</span>
+								<span className={styles.status}>Closed</span>
 							)}
 						</label>
-						{idx < arr.length - 1 && <hr className="day-separator" />}
+						{idx < arr.length - 1 && <hr className={styles.daySeparator} />}
 					</React.Fragment>
 				))}
 			</div>
 
 			{editingDay && (
-				<div className="modal-overlay">
-					<div className="modal">
+				<div className={styles.modalOverlay}>
+					<div className={styles.modal}>
 						<h2>Set hours for {editingDay}</h2>
-						<label className="time-label">
+						<label className={styles.timeLabel}>
 							Start:
 							<input
 								type="time"
@@ -635,7 +651,7 @@ export function ServiceForm() {
 								}}
 							/>
 						</label>
-						<label className="time-label">
+						<label className={styles.timeLabel}>
 							End:
 							<input
 								type="time"
@@ -670,7 +686,7 @@ export function ServiceForm() {
 								}}
 							/>
 						</label>
-						<div className="modal-actions">
+						<div className={styles.modalActions}>
 							<button type="button" onClick={() => setEditingDay(null)}>
 								Cancel
 							</button>
@@ -682,16 +698,18 @@ export function ServiceForm() {
 				</div>
 			)}
 
-			<div className="section-divider" />
+			<div className={styles.sectionDivider} />
 
 			<div>
-				<div className="section-title">Service provider details</div>
-				<div className="provider-details">
-					{submitted && fieldErrors.website && <small className="errorText">{fieldErrors.website}</small>}
+				<div className={styles.sectionTitle}>Service provider details</div>
+				<div className={styles.providerDetails}>
+					{submitted && fieldErrors.website && (
+						<small className={styles.errorText}>{fieldErrors.website}</small>
+					)}
 					<input type="url" name="website" placeholder="https://" onChange={handleChange} />
-					{submitted && fieldErrors.email && <small className="errorText">{fieldErrors.email}</small>}
+					{submitted && fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
 					<input type="email" name="email" placeholder="Email" onChange={handleChange} />
-					{submitted && fieldErrors.phone && <small className="errorText">{fieldErrors.phone}</small>}
+					{submitted && fieldErrors.phone && <small className={styles.errorText}>{fieldErrors.phone}</small>}
 					<PhoneInput
 						country={"us"}
 						value={phone}
@@ -721,10 +739,10 @@ export function ServiceForm() {
 							backgroundColor: "#1e1e1e",
 							border: "1px solid #444",
 						}}
-						containerClass="custom-phone-container"
+						containerClass={styles.customPhoneContainer}
 					/>
 
-					<div className="years">
+					<div className={styles.years}>
 						<span>How long in business</span>
 						<button
 							type="button"
@@ -738,7 +756,7 @@ export function ServiceForm() {
 						</button>
 					</div>
 					{submitted && fieldErrors.contactMethod && (
-						<small className="errorText">{fieldErrors.contactMethod}</small>
+						<small className={styles.errorText}>{fieldErrors.contactMethod}</small>
 					)}
 					<select name="contactMethod" value={formData.contactMethod} onChange={handleChange}>
 						<option value="">Best way to contact</option>
@@ -754,22 +772,22 @@ export function ServiceForm() {
 							placeholder="https://"
 							value={formData.socialMediaLink}
 							onChange={handleChange}
-							className="social-link-input"
+							className={styles.socialLinkInput}
 						/>
 					)}
 
-					<label className="toggle">
+					<label className={styles.toggle}>
 						<input type="checkbox" name="allowDM" checked={formData.allowDM} onChange={handleChange} />
 						Allow direct messaging
 					</label>
 				</div>
 			</div>
 
-			<button className="submit-button" type="submit">
+			<button className={styles.submitButton} type="submit">
 				Next
 			</button>
 			{showSuccess && (
-				<div className="successWrapper">
+				<div className={styles.successWrapper}>
 					<Lottie
 						animationData={successAnimation}
 						loop={false}

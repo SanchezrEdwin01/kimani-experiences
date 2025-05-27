@@ -98,6 +98,7 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 					fill
 					sizes="100vw"
 					className={styles.hero}
+					style={{ objectFit: "cover" }}
 				/>
 				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
 					<ArrowLeftIcon />
@@ -111,15 +112,31 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 					</button>
 				</div>
 				{productImages.length > 1 && (
-					<div className={styles.galleryControls}>
-						{productImages.map((_, idx) => (
-							<button
-								key={idx}
-								className={`${styles.galleryDot} ${idx === currentImageIndex ? styles.active : ""}`}
-								onClick={() => setCurrentImageIndex(idx)}
-								aria-label={`View image ${idx + 1}`}
-							/>
-						))}
+					<div className={styles.galleryNavigation}>
+						<button
+							className={styles.prevBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1))
+							}
+							aria-label="Previous image"
+						>
+							<ArrowLeftIcon />
+						</button>
+
+						{/* Agregar contador de imágenes */}
+						<div className={styles.imageCounter}>
+							{currentImageIndex + 1} / {productImages.length}
+						</div>
+
+						<button
+							className={styles.nextBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1))
+							}
+							aria-label="Next image"
+						>
+							<ArrowLeftIcon style={{ transform: "rotate(180deg)" }} />
+						</button>
 					</div>
 				)}
 			</div>
@@ -130,6 +147,20 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				<p>{primaryService}</p>
 				{offerings && <p>{offerings}</p>}
 				{discount && <p className={styles.discount}>{discount}% discount for Kimani members</p>}
+			</section>
+
+			{/* Review Section */}
+			<section>
+				<div className={styles.ambassadorInfo}>
+					<div className={styles.ambassadorIcon}>
+						<Image src="/catering-profile.jpg" alt="Gary Smith" width={48} height={48} />
+					</div>
+					<div className={styles.ambassadorDetails}>
+						<p>Catering Company</p>
+						<p className={styles.ambassadorName}>Gary Smith | Event Chief</p>
+						<span className={styles.ambassadorTag}>Ambassador</span>
+					</div>
+				</div>
 			</section>
 			<hr className={styles.divider} />
 
