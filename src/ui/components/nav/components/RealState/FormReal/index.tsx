@@ -1,12 +1,14 @@
 "use client";
-
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 import React, { useState, useRef, useEffect, type ChangeEvent } from "react";
 import Image from "next/image";
 import { Country, State, City } from "country-state-city";
 import slugify from "slugify";
+import convert from "heic-convert/browser";
 import { v4 as uuidv4 } from "uuid";
 import Lottie from "lottie-react";
 import styles from "./RealEstate.module.scss";
+import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
 	type CategoryTreeQuery,
@@ -60,6 +62,7 @@ export function RealEstateForm() {
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
 	const CONTACT_FOR_PRICE_ID = "QXR0cmlidXRlVmFsdWU6MjIw";
 	const [categories, setCategories] = useState<
 		{
@@ -273,96 +276,230 @@ export function RealEstateForm() {
 		if (!validateForm()) {
 			return;
 		}
-		const descriptionJSON = JSON.stringify({
-			blocks: [{ type: "paragraph", data: { text: formData.description } }],
-			version: "2.22.2",
-		});
 
-		const baseSlug = slugify(formData.title, { lower: true });
-		const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+		setIsLoading(true);
 
-		console.log("formData", JSON.stringify(formData));
+		try {
+			const descriptionJSON = JSON.stringify({
+				blocks: [{ type: "paragraph", data: { text: formData.description } }],
+				version: "2.22.2",
+			});
 
-		const createProductVars = {
-			name: formData.title,
-			slug: uniqueSlug,
-			productType: "UHJvZHVjdFR5cGU6NA==",
-			category: formData.category,
-			description: descriptionJSON,
-			attributes: [
-				{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
-				{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
-				{ id: "QXR0cmlidXRlOjE0", numeric: String(formData.zipCode) },
-				{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
-				{ id: "QXR0cmlidXRlOjIy", plainText: formData.userId },
-				{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
-				{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
-				{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
-				{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
-				{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
-				{ id: "QXR0cmlidXRlOjI3", numeric: String(formData.bedrooms) },
-				{ id: "QXR0cmlidXRlOjI4", numeric: String(formData.bathrooms) },
-				{ id: "QXR0cmlidXRlOjQ4", dropdown: { id: formData.priceOption } },
-				{ id: "QXR0cmlidXRlOjQ5", numeric: String(formData.parkingNumber) },
-				{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
-				{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
-			],
-		};
+			const baseSlug = slugify(formData.title, { lower: true });
+			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
 
-		// 1) Crear producto
-		const createData = await executeGraphQL(CreateServiceProductDocument, {
-			variables: createProductVars,
-		});
-		const productId = createData?.productCreate?.product?.id;
-		if (!productId || createData.productCreate?.errors.length) {
-			console.error(createData.productCreate?.errors);
-			return;
-		}
+			console.log("formData", JSON.stringify(formData));
 
-		const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
-			variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
-		});
-		const variantId = variantData?.productVariantCreate?.productVariant?.id;
-		if (!variantId || variantData.productVariantCreate?.errors.length) {
-			console.error(variantData.productVariantCreate?.errors);
-			return;
-		}
+			const createProductVars = {
+				name: formData.title,
+				slug: uniqueSlug,
+				productType: "UHJvZHVjdFR5cGU6NA==",
+				category: formData.category,
+				description: descriptionJSON,
+				attributes: [
+					{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
+					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
+					{ id: "QXR0cmlidXRlOjE0", numeric: String(formData.zipCode) },
+					{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
+					{ id: "QXR0cmlidXRlOjIy", plainText: formData.userId },
+					{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
+					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
+					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+					{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
+					{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
+					{ id: "QXR0cmlidXRlOjI3", numeric: String(formData.bedrooms) },
+					{ id: "QXR0cmlidXRlOjI4", numeric: String(formData.bathrooms) },
+					{ id: "QXR0cmlidXRlOjQ4", dropdown: { id: formData.priceOption } },
+					{ id: "QXR0cmlidXRlOjQ5", numeric: String(formData.parkingNumber) },
+					{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
+					{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
+				],
+			};
 
-		await executeGraphQL(PublishProductInChannelDocument, {
-			variables: { productId, channelId: "Q2hhbm5lbDox" },
-		});
-		await executeGraphQL(PublishVariantInChannelDocument, {
-			variables: {
-				variantId,
-				channelId: "Q2hhbm5lbDox",
-				price:
-					formData.priceOption === "QXR0cmlidXRlVmFsdWU6MjIw" ? 0.0 : parseFloat(formData.price.toString()),
-			},
-		});
-		await executeGraphQL(AddProductToCollectionDocument, {
-			variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
-		});
-
-		if (filesToUpload.length) {
-			for (let i = 0; i < filesToUpload.length; i++) {
-				await uploadGraphQL(AddServiceImageDocument, {
-					product: productId,
-					image: filesToUpload[i],
-					alt: `${formData.title}-${i}`,
-				});
+			// 1) Crear producto
+			const createData = await executeGraphQL(CreateServiceProductDocument, {
+				variables: createProductVars,
+			});
+			const productId = createData?.productCreate?.product?.id;
+			if (!productId || createData.productCreate?.errors.length) {
+				console.error(createData.productCreate?.errors);
+				return;
 			}
-		}
-		setShowSuccess(true);
-		setTimeout(() => {
-			setShowSuccess(false);
-		}, 5000);
-		setShowSuccess(true);
 
-		console.log("Producto creado con ID:", productId);
+			const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
+				variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
+			});
+			const variantId = variantData?.productVariantCreate?.productVariant?.id;
+			if (!variantId || variantData.productVariantCreate?.errors.length) {
+				console.error(variantData.productVariantCreate?.errors);
+				return;
+			}
+
+			await executeGraphQL(PublishProductInChannelDocument, {
+				variables: { productId, channelId: "Q2hhbm5lbDox" },
+			});
+			await executeGraphQL(PublishVariantInChannelDocument, {
+				variables: {
+					variantId,
+					channelId: "Q2hhbm5lbDox",
+					price:
+						formData.priceOption === "QXR0cmlidXRlVmFsdWU6MjIw" ? 0.0 : parseFloat(formData.price.toString()),
+				},
+			});
+			await executeGraphQL(AddProductToCollectionDocument, {
+				variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
+			});
+
+			function detectImageFormat(uint8Array: Uint8Array): string {
+				if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
+					return "jpeg";
+				}
+
+				if (
+					uint8Array[0] === 0x89 &&
+					uint8Array[1] === 0x50 &&
+					uint8Array[2] === 0x4e &&
+					uint8Array[3] === 0x47
+				) {
+					return "png";
+				}
+
+				if (uint8Array.length > 12) {
+					const ftypCheck =
+						uint8Array[4] === 0x66 &&
+						uint8Array[5] === 0x74 &&
+						uint8Array[6] === 0x79 &&
+						uint8Array[7] === 0x70;
+
+					if (ftypCheck) {
+						const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
+						if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
+							return "heic";
+						}
+					}
+				}
+
+				if (
+					uint8Array.length > 12 &&
+					uint8Array[0] === 0x52 &&
+					uint8Array[1] === 0x49 &&
+					uint8Array[2] === 0x46 &&
+					uint8Array[3] === 0x46 &&
+					uint8Array[8] === 0x57 &&
+					uint8Array[9] === 0x45 &&
+					uint8Array[10] === 0x42 &&
+					uint8Array[11] === 0x50
+				) {
+					return "webp";
+				}
+
+				return "unknown";
+			}
+
+			if (filesToUpload.length) {
+				console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
+				for (let i = 0; i < filesToUpload.length; i++) {
+					let fileToSend = filesToUpload[i];
+					console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
+
+					if (/\.heic$/i.test(fileToSend.name)) {
+						console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
+						const arrayBuffer = await fileToSend.arrayBuffer();
+						console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
+						const uint8ArrayInput = new Uint8Array(arrayBuffer);
+
+						const actualFormat = detectImageFormat(uint8ArrayInput);
+						console.log(`🔍  Formato detectado: ${actualFormat}`);
+
+						if (actualFormat === "heic") {
+							console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
+
+							try {
+								const outputBuffer: ArrayBuffer = await convert({
+									buffer: uint8ArrayInput.buffer,
+									format: "JPEG",
+									quality: 0.8,
+								});
+								console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
+								const blob = new Blob([outputBuffer], { type: "image/jpeg" });
+								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+									type: "image/jpeg",
+								});
+								console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
+							} catch (conversionError) {
+								console.error("Error durante la conversión HEIC:", conversionError);
+								throw conversionError;
+							}
+						} else if (actualFormat === "jpeg") {
+							console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
+							const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
+							fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+								type: "image/jpeg",
+							});
+							console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
+						} else {
+							console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
+						}
+					} else {
+						console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
+					}
+
+					console.log(`🚀  Subiendo ${fileToSend.name}...`);
+					await uploadGraphQL(AddServiceImageDocument, {
+						product: productId,
+						image: fileToSend,
+						alt: `${formData.title}-${i}`,
+					});
+					console.log(`🎉  Subida completada para ${fileToSend.name}`);
+				}
+				console.log("🏁  Todas las imágenes procesadas y subidas.");
+			}
+			setShowSuccess(true);
+			setTimeout(() => {
+				setShowSuccess(false);
+			}, 5000);
+			setShowSuccess(true);
+
+			console.log("Producto creado con ID:", productId);
+		} catch (error) {
+			console.error("Error al crear el producto:", error);
+		} finally {
+			setIsLoading(false);
+			setSubmitted(false);
+			setFilesToUpload([]);
+			setFormData({
+				title: "",
+				category: "",
+				address: "",
+				city: "",
+				zipCode: "",
+				externalLink: "",
+				userId: "",
+				description: "",
+				bedrooms: 0,
+				bathrooms: 0,
+				country: "",
+				currency: "",
+				state: "",
+				levelListing: "",
+				price: "",
+				priceOption: "",
+				parkingNumber: 0,
+				propertySize: "",
+				sizeUnit: "",
+			});
+			setFieldErrors({});
+		}
 	}
 
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
+			{isLoading && (
+				<div className={styles.loadingOverlay}>
+					{" "}
+					<Loader />
+				</div>
+			)}
 			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
 				<div
 					className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""} ${
@@ -708,8 +845,8 @@ export function RealEstateForm() {
 				/>
 			</div>
 
-			<button type="submit" className={styles.submitButton}>
-				Publish listing
+			<button className={styles.submitButton} type="submit" disabled={submitted}>
+				{submitted ? <Loader /> : "Next"}
 			</button>
 			{showSuccess && (
 				<div className={styles.successWrapper}>
