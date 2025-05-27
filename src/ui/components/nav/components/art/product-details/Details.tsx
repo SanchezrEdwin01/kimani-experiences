@@ -92,6 +92,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 						fill
 						sizes="100vw"
 						className={styles.hero}
+						style={{ objectFit: "cover" }}
 					/>
 				) : (
 					<div className={styles.placeholderImage} />
@@ -108,15 +109,31 @@ export function ProductPage({ slug }: ProductPageProps) {
 					</button>
 				</div>
 				{productImages.length > 1 && (
-					<div className={styles.galleryDots}>
-						{productImages.map((_, idx) => (
-							<button
-								key={idx}
-								className={`${styles.galleryDot} ${idx === currentImageIndex ? styles.active : ""}`}
-								onClick={() => setCurrentImageIndex(idx)}
-								aria-label={`View image ${idx + 1}`}
-							/>
-						))}
+					<div className={styles.galleryNavigation}>
+						<button
+							className={styles.prevBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1))
+							}
+							aria-label="Previous image"
+						>
+							<ArrowLeftIcon />
+						</button>
+
+						{/* Agregar contador de imágenes */}
+						<div className={styles.imageCounter}>
+							{currentImageIndex + 1} / {productImages.length}
+						</div>
+
+						<button
+							className={styles.nextBtn}
+							onClick={() =>
+								setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1))
+							}
+							aria-label="Next image"
+						>
+							<ArrowLeftIcon style={{ transform: "rotate(180deg)" }} />
+						</button>
 					</div>
 				)}
 			</div>
@@ -136,6 +153,18 @@ export function ProductPage({ slug }: ProductPageProps) {
 				</p>
 			</div>
 
+			{/* Review Section - User of listing agent */}
+			<section>
+				<div className={styles.ambassadorInfo}>
+					<div className={styles.ambassadorIcon}>
+						<Image src="/art-profile.jpg" alt="Listing Agent" width={48} height={48} />
+					</div>
+					<div className={styles.ambassadorDetails}>
+						<p>User of listing agent</p>
+						<p className={styles.ambassadorName}>Type of member</p>
+					</div>
+				</div>
+			</section>
 			<hr className={styles.divider} />
 
 			{/* Description */}
@@ -247,7 +276,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 				)}
 			</section>
 
-			<button className={styles.messageButton}>Message listing user</button>
+			<button className={styles.messageButton}>Message listing member</button>
 		</div>
 	);
 }

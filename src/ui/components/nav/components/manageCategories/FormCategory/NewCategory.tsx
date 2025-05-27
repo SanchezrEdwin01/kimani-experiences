@@ -66,7 +66,7 @@ export function NewCategoryForm() {
 			</div>
 
 			<div className={styles.field}>
-				<label htmlFor="image">Imagen *</label>
+				<label htmlFor="image">Image *</label>
 				<input id="image" type="file" accept="image/*" onChange={handleFileChange} required />
 			</div>
 
