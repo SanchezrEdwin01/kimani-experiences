@@ -65,11 +65,22 @@ export function ProductElement({
 								{product.name}
 								{cityName && ` | ${cityName}`}
 							</h3>
+							{product.category && <p className="mt-1 text-xs text-gray-400">{product.category.name}</p>}
 							<p className="mt-1 text-sm text-white">
 								{formatMoneyRange({
 									start: product.pricing?.priceRange?.start?.gross,
 									stop: product.pricing?.priceRange?.stop?.gross,
-								})}
+								})}{" "}
+								/{" "}
+								{product.attributes &&
+									product.attributes
+										.filter((attr) => attr.attribute.name?.toLowerCase() === "level listing")
+										.map((attr) =>
+											attr.values && attr.values.length > 0
+												? attr.values.map((val) => val.name).join(", ")
+												: "",
+										)
+										.join(", ")}
 							</p>
 							<p className="mt-1 text-xs text-gray-300">{plainDescription}</p>
 						</div>

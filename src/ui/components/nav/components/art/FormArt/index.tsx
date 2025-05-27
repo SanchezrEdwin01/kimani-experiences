@@ -142,7 +142,6 @@ export function ArtForm() {
 			{ key: "frame", label: "Frame" },
 			{ key: "collection", label: "Collection" },
 			{ key: "description", label: "Description" },
-			{ key: "externalLink", label: "External Link" },
 		];
 
 		requiredFields.forEach(({ key, label }) => {
@@ -261,9 +260,6 @@ export function ArtForm() {
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
 			{/* Imagen */}
 			<div className={styles.formGroup}>
-				<label className={styles.requiredField}>
-					Artwork Image <span className={styles.requiredMark}>*</span>
-				</label>
 				<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
 					{filesToUpload.map((file, idx) => {
 						const objectUrl = URL.createObjectURL(file);
