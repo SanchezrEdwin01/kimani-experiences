@@ -66,6 +66,8 @@ export default function ArtProductsClientPage() {
 	const [activeTab, setActiveTab] = useState<Tab>("explore");
 	const [loading, setLoading] = useState(true);
 
+	//use effect
+
 	useEffect(() => {
 		async function fetchProducts() {
 			setLoading(true);
@@ -89,6 +91,11 @@ export default function ArtProductsClientPage() {
 		}
 		void fetchProducts();
 	}, []);
+
+	/**
+	 * useEffect to update filteredProducts when allProducts or filters change.
+	 * Handles filtering by search, location, main category, subcategory, price range, and sorting.
+	 */
 
 	const subCategoryOptionsForModal = useMemo(() => {
 		const map = new Map<string, string>();
