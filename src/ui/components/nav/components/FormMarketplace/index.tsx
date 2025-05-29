@@ -104,7 +104,8 @@ export function ServiceForm() {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const [alts, setAlts] = useState<string[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
+	const [countryCode, setCountryCode] = useState<string>("");
+	const [stateCode, setStateCode] = useState<string>("");
 	const [countries] = useState(Country.getAllCountries());
 	const [isLoading, setIsLoading] = useState(false);
 	const [states, setStates] = useState<CustomState[]>([]);
@@ -141,30 +142,33 @@ export function ServiceForm() {
 	}, []);
 
 	function handleCountryChange(e: ChangeEvent<HTMLSelectElement>) {
-		const c = e.target.value;
-		setFormData((prev) => ({ ...prev, country: c, state: "", city: "" }));
-		if (submitted && c) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["country"];
-				return newErrors;
-			});
-		}
-		setStates(State.getStatesOfCountry(c) || []);
+		const iso = e.target.value;
+		setCountryCode(iso);
+		const countryObj = countries.find((c) => c.isoCode === iso);
+		const countryName = countryObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			country: countryName,
+			state: "",
+			city: "",
+		}));
+		const countryStates = State.getStatesOfCountry(iso) || [];
+		setStates(countryStates);
 		setCities([]);
 	}
 
 	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const s = e.target.value;
-		setFormData((prev) => ({ ...prev, state: s, city: "" }));
-		if (submitted && s) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["state"];
-				return newErrors;
-			});
-		}
-		setCities(City.getCitiesOfState(formData.country, s) || []);
+		const iso = e.target.value;
+		setStateCode(iso);
+		const stateObj = states.find((s) => s.isoCode === iso);
+		const stateName = stateObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			state: stateName,
+			city: "",
+		}));
+		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
+		setCities(stateCities);
 	}
 
 	function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
@@ -623,7 +627,7 @@ export function ServiceForm() {
 					{submitted && fieldErrors.country && (
 						<small className={styles.errorText}>{fieldErrors.country}</small>
 					)}
-					<select name="country" value={formData.country} onChange={handleCountryChange}>
+					<select name="country" value={countryCode} onChange={handleCountryChange}>
 						<option value="">Select Country</option>
 						{countries.map((c) => (
 							<option key={c.isoCode} value={c.isoCode}>
@@ -632,8 +636,8 @@ export function ServiceForm() {
 						))}
 					</select>
 					{submitted && fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
-					<select name="state" value={formData.state} onChange={handleStateChange} disabled={!states.length}>
-						<option value="">State</option>
+					<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
+						<option value="">Select State</option>
 						{states.map((s) => (
 							<option key={s.isoCode} value={s.isoCode}>
 								{s.name}

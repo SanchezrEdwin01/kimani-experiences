@@ -33,6 +33,32 @@ export function ProductElement({
 		}
 	}
 
+	let currency: string | null = null;
+	if (Array.isArray(product.attributes)) {
+		const currencyAttr = product.attributes.find((attr) => attr.attribute.name?.toLowerCase() === "currency");
+		if (currencyAttr?.values?.length) {
+			currency = currencyAttr.values[0]?.name ?? null;
+		}
+	}
+
+	const startObj = product.pricing?.priceRange?.start?.gross;
+	const stopObj = product.pricing?.priceRange?.stop?.gross;
+
+	const range = {
+		start: startObj
+			? {
+					amount: startObj.amount,
+					currency: currency ?? startObj.currency,
+			  }
+			: null,
+		stop: stopObj
+			? {
+					amount: stopObj.amount,
+					currency: currency ?? stopObj.currency,
+			  }
+			: null,
+	};
+
 	return (
 		<li key={product.id} data-testid="ProductElement">
 			<Link href={`/marketplace/art/${product.slug}`}>
@@ -52,12 +78,7 @@ export function ProductElement({
 					<div className="mt-2 flex justify-between pb-2">
 						<div>
 							<h3 className="mt-1 text-sm font-semibold text-white">{product.name}</h3>
-							<p className="mt-1 text-sm text-white">
-								{formatMoneyRange({
-									start: product.pricing?.priceRange?.start?.gross,
-									stop: product.pricing?.priceRange?.stop?.gross,
-								})}
-							</p>
+							<p className="mt-1 text-sm text-white">{formatMoneyRange(range)}</p>
 							<p className="mt-1 text-xs text-gray-300">{plainDescription}</p>
 						</div>
 					</div>
