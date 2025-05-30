@@ -24,7 +24,6 @@ const makeUrqlClient = () => {
 	return createClient({
 		url: saleorApiUrl,
 		suspense: true,
-		// requestPolicy: "cache-first",
 		fetch: (input, init) => saleorAuthClient.fetchWithAuth(input as NodeJS.fetch.RequestInfo, init),
 		exchanges: [dedupExchange, cacheExchange, fetchExchange],
 	});

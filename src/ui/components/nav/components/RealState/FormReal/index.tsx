@@ -62,6 +62,8 @@ export function RealEstateForm() {
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
+	const [countryCode, setCountryCode] = useState<string>("");
+	const [stateCode, setStateCode] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(false);
 	const CONTACT_FOR_PRICE_ID = "QXR0cmlidXRlVmFsdWU6MjIw";
 	const [categories, setCategories] = useState<
@@ -154,33 +156,32 @@ export function RealEstateForm() {
 	}
 
 	function handleCountryChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedCountry = e.target.value;
-		setFormData((prev) => ({ ...prev, country: selectedCountry, state: "", city: "" }));
-
-		if (submitted && selectedCountry) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["country"];
-				return newErrors;
-			});
-		}
-		const countryStates = State.getStatesOfCountry(selectedCountry) || [];
+		const iso = e.target.value;
+		setCountryCode(iso);
+		const countryObj = countries.find((c) => c.isoCode === iso);
+		const countryName = countryObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			country: countryName,
+			state: "",
+			city: "",
+		}));
+		const countryStates = State.getStatesOfCountry(iso) || [];
 		setStates(countryStates);
 		setCities([]);
 	}
 
 	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedState = e.target.value;
-		setFormData((prev) => ({ ...prev, state: selectedState, city: "" }));
-
-		if (submitted && selectedState) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["state"];
-				return newErrors;
-			});
-		}
-		const stateCities = City.getCitiesOfState(formData.country, selectedState) || [];
+		const iso = e.target.value;
+		setStateCode(iso);
+		const stateObj = states.find((s) => s.isoCode === iso);
+		const stateName = stateObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			state: stateName,
+			city: "",
+		}));
+		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
 		setCities(stateCities);
 	}
 
@@ -492,6 +493,23 @@ export function RealEstateForm() {
 		}
 	}
 
+	useEffect(() => {
+		switch (formData.levelListing) {
+			case "For Sale":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE2" }));
+				break;
+			case "Short term rental":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE5" }));
+				break;
+			case "Long term rental (furnished)":
+			case "Long term rental (non-furnished)":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE3" }));
+				break;
+			default:
+				break;
+		}
+	}, [formData.levelListing]);
+
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
 			{isLoading && (
@@ -619,8 +637,7 @@ export function RealEstateForm() {
 					</div>
 					<div className="flex gap-2 py-2">
 						{fieldErrors.country && <small className={styles.errorText}>{fieldErrors.country}</small>}
-
-						<select name="country" value={formData.country} onChange={handleCountryChange}>
+						<select name="country" value={countryCode} onChange={handleCountryChange}>
 							<option value="">Select Country</option>
 							{countries.map((c) => (
 								<option key={c.isoCode} value={c.isoCode}>
@@ -631,15 +648,8 @@ export function RealEstateForm() {
 					</div>
 					<div className="flex gap-2 py-2">
 						{fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
-
-						<select
-							name="state"
-							value={formData.state}
-							onChange={handleStateChange}
-							disabled={!states.length}
-							className="gy-4"
-						>
-							<option value="">State</option>
+						<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
+							<option value="">Select State</option>
 							{states.map((s) => (
 								<option key={s.isoCode} value={s.isoCode}>
 									{s.name}
@@ -685,10 +695,18 @@ export function RealEstateForm() {
 					<option value="" disabled>
 						Select an option
 					</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE2">For Sale</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE3">Monthly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE4">Weekly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE5">Daily</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE2" disabled={formData.levelListing !== "For Sale"}>
+						For Sale
+					</option>
+					<option
+						value="QXR0cmlidXRlVmFsdWU6MjE7"
+						disabled={!formData.levelListing.startsWith("Long term rental")}
+					>
+						Monthly
+					</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE5" disabled={formData.levelListing !== "Short term rental"}>
+						Daily
+					</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIw">Contact for price</option>
 				</select>
 			</div>

@@ -52,6 +52,8 @@ export function LuxuryGoodsForm() {
 	const [successMessage, setSuccessMessage] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [countryCode, setCountryCode] = useState<string>("");
+	const [stateCode, setStateCode] = useState<string>("");
 	const [countries] = useState(Country.getAllCountries());
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
@@ -138,22 +140,34 @@ export function LuxuryGoodsForm() {
 	}
 
 	function handleCountryChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedCountry = e.target.value;
-		setForm((prev) => ({ ...prev, country: selectedCountry, state: "", city: "" }));
-
-		const countryStates = State.getStatesOfCountry(selectedCountry) || [];
+		const iso = e.target.value;
+		setCountryCode(iso);
+		const countryObj = countries.find((c) => c.isoCode === iso);
+		const countryName = countryObj?.name || "";
+		setForm((prev) => ({
+			...prev,
+			country: countryName,
+			state: "",
+			city: "",
+		}));
+		const countryStates = State.getStatesOfCountry(iso) || [];
 		setStates(countryStates);
 		setCities([]);
 	}
 
 	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedState = e.target.value;
-		setForm((prev) => ({ ...prev, state: selectedState, city: "" }));
-
-		const stateCities = City.getCitiesOfState(form.country, selectedState) || [];
+		const iso = e.target.value;
+		setStateCode(iso);
+		const stateObj = states.find((s) => s.isoCode === iso);
+		const stateName = stateObj?.name || "";
+		setForm((prev) => ({
+			...prev,
+			state: stateName,
+			city: "",
+		}));
+		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
 		setCities(stateCities);
 	}
-
 	function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
 		setForm((prev) => ({ ...prev, city: e.target.value }));
 	}
@@ -457,7 +471,7 @@ export function LuxuryGoodsForm() {
 							onChange={handleChange}
 							className={styles.locationInput}
 						/>
-						<select name="country" onChange={handleCountryChange} className={styles.locationInput}>
+						<select name="country" value={countryCode} onChange={handleCountryChange}>
 							<option value="">Select Country</option>
 							{countries.map((c) => (
 								<option key={c.isoCode} value={c.isoCode}>
@@ -465,8 +479,8 @@ export function LuxuryGoodsForm() {
 								</option>
 							))}
 						</select>
-						<select name="state" onChange={handleStateChange} className={styles.locationInput}>
-							<option value="">State</option>
+						<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
+							<option value="">Select State</option>
 							{states.map((s) => (
 								<option key={s.isoCode} value={s.isoCode}>
 									{s.name}

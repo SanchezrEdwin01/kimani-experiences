@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
-import { executeGraphQL } from "@/lib/graphql";
+import { executeGraphQL, formatMoneyRange } from "@/lib/graphql";
 import {
 	ProductDetailsBySlugDocument,
 	type ProductDetailsBySlugQuery,
@@ -19,6 +19,7 @@ interface ProductPageProps {
 
 export function ProductPage({ slug }: ProductPageProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -34,7 +35,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 			.finally(() => setLoading(false));
 	}, [slug]);
 
-	// parse description (rich text o texto plano)
 	const descriptionBlocks = useMemo(() => {
 		if (!product?.description) return [];
 		try {
@@ -45,32 +45,22 @@ export function ProductPage({ slug }: ProductPageProps) {
 		}
 	}, [product?.description]);
 
-	// helper para atributos
 	const getAttr = (key: string): string | undefined => {
 		const v = product?.attributes.find((a) => a.attribute.slug === key)?.values?.[0]?.name;
 		return typeof v === "string" ? v : undefined;
 	};
 
-	// price
-	const variant = product?.variants?.[0];
-	const price = variant?.pricing?.price?.gross?.amount;
-	const currency = variant?.pricing?.price?.gross?.currency || "USD";
-
-	// images
 	const productImages = product?.media?.map((m) => m.url) || [];
 	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
-	// Enlaces externos
 	const externalLink = getAttr("external-link");
 	const certificateUrl = getAttr("certificate-of-authenticity");
 
-	// Datos del producto
 	const productName = product?.name || "No name";
 	const productDescription = product?.description || "No description available";
 
-	// atributos de arte
 	const dimensions = getAttr("dimensions");
 	const datePainted = getAttr("date-painted");
 	const signature = getAttr("signature");
@@ -80,6 +70,40 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
+
+	const goUpOneLevel = () => {
+		const parts = pathname.split("/");
+		const parent = parts.slice(0, -1).join("/") || "/";
+		router.push(parent);
+	};
+
+	const startObj = product?.pricing?.priceRange?.start?.gross;
+	const stopObj = product?.pricing?.priceRange?.stop?.gross;
+
+	let currency: string | null = null;
+	if (Array.isArray(product?.attributes)) {
+		const currencyAttr = product?.attributes.find(
+			(attr) => attr.attribute.name?.toLowerCase() === "currency",
+		);
+		if (currencyAttr?.values?.length) {
+			currency = currencyAttr.values[0]?.name ?? null;
+		}
+	}
+
+	const range = {
+		start: startObj
+			? {
+					amount: startObj.amount,
+					currency: currency ?? startObj.currency,
+			  }
+			: null,
+		stop: stopObj
+			? {
+					amount: stopObj.amount,
+					currency: currency ?? stopObj.currency,
+			  }
+			: null,
+	};
 
 	return (
 		<div className={styles.container}>
@@ -97,7 +121,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 				) : (
 					<div className={styles.placeholderImage} />
 				)}
-				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+				<button className={styles.backBtn} onClick={goUpOneLevel} aria-label="Back">
 					<ArrowLeftIcon />
 				</button>
 				<div className={styles.actionGroup}>
@@ -138,22 +162,10 @@ export function ProductPage({ slug }: ProductPageProps) {
 				)}
 			</div>
 
-			{/* Brand/Title */}
 			<h1 className={styles.title}>{productName}</h1>
 
-			{/* Price & Location */}
-			<div className={styles.priceAndLocation}>
-				<p className={styles.price}>
-					{price !== undefined
-						? new Intl.NumberFormat("en-US", {
-								style: "currency",
-								currency,
-						  }).format(price)
-						: "Price not available"}
-				</p>
-			</div>
+			<div className={styles.priceAndLocation}>{formatMoneyRange(range)}</div>
 
-			{/* Review Section - User of listing agent */}
 			<section>
 				<div className={styles.ambassadorInfo}>
 					<div className={styles.ambassadorIcon}>
@@ -167,7 +179,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Description */}
 			<section className={styles.descriptionSection}>
 				<h2 className={styles.sectionHeader}>Description</h2>
 				{descriptionBlocks.length > 0 ? (
@@ -186,7 +197,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 			<hr className={styles.divider} />
 
-			{/* Artwork details */}
 			<section className={styles.artworkDetails}>
 				<h2 className={styles.sectionHeader}>Artwork details</h2>
 				<div className={styles.artworkDetailsList}>
@@ -221,7 +231,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 			<hr className={styles.divider} />
 
-			{/* External links */}
 			<section className={styles.externalLinksSection}>
 				<h2 className={styles.sectionHeader}>External links</h2>
 				<div className={styles.externalLinkWrapper}>
@@ -246,7 +255,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 				</div>
 			</section>
 
-			{/* Certificate of authenticity */}
 			<section className={styles.certificateSection}>
 				<h2 className={styles.sectionHeader}>Certificate of authenticity</h2>
 				{certificateUrl ? (
