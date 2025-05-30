@@ -493,6 +493,23 @@ export function RealEstateForm() {
 		}
 	}
 
+	useEffect(() => {
+		switch (formData.levelListing) {
+			case "For Sale":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE2" }));
+				break;
+			case "Short term rental":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE5" }));
+				break;
+			case "Long term rental (furnished)":
+			case "Long term rental (non-furnished)":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE3" }));
+				break;
+			default:
+				break;
+		}
+	}, [formData.levelListing]);
+
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
 			{isLoading && (
@@ -678,10 +695,18 @@ export function RealEstateForm() {
 					<option value="" disabled>
 						Select an option
 					</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE2">For Sale</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE3">Monthly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE4">Weekly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE5">Daily</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE2" disabled={formData.levelListing !== "For Sale"}>
+						For Sale
+					</option>
+					<option
+						value="QXR0cmlidXRlVmFsdWU6MjE7"
+						disabled={!formData.levelListing.startsWith("Long term rental")}
+					>
+						Monthly
+					</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE5" disabled={formData.levelListing !== "Short term rental"}>
+						Daily
+					</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIw">Contact for price</option>
 				</select>
 			</div>
