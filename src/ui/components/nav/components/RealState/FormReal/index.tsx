@@ -201,9 +201,21 @@ export function RealEstateForm() {
 			return;
 		}
 
-		if (name === "zipCode" || name === "price") {
+		if (name === "zipCode") {
 			const filtered = value.replace(/[^0-9]/g, "");
 			setFormData((prev) => ({ ...prev, [name]: filtered }));
+			return;
+		}
+
+		if (name === "price") {
+			let filtered = value.replace(/[^0-9.]/g, "");
+
+			const parts = filtered.split(".");
+			if (parts.length > 2) {
+				filtered = parts.shift()! + "." + parts.join("");
+			}
+
+			setFormData((prev) => ({ ...prev, price: filtered }));
 			return;
 		}
 
@@ -241,7 +253,6 @@ export function RealEstateForm() {
 			{ key: "country", label: "Country" },
 			{ key: "state", label: "State" },
 			{ key: "city", label: "City" },
-			{ key: "zipCode", label: "Zip Code" },
 			{ key: "priceOption", label: "Price Option" },
 			{ key: "currency", label: "Currency" },
 			{ key: "propertySize", label: "Property Size" },
@@ -275,6 +286,7 @@ export function RealEstateForm() {
 		setSubmitted(true);
 
 		if (!validateForm()) {
+			setSubmitted(false);
 			return;
 		}
 
@@ -300,7 +312,7 @@ export function RealEstateForm() {
 				attributes: [
 					{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
 					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
-					{ id: "QXR0cmlidXRlOjE0", numeric: String(formData.zipCode) },
+					...(formData.zipCode ? [{ id: "QXR0cmlidXRlOjE0", numeric: formData.zipCode }] : []),
 					{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
 					{ id: "QXR0cmlidXRlOjIy", plainText: formData.userId },
 					{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
@@ -585,7 +597,7 @@ export function RealEstateForm() {
 			<div className={styles.formGroup}>
 				{fieldErrors.levelListing && <small className={styles.errorText}>{fieldErrors.levelListing}</small>}
 
-				<select name="levelListing" value={formData.levelListing} onChange={handleChange} defaultValue="">
+				<select name="levelListing" value={formData.levelListing} onChange={handleChange}>
 					<option value="" disabled>
 						Listing type
 					</option>
@@ -661,15 +673,28 @@ export function RealEstateForm() {
 					<div className="flex gap-2 py-2">
 						{fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
 
-						<select name="city" onChange={handleCityChange} disabled={!cities.length}>
-							<option value="">City</option>
-							{cities.map((city) => (
-								<option key={city.name} value={city.name}>
-									{city.name}
-								</option>
-							))}
-						</select>
-						{fieldErrors.zipCode && <small className={styles.errorText}>{fieldErrors.zipCode}</small>}
+						{cities.length > 0 ? (
+							<>
+								<select name="city" value={formData.city} onChange={handleCityChange}>
+									<option value="">Select city</option>
+									{cities.map((cityItem) => (
+										<option key={cityItem.name} value={cityItem.name}>
+											{cityItem.name}
+										</option>
+									))}
+								</select>
+							</>
+						) : (
+							<>
+								<input
+									name="city"
+									type="text"
+									placeholder="Enter city"
+									value={formData.city}
+									onChange={handleChange}
+								/>
+							</>
+						)}
 
 						<input
 							name="zipCode"
@@ -718,8 +743,8 @@ export function RealEstateForm() {
 					<input
 						name="price"
 						type="text"
-						inputMode="numeric"
-						pattern="[0-9]*"
+						inputMode="decimal"
+						pattern="[0-9]*\.?[0-9]*"
 						placeholder="Price"
 						value={formData.price}
 						onChange={handleChange}
@@ -730,7 +755,7 @@ export function RealEstateForm() {
 			<div className={styles.formGroup}>
 				{fieldErrors.currency && <small className={styles.errorText}>{fieldErrors.currency}</small>}
 
-				<select name="currency" value={formData.currency} onChange={handleChange} defaultValue="">
+				<select name="currency" value={formData.currency} onChange={handleChange}>
 					<option value="" disabled>
 						Currency
 					</option>

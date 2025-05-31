@@ -41,6 +41,9 @@ dependencies:
   axios:
     specifier: 1.9.0
     version: 1.9.0
+  cities.json:
+    specifier: 1.1.50
+    version: 1.1.50
   classnames:
     specifier: 2.5.1
     version: 2.5.1
@@ -50,6 +53,9 @@ dependencies:
   country-state-city:
     specifier: 3.2.1
     version: 3.2.1
+  country-state-city-nextjs:
+    specifier: 10.0.0
+    version: 10.0.0
   editorjs-html:
     specifier: 3.4.3
     version: 3.4.3
@@ -3461,6 +3467,10 @@ packages:
     dependencies:
       readdirp: 4.1.2
 
+  /cities.json@1.1.50:
+    resolution: {integrity: sha512-ZsCgxtaSyU66bGSwSUl1PZzP2BHxzwvNkjolxb3HIYmbYsaeq+k3wZt2De16HswQHGHY1agRwpSWenkWeLrzfg==}
+    dev: false
+
   /classnames@2.5.1:
     resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
     dev: false
@@ -3640,6 +3650,10 @@ packages:
       path-type: 4.0.0
       typescript: 5.2.2
     dev: true
+
+  /country-state-city-nextjs@10.0.0:
+    resolution: {integrity: sha512-dEqRn1PtwLxdQQd0OdtJnUdevdD7BqlCth9aY457LAU672HeH1O3zlIojCOcQKUm84YalZGCVx82KZCoZ/zhhA==}
+    dev: false
 
   /country-state-city@3.2.1:
     resolution: {integrity: sha512-kxbanqMc6izjhc/EHkGPCTabSPZ2G6eG4/97akAYHJUN4stzzFEvQPZoF8oXDQ+10gM/O/yUmISCR1ZVxyb6EA==}

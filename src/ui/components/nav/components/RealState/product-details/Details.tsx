@@ -6,8 +6,8 @@ import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/soli
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
 import { formatMoneyRange, executeGraphQL } from "@/lib/graphql";
-import { useUser } from "@/UserKimani/context/UserContext";
-import { API_URL } from "@/UserKimani/utils/constants";
+// import { useUser } from "@/UserKimani/context/UserContext";
+// import { API_URL } from "@/UserKimani/utils/constants";
 import {
 	ProductDetailsBySlugDocument,
 	type ProductDetailsBySlugQuery,
@@ -21,7 +21,7 @@ interface ProductPageProps {
 
 export function ProductPage({ slug }: ProductPageProps) {
 	const router = useRouter();
-	const { user, isLoading } = useUser();
+	// const { user, isLoading } = useUser();
 	const pathname = usePathname();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -176,7 +176,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 			{/* Price */}
 			<div className={styles.priceSection}>{formatMoneyRange(range)}</div>
 
-			<section>
+			{/* <section>
 				{isLoading ? (
 					<p>Cargando agente…</p>
 				) : user ? (
@@ -199,7 +199,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 				) : (
 					<p>Agente no disponible</p>
 				)}
-			</section>
+			</section> */}
 			<hr className={styles.divider} />
 
 			{/* Description */}
