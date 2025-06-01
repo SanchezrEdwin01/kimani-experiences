@@ -10,6 +10,7 @@ import { Country, State, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import Lottie from "lottie-react";
 import styles from "./index.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import {
@@ -107,6 +108,7 @@ export function ServiceForm() {
 	const [countryCode, setCountryCode] = useState<string>("");
 	const [stateCode, setStateCode] = useState<string>("");
 	const [countries] = useState(Country.getAllCountries());
+	const { user } = useUser();
 	const [isLoading, setIsLoading] = useState(false);
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
@@ -345,9 +347,12 @@ export function ServiceForm() {
 				version: "2.22.2",
 			});
 
+			const baseSlug = slugify(formData.title, { lower: true });
+			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
 			const createProductVars = {
 				name: formData.title,
-				slug: slugify(formData.title, { lower: true }),
+				slug: uniqueSlug,
 				productType: "UHJvZHVjdFR5cGU6Mg==",
 				category: formData.subcategory,
 				description: descriptionJSON,
@@ -357,6 +362,7 @@ export function ServiceForm() {
 					{ id: "QXR0cmlidXRlOjE0", numeric: formData.zip },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "0" },
 					{ id: "QXR0cmlidXRlOjE=", numeric: formData.discount.replace("%", "") },
 					{ id: "QXR0cmlidXRlOjQ=", plainText: formData.website },
 					{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
@@ -365,6 +371,7 @@ export function ServiceForm() {
 					{ id: "QXR0cmlidXRlOjE1", plainText: formData.contactMethod },
 					{ id: "QXR0cmlidXRlOjk=", boolean: formData.allowDM },
 				],
+				userId: user?._id || "0",
 			};
 
 			const createData = await executeGraphQL(CreateServiceProductDocument, {

@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
+import { useUser } from "@/UserKimani/context/UserContext";
+import { API_URL } from "@/UserKimani/utils/constants";
 import { executeGraphQL, formatMoneyRange } from "@/lib/graphql";
 import {
 	ProductDetailsBySlugDocument,
@@ -20,6 +22,7 @@ interface ProductPageProps {
 export function ProductPage({ slug }: ProductPageProps) {
 	const router = useRouter();
 	const pathname = usePathname();
+	const { user, isLoading } = useUser();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -167,15 +170,28 @@ export function ProductPage({ slug }: ProductPageProps) {
 			<div className={styles.priceAndLocation}>{formatMoneyRange(range)}</div>
 
 			<section>
-				<div className={styles.ambassadorInfo}>
-					<div className={styles.ambassadorIcon}>
-						<Image src="/art-profile.jpg" alt="Listing Agent" width={48} height={48} />
+				{isLoading ? (
+					<p>Cargando agente…</p>
+				) : user ? (
+					<div className={styles.ambassadorInfo}>
+						<div className={styles.ambassadorIcon}>
+							<Image
+								src={`${API_URL}/avatars/${user.avatar._id}`}
+								alt={user.username}
+								width={48}
+								height={48}
+							/>
+						</div>
+						<div className={styles.ambassadorDetails}>
+							<p>
+								{user.username}#{user.discriminator}
+							</p>
+							<p className={styles.ambassadorName}>{user.status.presence}</p>
+						</div>
 					</div>
-					<div className={styles.ambassadorDetails}>
-						<p>User of listing agent</p>
-						<p className={styles.ambassadorName}>Type of member</p>
-					</div>
-				</div>
+				) : (
+					<p>Agent not available</p>
+				)}
 			</section>
 			<hr className={styles.divider} />
 

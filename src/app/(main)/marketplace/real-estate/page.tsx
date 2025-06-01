@@ -8,6 +8,9 @@ import {
 	type ProductListByCategoryUniqueQuery,
 	type ProductListByCategoryUniqueQueryVariables,
 	type ProductListItemNoReviewsFragment,
+	ProductListByCategoryByUserDocument,
+	type ProductListByCategoryByUserQuery,
+	type ProductListByCategoryByUserQueryVariables,
 } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 import { ClickableProductList } from "@/ui/components/nav/components/RealState/product-details/ClickableProductList";
@@ -34,8 +37,8 @@ export type FiltersState = {
 };
 
 export default function CategoryProductsClientPage() {
-	const [allProducts, setAllProducts] = useState<ProductListItemNoReviewsFragment[]>([]);
-	const [filteredProducts, setFilteredProducts] = useState<ProductListItemNoReviewsFragment[]>([]);
+	const [list, setList] = useState<ProductListItemNoReviewsFragment[]>([]);
+	const [filtered, setFiltered] = useState<ProductListItemNoReviewsFragment[]>([]);
 	const [filters, setFilters] = useState<FiltersState>({
 		search: "",
 		mainCategorySlug: EVENT_TYPE_ALL,
@@ -43,37 +46,51 @@ export default function CategoryProductsClientPage() {
 		sort: { field: "price", direction: "asc" },
 	});
 	const [activeTab, setActiveTab] = useState<Tab>("explore");
+	const userId = "0";
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		async function fetchProducts() {
-			setLoading(true);
-			try {
-				const { category } = await executeGraphQL<
-					ProductListByCategoryUniqueQuery,
-					ProductListByCategoryUniqueQueryVariables
-				>(ProductListByCategoryUniqueDocument, {
-					variables: { slug: REAL_ESTATE_CATEGORY_SLUG },
-				});
-				const nodes =
-					category?.products?.edges
-						.map((e) => e?.node)
-						.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
-				setAllProducts(nodes);
-			} catch (err) {
-				console.error("Failed to fetch products:", err);
-			} finally {
-				setLoading(false);
-			}
+		setLoading(true);
+
+		if (activeTab === "explore") {
+			executeGraphQL<ProductListByCategoryUniqueQuery, ProductListByCategoryUniqueQueryVariables>(
+				ProductListByCategoryUniqueDocument,
+				{ variables: { slug: REAL_ESTATE_CATEGORY_SLUG } },
+			)
+				.then(({ category }) => {
+					const nodes =
+						category?.products?.edges
+							.map((e) => e?.node)
+							.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
+					setList(nodes);
+				})
+				.catch((err) => console.error("Error fetching all products:", err))
+				.finally(() => setLoading(false));
+		} else if (activeTab === "myposts") {
+			executeGraphQL<ProductListByCategoryByUserQuery, ProductListByCategoryByUserQueryVariables>(
+				ProductListByCategoryByUserDocument,
+				{ variables: { slug: REAL_ESTATE_CATEGORY_SLUG, userId } },
+			)
+				.then(({ category }) => {
+					const nodes =
+						category?.products?.edges
+							.map((e) => e?.node)
+							.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
+					setList(nodes);
+				})
+				.catch((err) => console.error("Error fetching my posts:", err))
+				.finally(() => setLoading(false));
+		} else {
+			setList([]);
+			setLoading(false);
 		}
-		void fetchProducts();
-	}, []);
+	}, [activeTab, userId]);
 
 	const subCategoryOptionsForModal = useMemo(() => {
 		const map = new Map<string, string>();
-		let productsToConsider = allProducts;
+		let productsToConsider = list;
 		if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
-			productsToConsider = allProducts.filter((p) => {
+			productsToConsider = list.filter((p) => {
 				let currentCategory = p.category as typeof p.category & { parent?: typeof p.category };
 				while (currentCategory?.parent) {
 					currentCategory = currentCategory.parent;
@@ -88,10 +105,10 @@ export default function CategoryProductsClientPage() {
 			}
 		});
 		return Array.from(map.entries()).map(([slug, name]) => ({ slug, name }));
-	}, [allProducts, filters.mainCategorySlug]);
+	}, [list, filters.mainCategorySlug]);
 
 	useEffect(() => {
-		let tmp = [...allProducts];
+		let tmp = [...list];
 
 		if (filters.search) {
 			const term = filters.search.toLowerCase();
@@ -109,7 +126,6 @@ export default function CategoryProductsClientPage() {
 				const filterCityName = filters.location!.city;
 
 				const countryMatch = productCountryName?.toLowerCase() === filterCountryName.toLowerCase();
-
 				if (filterCityName) {
 					const cityMatch = productCityName?.toLowerCase() === filterCityName.toLowerCase();
 					return cityMatch && countryMatch;
@@ -150,26 +166,11 @@ export default function CategoryProductsClientPage() {
 				const pb = b.pricing?.priceRange?.start?.gross.amount ?? 0;
 				return filters.sort.direction === "asc" ? pa - pb : pb - pa;
 			}
-			// if (filters.sort.field === "date") {
-			//     const dateA: number = new Date(
-			//         (a.attributes.find((attr) => attr.attribute.name?.toLowerCase() === 'publication_date')?.values[0]?.value) ||
-			//         (a as any).created ||
-			//         0
-			//     ).getTime();
-
-			//     const dateB: number = new Date(
-			//         (b.attributes.find((attr) => attr.attribute.name?.toLowerCase() === 'publication_date')?.values[0]?.value) ||
-			//         (b as any).created ||
-			//         0
-			//     ).getTime();
-
-			//     return filters.sort.direction === "asc" ? dateA - dateB : dateB - dateA;
-			// }
 			return 0;
 		});
 
-		setFilteredProducts(tmp);
-	}, [allProducts, filters]);
+		setFiltered(tmp);
+	}, [list, filters]);
 
 	const handleSearchChange = (term: string) => {
 		setFilters((f) => ({ ...f, search: term }));
@@ -220,7 +221,7 @@ export default function CategoryProductsClientPage() {
 		});
 	};
 
-	const shown = activeTab === "explore" ? filteredProducts : activeTab === "saved" ? [] : filteredProducts;
+	const shown = activeTab === "saved" ? [] : filtered;
 
 	return (
 		<div className="min-h-screen pb-24">

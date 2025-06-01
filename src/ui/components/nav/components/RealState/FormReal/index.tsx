@@ -8,6 +8,7 @@ import convert from "heic-convert/browser";
 import { v4 as uuidv4 } from "uuid";
 import Lottie from "lottie-react";
 import styles from "./RealEstate.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
@@ -29,7 +30,6 @@ export interface RealEstateFormData {
 	city: string;
 	zipCode: string;
 	externalLink: string;
-	userId: string;
 	description: string;
 	bedrooms: number;
 	bathrooms: number;
@@ -60,6 +60,7 @@ export function RealEstateForm() {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
+	const { user } = useUser();
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
 	const [countryCode, setCountryCode] = useState<string>("");
@@ -83,7 +84,6 @@ export function RealEstateForm() {
 		city: "",
 		zipCode: "",
 		externalLink: "",
-		userId: "",
 		description: "",
 		bedrooms: 0,
 		bathrooms: 0,
@@ -301,8 +301,6 @@ export function RealEstateForm() {
 			const baseSlug = slugify(formData.title, { lower: true });
 			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
 
-			console.log("formData", JSON.stringify(formData));
-
 			const createProductVars = {
 				name: formData.title,
 				slug: uniqueSlug,
@@ -314,7 +312,7 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
 					...(formData.zipCode ? [{ id: "QXR0cmlidXRlOjE0", numeric: formData.zipCode }] : []),
 					{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
-					{ id: "QXR0cmlidXRlOjIy", plainText: formData.userId },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
@@ -327,6 +325,7 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
 					{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
 				],
+				userId: user?._id || "0",
 			};
 
 			// 1) Crear producto
@@ -487,7 +486,6 @@ export function RealEstateForm() {
 				city: "",
 				zipCode: "",
 				externalLink: "",
-				userId: "",
 				description: "",
 				bedrooms: 0,
 				bathrooms: 0,

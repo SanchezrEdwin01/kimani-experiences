@@ -2,9 +2,11 @@
 import React, { useState, useRef, type ChangeEvent, useEffect } from "react";
 import slugify from "slugify";
 import Image from "next/image";
+import { v4 as uuidv4 } from "uuid";
 import { Country, State, City } from "country-state-city";
 import convert from "heic-convert/browser";
 import styles from "./LuxuryGoodsForm.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
@@ -49,6 +51,7 @@ export function LuxuryGoodsForm() {
 	});
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const [errors, setErrors] = useState<{ imageError?: string }>({});
+	const { user } = useUser();
 	const [successMessage, setSuccessMessage] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -210,6 +213,9 @@ export function LuxuryGoodsForm() {
 
 			setErrors((prev) => ({ ...prev, imageError: undefined }));
 
+			const baseSlug = slugify(form.title, { lower: true });
+			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
 			const descriptionJSON = JSON.stringify({
 				blocks: [{ type: "paragraph", data: { text: form.description } }],
 				version: "2.0",
@@ -217,7 +223,7 @@ export function LuxuryGoodsForm() {
 
 			const createVars = {
 				name: form.title,
-				slug: slugify(form.title, { lower: true }),
+				slug: uniqueSlug,
 				productType: "UHJvZHVjdFR5cGU6Mw==",
 				category: form.category,
 				description: descriptionJSON,
@@ -226,6 +232,7 @@ export function LuxuryGoodsForm() {
 					{ id: "QXR0cmlidXRlOjQw", plainText: form.country },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: form.state },
 					{ id: "QXR0cmlidXRlOjE0", numeric: form.zip },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
 					{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition },
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
@@ -233,6 +240,7 @@ export function LuxuryGoodsForm() {
 					{ id: "QXR0cmlidXRlOjIy", plainText: "" },
 					{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
 				],
+				userId: user?._id || "0",
 			};
 
 			const createRes = await executeGraphQL(CreateServiceProductDocument, {
