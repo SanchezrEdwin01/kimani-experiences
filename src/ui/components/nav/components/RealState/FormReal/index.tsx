@@ -8,6 +8,7 @@ import convert from "heic-convert/browser";
 import { v4 as uuidv4 } from "uuid";
 import Lottie from "lottie-react";
 import styles from "./RealEstate.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
@@ -29,7 +30,6 @@ export interface RealEstateFormData {
 	city: string;
 	zipCode: string;
 	externalLink: string;
-	userId: string;
 	description: string;
 	bedrooms: number;
 	bathrooms: number;
@@ -60,8 +60,11 @@ export function RealEstateForm() {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
+	const { user } = useUser();
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
+	const [countryCode, setCountryCode] = useState<string>("");
+	const [stateCode, setStateCode] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(false);
 	const CONTACT_FOR_PRICE_ID = "QXR0cmlidXRlVmFsdWU6MjIw";
 	const [categories, setCategories] = useState<
@@ -81,7 +84,6 @@ export function RealEstateForm() {
 		city: "",
 		zipCode: "",
 		externalLink: "",
-		userId: "",
 		description: "",
 		bedrooms: 0,
 		bathrooms: 0,
@@ -154,33 +156,32 @@ export function RealEstateForm() {
 	}
 
 	function handleCountryChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedCountry = e.target.value;
-		setFormData((prev) => ({ ...prev, country: selectedCountry, state: "", city: "" }));
-
-		if (submitted && selectedCountry) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["country"];
-				return newErrors;
-			});
-		}
-		const countryStates = State.getStatesOfCountry(selectedCountry) || [];
+		const iso = e.target.value;
+		setCountryCode(iso);
+		const countryObj = countries.find((c) => c.isoCode === iso);
+		const countryName = countryObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			country: countryName,
+			state: "",
+			city: "",
+		}));
+		const countryStates = State.getStatesOfCountry(iso) || [];
 		setStates(countryStates);
 		setCities([]);
 	}
 
 	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const selectedState = e.target.value;
-		setFormData((prev) => ({ ...prev, state: selectedState, city: "" }));
-
-		if (submitted && selectedState) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["state"];
-				return newErrors;
-			});
-		}
-		const stateCities = City.getCitiesOfState(formData.country, selectedState) || [];
+		const iso = e.target.value;
+		setStateCode(iso);
+		const stateObj = states.find((s) => s.isoCode === iso);
+		const stateName = stateObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			state: stateName,
+			city: "",
+		}));
+		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
 		setCities(stateCities);
 	}
 
@@ -200,9 +201,21 @@ export function RealEstateForm() {
 			return;
 		}
 
-		if (name === "zipCode" || name === "price") {
+		if (name === "zipCode") {
 			const filtered = value.replace(/[^0-9]/g, "");
 			setFormData((prev) => ({ ...prev, [name]: filtered }));
+			return;
+		}
+
+		if (name === "price") {
+			let filtered = value.replace(/[^0-9.]/g, "");
+
+			const parts = filtered.split(".");
+			if (parts.length > 2) {
+				filtered = parts.shift()! + "." + parts.join("");
+			}
+
+			setFormData((prev) => ({ ...prev, price: filtered }));
 			return;
 		}
 
@@ -240,7 +253,6 @@ export function RealEstateForm() {
 			{ key: "country", label: "Country" },
 			{ key: "state", label: "State" },
 			{ key: "city", label: "City" },
-			{ key: "zipCode", label: "Zip Code" },
 			{ key: "priceOption", label: "Price Option" },
 			{ key: "currency", label: "Currency" },
 			{ key: "propertySize", label: "Property Size" },
@@ -274,6 +286,7 @@ export function RealEstateForm() {
 		setSubmitted(true);
 
 		if (!validateForm()) {
+			setSubmitted(false);
 			return;
 		}
 
@@ -288,8 +301,6 @@ export function RealEstateForm() {
 			const baseSlug = slugify(formData.title, { lower: true });
 			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
 
-			console.log("formData", JSON.stringify(formData));
-
 			const createProductVars = {
 				name: formData.title,
 				slug: uniqueSlug,
@@ -299,9 +310,9 @@ export function RealEstateForm() {
 				attributes: [
 					{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
 					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
-					{ id: "QXR0cmlidXRlOjE0", numeric: String(formData.zipCode) },
+					...(formData.zipCode ? [{ id: "QXR0cmlidXRlOjE0", numeric: formData.zipCode }] : []),
 					{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
-					{ id: "QXR0cmlidXRlOjIy", plainText: formData.userId },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
@@ -314,6 +325,7 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
 					{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
 				],
+				userId: user?._id || "0",
 			};
 
 			// 1) Crear producto
@@ -474,7 +486,6 @@ export function RealEstateForm() {
 				city: "",
 				zipCode: "",
 				externalLink: "",
-				userId: "",
 				description: "",
 				bedrooms: 0,
 				bathrooms: 0,
@@ -491,6 +502,23 @@ export function RealEstateForm() {
 			setFieldErrors({});
 		}
 	}
+
+	useEffect(() => {
+		switch (formData.levelListing) {
+			case "For Sale":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE2" }));
+				break;
+			case "Short term rental":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE5" }));
+				break;
+			case "Long term rental (furnished)":
+			case "Long term rental (non-furnished)":
+				setFormData((prev) => ({ ...prev, priceOption: "QXR0cmlidXRlVmFsdWU6MjE3" }));
+				break;
+			default:
+				break;
+		}
+	}, [formData.levelListing]);
 
 	return (
 		<form className={styles.formContainer} onSubmit={handleSubmit}>
@@ -567,7 +595,7 @@ export function RealEstateForm() {
 			<div className={styles.formGroup}>
 				{fieldErrors.levelListing && <small className={styles.errorText}>{fieldErrors.levelListing}</small>}
 
-				<select name="levelListing" value={formData.levelListing} onChange={handleChange} defaultValue="">
+				<select name="levelListing" value={formData.levelListing} onChange={handleChange}>
 					<option value="" disabled>
 						Listing type
 					</option>
@@ -619,8 +647,7 @@ export function RealEstateForm() {
 					</div>
 					<div className="flex gap-2 py-2">
 						{fieldErrors.country && <small className={styles.errorText}>{fieldErrors.country}</small>}
-
-						<select name="country" value={formData.country} onChange={handleCountryChange}>
+						<select name="country" value={countryCode} onChange={handleCountryChange}>
 							<option value="">Select Country</option>
 							{countries.map((c) => (
 								<option key={c.isoCode} value={c.isoCode}>
@@ -631,15 +658,8 @@ export function RealEstateForm() {
 					</div>
 					<div className="flex gap-2 py-2">
 						{fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
-
-						<select
-							name="state"
-							value={formData.state}
-							onChange={handleStateChange}
-							disabled={!states.length}
-							className="gy-4"
-						>
-							<option value="">State</option>
+						<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
+							<option value="">Select State</option>
 							{states.map((s) => (
 								<option key={s.isoCode} value={s.isoCode}>
 									{s.name}
@@ -651,15 +671,28 @@ export function RealEstateForm() {
 					<div className="flex gap-2 py-2">
 						{fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
 
-						<select name="city" onChange={handleCityChange} disabled={!cities.length}>
-							<option value="">City</option>
-							{cities.map((city) => (
-								<option key={city.name} value={city.name}>
-									{city.name}
-								</option>
-							))}
-						</select>
-						{fieldErrors.zipCode && <small className={styles.errorText}>{fieldErrors.zipCode}</small>}
+						{cities.length > 0 ? (
+							<>
+								<select name="city" value={formData.city} onChange={handleCityChange}>
+									<option value="">Select city</option>
+									{cities.map((cityItem) => (
+										<option key={cityItem.name} value={cityItem.name}>
+											{cityItem.name}
+										</option>
+									))}
+								</select>
+							</>
+						) : (
+							<>
+								<input
+									name="city"
+									type="text"
+									placeholder="Enter city"
+									value={formData.city}
+									onChange={handleChange}
+								/>
+							</>
+						)}
 
 						<input
 							name="zipCode"
@@ -685,10 +718,18 @@ export function RealEstateForm() {
 					<option value="" disabled>
 						Select an option
 					</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE2">For Sale</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE3">Monthly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE4">Weekly</option>
-					<option value="QXR0cmlidXRlVmFsdWU6MjE5">Daily</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE2" disabled={formData.levelListing !== "For Sale"}>
+						For Sale
+					</option>
+					<option
+						value="QXR0cmlidXRlVmFsdWU6MjE7"
+						disabled={!formData.levelListing.startsWith("Long term rental")}
+					>
+						Monthly
+					</option>
+					<option value="QXR0cmlidXRlVmFsdWU6MjE5" disabled={formData.levelListing !== "Short term rental"}>
+						Daily
+					</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIw">Contact for price</option>
 				</select>
 			</div>
@@ -700,8 +741,8 @@ export function RealEstateForm() {
 					<input
 						name="price"
 						type="text"
-						inputMode="numeric"
-						pattern="[0-9]*"
+						inputMode="decimal"
+						pattern="[0-9]*\.?[0-9]*"
 						placeholder="Price"
 						value={formData.price}
 						onChange={handleChange}
@@ -712,7 +753,7 @@ export function RealEstateForm() {
 			<div className={styles.formGroup}>
 				{fieldErrors.currency && <small className={styles.errorText}>{fieldErrors.currency}</small>}
 
-				<select name="currency" value={formData.currency} onChange={handleChange} defaultValue="">
+				<select name="currency" value={formData.currency} onChange={handleChange}>
 					<option value="" disabled>
 						Currency
 					</option>

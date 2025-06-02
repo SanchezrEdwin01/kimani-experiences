@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
-import { executeGraphQL } from "@/lib/graphql";
+import { executeGraphQL, formatMoneyRange } from "@/lib/graphql";
+import { useUser } from "@/UserKimani/context/UserContext";
+import { API_URL } from "@/UserKimani/utils/constants";
 import {
 	ProductDetailsBySlugDocument,
 	type ProductDetailsBySlugQuery,
@@ -19,6 +21,8 @@ interface ProductPageProps {
 
 export function ProductPage({ slug }: ProductPageProps) {
 	const router = useRouter();
+	const pathname = usePathname();
+	const { user, isLoading } = useUser();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -34,7 +38,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 			.finally(() => setLoading(false));
 	}, [slug]);
 
-	// parse description (rich text or plain text)
 	const descriptionBlocks = useMemo(() => {
 		if (!product?.description) return [];
 		try {
@@ -45,22 +48,42 @@ export function ProductPage({ slug }: ProductPageProps) {
 		}
 	}, [product?.description]);
 
-	// helper for attributes
 	const getAttr = (key: string): string | undefined => {
 		const v = product?.attributes.find((a) => a.attribute.slug === key)?.values?.[0]?.name;
 		return typeof v === "string" ? v : undefined;
 	};
 
-	// complete address
 	const address = getAttr("address");
 	const city = getAttr("city");
 
-	// price
-	const variant = product?.variants?.[0];
-	const price = variant?.pricing?.price?.gross?.amount;
-	const currency = variant?.pricing?.price?.gross?.currency;
+	const startObj = product?.pricing?.priceRange?.start?.gross;
+	const stopObj = product?.pricing?.priceRange?.stop?.gross;
 
-	// date formatting
+	let currency: string | null = null;
+	if (Array.isArray(product?.attributes)) {
+		const currencyAttr = product?.attributes.find(
+			(attr) => attr.attribute.name?.toLowerCase() === "currency",
+		);
+		if (currencyAttr?.values?.length) {
+			currency = currencyAttr.values[0]?.name ?? null;
+		}
+	}
+
+	const range = {
+		start: startObj
+			? {
+					amount: startObj.amount,
+					currency: currency ?? startObj.currency,
+			  }
+			: null,
+		stop: stopObj
+			? {
+					amount: stopObj.amount,
+					currency: currency ?? stopObj.currency,
+			  }
+			: null,
+	};
+
 	const formatDate = (d?: string) =>
 		d
 			? new Date(d).toLocaleDateString("en-US", {
@@ -70,13 +93,17 @@ export function ProductPage({ slug }: ProductPageProps) {
 			  })
 			: "";
 
-	// images
 	const productImages = product?.media?.map((m) => m.url) || [];
 	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
-	// Logging para depuración
+	const goUpOneLevel = () => {
+		const parts = pathname.split("/");
+		const parent = parts.slice(0, -1).join("/") || "/";
+		router.push(parent);
+	};
+
 	useEffect(() => {
 		if (product) {
 			console.log("Product media:", product.media);
@@ -90,7 +117,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 	return (
 		<div className={styles.container}>
-			{/* Hero + overlay buttons */}
 			<div className={styles.heroWrapper}>
 				<Image
 					src={productImages[currentImageIndex] || ""}
@@ -100,7 +126,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					className={styles.hero}
 					style={{ objectFit: "cover" }}
 				/>
-				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+				<button className={styles.backBtn} onClick={goUpOneLevel} aria-label="Back">
 					<ArrowLeftIcon />
 				</button>
 				<div className={styles.actionGroup}>
@@ -123,7 +149,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<ArrowLeftIcon />
 						</button>
 
-						{/* Agregar contador de imágenes */}
 						<div className={styles.imageCounter}>
 							{currentImageIndex + 1} / {productImages.length}
 						</div>
@@ -141,43 +166,46 @@ export function ProductPage({ slug }: ProductPageProps) {
 				)}
 			</div>
 
-			{/* Category */}
 			<div className={styles.metaInfo}>
 				<p className={styles.category}>{product.category?.name || ""}</p>
 			</div>
 
-			{/* Title and subtitle */}
 			<h1 className={styles.title}>{product.name}</h1>
 			<p className={styles.subtype}>{product.productType.name}</p>
 
-			{/* Price and discount */}
 			<div className={styles.priceSection}>
-				{price !== undefined && currency && (
-					<p className={styles.price}>
-						{new Intl.NumberFormat("en-US", {
-							style: "currency",
-							currency,
-						}).format(price)}
-					</p>
-				)}
+				<div className={styles.priceSection}>{formatMoneyRange(range)}</div>
 				{city && <p className={styles.cityDisplay}>{city}</p>}
 			</div>
 
-			{/* Review Section - User of listing agent */}
 			<section>
-				<div className={styles.ambassadorInfo}>
-					<div className={styles.ambassadorIcon}>
-						<Image src="/luxury-profile.jpg" alt="Listing Agent" width={48} height={48} />
-					</div>
-					<div className={styles.ambassadorDetails}>
-						<p>User of listing agent</p>
-						<p className={styles.ambassadorName}>Type of member</p>
-					</div>
-				</div>
+				<section>
+					{isLoading ? (
+						<p>Cargando agente…</p>
+					) : user ? (
+						<div className={styles.ambassadorInfo}>
+							<div className={styles.ambassadorIcon}>
+								<Image
+									src={`${API_URL}/avatars/${user.avatar._id}`}
+									alt={user.username}
+									width={48}
+									height={48}
+								/>
+							</div>
+							<div className={styles.ambassadorDetails}>
+								<p>
+									{user.username}#{user.discriminator}
+								</p>
+								<p className={styles.ambassadorName}>{user.status.presence}</p>
+							</div>
+						</div>
+					) : (
+						<p>Agent not available</p>
+					)}
+				</section>
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Description */}
 			<section className={styles.descriptionSection}>
 				<h2 className={styles.sectionTitle}>Description</h2>
 				{descriptionBlocks.length > 0 ? (
@@ -195,7 +223,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 				<hr className={styles.divider} />
 			</section>
 
-			{/* Product Details */}
 			<section>
 				<h2 className={styles.sectionTitle}>Product details</h2>
 				<div className={styles.detailsList}>
@@ -231,7 +258,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 				<hr className={styles.divider} />
 			</section>
 
-			{/* External Links Section */}
 			{getAttr("external-link") && (
 				<>
 					<section className={styles.externalLinksSection}>
@@ -245,6 +271,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					<hr className={styles.divider} />
 				</>
 			)}
+			<button className={styles.messageButton}>Message listing member</button>
 		</div>
 	);
 }

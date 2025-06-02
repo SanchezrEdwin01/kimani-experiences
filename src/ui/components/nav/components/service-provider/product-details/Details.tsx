@@ -1,10 +1,12 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
+import { useUser } from "@/UserKimani/context/UserContext";
+import { API_URL } from "@/UserKimani/utils/constants";
 import { executeGraphQL } from "@/lib/graphql";
 import {
 	ProductDetailsBySlugDocument,
@@ -19,6 +21,8 @@ interface ProductPageProps {
 
 export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 	const router = useRouter();
+	const pathname = usePathname();
+	const { user, isLoading } = useUser();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -49,7 +53,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 		return typeof v === "string" ? v : undefined;
 	};
 
-	// Provider information from attributes
 	const website = getAttr("link");
 	const phoneNumber = getAttr("phone-number");
 	const email = getAttr("email");
@@ -61,23 +64,18 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 	const state = getAttr("state");
 	const zipCode = getAttr("zip-code");
 
-	// Información de servicios
 	const services = getAttr("services");
 	const serviceType = getAttr("service-type");
 	const offerings = getAttr("offerings");
 
-	// Determinar qué mostrar como servicio principal
 	const primaryService = services || serviceType || product?.category?.name || "Service";
 
-	// Verificamos que al menos tengamos address y city
 	const hasValidAddressData = address && city;
 
-	// Construimos la dirección solo si tenemos datos válidos
 	const fullAddress = hasValidAddressData
 		? `${address}, ${city}${state ? `, ${state}` : ""}${zipCode ? ` ${zipCode}` : ""}`
 		: "";
 
-	// Crear una query para Google Maps que funcione mejor
 	const mapQuery = hasValidAddressData ? `${address}, ${city}, ${state || ""} ${zipCode || ""}` : "";
 
 	const productImages = product?.media?.map((m) => m.url) || [];
@@ -85,12 +83,17 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
+	const goUpOneLevel = () => {
+		const parts = pathname.split("/");
+		const parent = parts.slice(0, -1).join("/") || "/";
+		router.push(parent);
+	};
+
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
 
 	return (
 		<div className={styles.container}>
-			{/* Hero + overlay buttons */}
 			<div className={styles.heroWrapper}>
 				<Image
 					src={productImages[currentImageIndex] || ""}
@@ -100,7 +103,7 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 					className={styles.hero}
 					style={{ objectFit: "cover" }}
 				/>
-				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+				<button className={styles.backBtn} onClick={goUpOneLevel} aria-label="Back">
 					<ArrowLeftIcon />
 				</button>
 				<div className={styles.actionGroup}>
@@ -141,7 +144,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				)}
 			</div>
 
-			{/* Performance services */}
 			<section>
 				<h2 className={styles.sectionTitle}>{product.name}</h2>
 				<p>{primaryService}</p>
@@ -151,20 +153,31 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 
 			{/* Review Section */}
 			<section>
-				<div className={styles.ambassadorInfo}>
-					<div className={styles.ambassadorIcon}>
-						<Image src="/catering-profile.jpg" alt="Gary Smith" width={48} height={48} />
+				{isLoading ? (
+					<p>Cargando agente…</p>
+				) : user ? (
+					<div className={styles.ambassadorInfo}>
+						<div className={styles.ambassadorIcon}>
+							<Image
+								src={`${API_URL}/avatars/${user.avatar._id}`}
+								alt={user.username}
+								width={48}
+								height={48}
+							/>
+						</div>
+						<div className={styles.ambassadorDetails}>
+							<p>
+								{user.username}#{user.discriminator}
+							</p>
+							<p className={styles.ambassadorName}>{user.status.presence}</p>
+						</div>
 					</div>
-					<div className={styles.ambassadorDetails}>
-						<p>Catering Company</p>
-						<p className={styles.ambassadorName}>Gary Smith | Event Chief</p>
-						<span className={styles.ambassadorTag}>Ambassador</span>
-					</div>
-				</div>
+				) : (
+					<p>Agent not available</p>
+				)}
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Description */}
 			<section>
 				<h2 className={styles.sectionTitle}>Description</h2>
 				{descriptionBlocks.length > 0 ? (
@@ -182,7 +195,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Working hours - static hardcoded version */}
 			<section>
 				<h2 className={styles.sectionTitle}>Working hours</h2>
 				<div className={styles.workingHours}>
@@ -198,7 +210,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Address + Map - solo mostrar si tenemos dirección */}
 			{hasValidAddressData && (
 				<>
 					<section>
@@ -222,7 +233,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				</>
 			)}
 
-			{/* Information Section - modificado para coincidir con la imagen */}
 			<section>
 				<h2 className={styles.sectionTitle}>Information</h2>
 				<div className={styles.infoBlock}>
@@ -260,7 +270,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 			</section>
 			<hr className={styles.divider} />
 
-			{/* Message Button */}
 			<button className={styles.messageButton}>Message service provider</button>
 		</div>
 	);

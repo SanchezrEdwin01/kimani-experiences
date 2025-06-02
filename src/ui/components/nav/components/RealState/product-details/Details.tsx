@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
-import { executeGraphQL } from "@/lib/graphql";
+import { formatMoneyRange, executeGraphQL } from "@/lib/graphql";
+import { useUser } from "@/UserKimani/context/UserContext";
+import { API_URL } from "@/UserKimani/utils/constants";
 import {
 	ProductDetailsBySlugDocument,
 	type ProductDetailsBySlugQuery,
@@ -19,6 +21,8 @@ interface ProductPageProps {
 
 export function ProductPage({ slug }: ProductPageProps) {
 	const router = useRouter();
+	const { user, isLoading } = useUser();
+	const pathname = usePathname();
 	const [product, setProduct] = useState<ProductDetailsBySlugQuery["product"] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -66,9 +70,39 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const baths = getAttr("bathrooms") || "—";
 	const beds = getAttr("bedrooms") || "—";
 
-	const variant = product?.variants?.[0];
-	const price = variant?.pricing?.price?.gross?.amount;
-	const currency = variant?.pricing?.price?.gross?.currency;
+	const goUpOneLevel = () => {
+		const parts = pathname.split("/");
+		const parent = parts.slice(0, -1).join("/") || "/";
+		router.push(parent);
+	};
+
+	const startObj = product?.pricing?.priceRange?.start?.gross;
+	const stopObj = product?.pricing?.priceRange?.stop?.gross;
+
+	let currency: string | null = null;
+	if (Array.isArray(product?.attributes)) {
+		const currencyAttr = product?.attributes.find(
+			(attr) => attr.attribute.name?.toLowerCase() === "currency",
+		);
+		if (currencyAttr?.values?.length) {
+			currency = currencyAttr.values[0]?.name ?? null;
+		}
+	}
+
+	const range = {
+		start: startObj
+			? {
+					amount: startObj.amount,
+					currency: currency ?? startObj.currency,
+			  }
+			: null,
+		stop: stopObj
+			? {
+					amount: stopObj.amount,
+					currency: currency ?? stopObj.currency,
+			  }
+			: null,
+	};
 
 	const productImages = product?.media?.map((m) => m.url) || [];
 	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
@@ -90,7 +124,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					className={styles.hero}
 					style={{ objectFit: "cover" }}
 				/>
-				<button className={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+				<button className={styles.backBtn} onClick={goUpOneLevel} aria-label="Back">
 					<ArrowLeftIcon />
 				</button>
 				<div className={styles.actionGroup}>
@@ -136,33 +170,35 @@ export function ProductPage({ slug }: ProductPageProps) {
 				<p className={styles.category}>{product.category?.name}</p>
 			</div>
 
-			{/* Title & subtype */}
 			<h1 className={styles.title}>{product.name}</h1>
 			<p className={styles.subtype}>{product.productType.name}</p>
 
 			{/* Price */}
-			<div className={styles.priceSection}>
-				{price !== undefined && currency && (
-					<p className={styles.price}>
-						{new Intl.NumberFormat("en-US", {
-							style: "currency",
-							currency,
-						}).format(price)}
-					</p>
-				)}
-			</div>
+			<div className={styles.priceSection}>{formatMoneyRange(range)}</div>
 
-			{/* Review Section - User of listing agent */}
 			<section>
-				<div className={styles.ambassadorInfo}>
-					<div className={styles.ambassadorIcon}>
-						<Image src="/real-estate-profile.jpg" alt="Listing Agent" width={48} height={48} />
+				{isLoading ? (
+					<p>Cargando agente…</p>
+				) : user ? (
+					<div className={styles.ambassadorInfo}>
+						<div className={styles.ambassadorIcon}>
+							<Image
+								src={`${API_URL}/avatars/${user.avatar._id}`}
+								alt={user.username}
+								width={48}
+								height={48}
+							/>
+						</div>
+						<div className={styles.ambassadorDetails}>
+							<p>
+								{user.username}#{user.discriminator}
+							</p>
+							<p className={styles.ambassadorName}>{user.status.presence}</p>
+						</div>
 					</div>
-					<div className={styles.ambassadorDetails}>
-						<p>User of listing agent</p>
-						<p className={styles.ambassadorName}>Type of member</p>
-					</div>
-				</div>
+				) : (
+					<p>Agent not available</p>
+				)}
 			</section>
 			<hr className={styles.divider} />
 
@@ -265,6 +301,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					<button className={styles.messageButton}>Message listing member</button>
 				</section>
 			)}
+			<button className={styles.messageButton}>Message listing member</button>
 		</div>
 	);
 }

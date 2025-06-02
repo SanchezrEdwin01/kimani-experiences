@@ -5,7 +5,9 @@ import Image from "next/image";
 import slugify from "slugify";
 import Lottie from "lottie-react";
 import convert from "heic-convert/browser";
+import { v4 as uuidv4 } from "uuid";
 import styles from "./ArtworkForm.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import {
@@ -73,6 +75,7 @@ export function ArtForm() {
 	});
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [submitted, setSubmitted] = useState(false);
+	const { user } = useUser();
 	const [showSuccess, setShowSuccess] = useState(false);
 
 	function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -184,7 +187,6 @@ export function ArtForm() {
 			{ key: "dimensions", label: "Dimensions" },
 			{ key: "unit", label: "Unit" },
 			{ key: "printType", label: "Print Type" },
-			{ key: "numberOfPrints", label: "Number of Prints" },
 			{ key: "datePainted", label: "Date Painted" },
 			{ key: "frame", label: "Frame" },
 			{ key: "collection", label: "Collection" },
@@ -214,17 +216,23 @@ export function ArtForm() {
 		e.preventDefault();
 		setSubmitted(true);
 
-		if (!validateForm()) return;
-		const descriptionJSON = JSON.stringify({
-			blocks: [{ type: "paragraph", data: { text: form.description } }],
-			version: "2.0",
-		});
-
+		if (!validateForm()) {
+			setIsLoading(false);
+			return;
+		}
 		setIsLoading(true);
 		try {
+			const descriptionJSON = JSON.stringify({
+				blocks: [{ type: "paragraph", data: { text: form.description } }],
+				version: "2.0",
+			});
+
+			const baseSlug = slugify(form.title, { lower: true });
+			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
 			const createVars = {
 				name: form.title,
-				slug: slugify(form.title, { lower: true }),
+				slug: uniqueSlug,
 				productType: "UHJvZHVjdFR5cGU6NQ==",
 				category: form.artCategory,
 				description: descriptionJSON,
@@ -235,14 +243,16 @@ export function ArtForm() {
 					{ id: "QXR0cmlidXRlOjQy", plainText: form.artType },
 					{ id: "QXR0cmlidXRlOjQz", plainText: form.printType },
 					{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
 					{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
-					{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints || "1" },
+					...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
 					{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
 					{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 					{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
 				],
+				userId: user?._id || "0",
 			};
 
 			const createRes = await executeGraphQL(CreateServiceProductDocument, { variables: createVars });
@@ -421,7 +431,6 @@ export function ArtForm() {
 							＋
 						</button>
 					</div>
-
 					<input
 						ref={fileInputRef}
 						type="file"
@@ -429,7 +438,6 @@ export function ArtForm() {
 						accept="image/*"
 						onChange={handleFilesChange}
 						style={{ display: "none" }}
-						required
 					/>
 				</div>
 				{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
@@ -452,7 +460,7 @@ export function ArtForm() {
 				{submitted && fieldErrors.painterName && (
 					<small className={styles.errorText}>{fieldErrors.painterName}</small>
 				)}
-				<input name="painterName" value={form.artisName} onChange={handleChange} placeholder="Painter name" />
+				<input name="artisName" value={form.artisName} onChange={handleChange} placeholder="Painter name" />{" "}
 			</div>
 
 			<div className={styles.formGroup}>
@@ -544,9 +552,6 @@ export function ArtForm() {
 				</select>
 			</div>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.numberOfPrints && (
-					<small className={styles.errorText}>{fieldErrors.numberOfPrints}</small>
-				)}
 				<input
 					type="number"
 					name="numberOfPrints"

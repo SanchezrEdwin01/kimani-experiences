@@ -1,7 +1,7 @@
 import { ProductElement } from "./product-element/ProductElement";
-import { type ProductListItemFragment } from "@/gql/graphql";
+import { type ProductListItemNoReviewsFragment } from "@/gql/graphql";
 
-export const ProductList = ({ products }: { products: readonly ProductListItemFragment[] }) => {
+export const ProductList = ({ products }: { products: readonly ProductListItemNoReviewsFragment[] }) => {
 	return (
 		<ul
 			role="list"
