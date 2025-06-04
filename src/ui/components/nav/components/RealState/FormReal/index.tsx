@@ -1,6 +1,7 @@
 "use client";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 import React, { useState, useRef, useEffect, type ChangeEvent } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { Country, State, City } from "country-state-city";
 import slugify from "slugify";
@@ -66,6 +67,8 @@ export function RealEstateForm() {
 	const [countryCode, setCountryCode] = useState<string>("");
 	const [stateCode, setStateCode] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(false);
+	const pathname = usePathname();
+	const router = useRouter();
 	const CONTACT_FOR_PRICE_ID = "QXR0cmlidXRlVmFsdWU6MjIw";
 	const [categories, setCategories] = useState<
 		{
@@ -325,7 +328,8 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
 					{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
 				],
-				userId: user?._id || "0",
+				userId: user?._id || "",
+				userData: JSON.stringify(user),
 			};
 
 			// 1) Crear producto
@@ -500,6 +504,8 @@ export function RealEstateForm() {
 				sizeUnit: "",
 			});
 			setFieldErrors({});
+			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+			router.push(parent);
 		}
 	}
 

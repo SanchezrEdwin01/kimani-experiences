@@ -5,6 +5,7 @@ import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 import { Country, State, City } from "country-state-city";
 import convert from "heic-convert/browser";
+import { useRouter, usePathname } from "next/navigation";
 import styles from "./LuxuryGoodsForm.module.scss";
 import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
@@ -58,6 +59,8 @@ export function LuxuryGoodsForm() {
 	const [countryCode, setCountryCode] = useState<string>("");
 	const [stateCode, setStateCode] = useState<string>("");
 	const [countries] = useState(Country.getAllCountries());
+	const pathname = usePathname();
+	const router = useRouter();
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
 	const [categories, setCategories] = useState<
@@ -240,7 +243,8 @@ export function LuxuryGoodsForm() {
 					{ id: "QXR0cmlidXRlOjIy", plainText: "" },
 					{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
 				],
-				userId: user?._id || "0",
+				userId: user?._id || "",
+				userData: JSON.stringify(user),
 			};
 
 			const createRes = await executeGraphQL(CreateServiceProductDocument, {
@@ -379,7 +383,26 @@ export function LuxuryGoodsForm() {
 			setErrors((prev) => ({ ...prev, imageError: "An error occurred while submitting the form." }));
 			window.scrollTo({ top: 0, behavior: "smooth" });
 		} finally {
+			setFilesToUpload([]);
 			setIsLoading(false);
+			setForm({
+				title: "",
+				category: "",
+				city: "",
+				zip: "",
+				area: "",
+				state: "",
+				country: "",
+				priceOption: "",
+				price: "",
+				currency: "",
+				condition: "",
+				description: "",
+				externalLink: "",
+				brandName: "",
+			});
+			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+			router.push(parent);
 		}
 	}
 

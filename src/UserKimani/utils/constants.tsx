@@ -1,1 +1,1 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://community.kimanilife.com/api";
+export const API_URL = process.env.NEXT_API_URL || "https://staging.kimanilife.com/api";

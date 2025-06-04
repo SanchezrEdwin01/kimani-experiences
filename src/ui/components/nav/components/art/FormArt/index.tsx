@@ -1,6 +1,7 @@
 "use client";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 import React, { useState, useRef, useEffect, type ChangeEvent } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import slugify from "slugify";
 import Lottie from "lottie-react";
@@ -46,6 +47,8 @@ export function ArtForm() {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const pathname = usePathname();
+	const router = useRouter();
 	const [categories, setCategories] = useState<
 		{
 			id: string;
@@ -252,7 +255,8 @@ export function ArtForm() {
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 					{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
 				],
-				userId: user?._id || "0",
+				userId: user?._id || "",
+				userData: JSON.stringify(user),
 			};
 
 			const createRes = await executeGraphQL(CreateServiceProductDocument, { variables: createVars });
@@ -373,6 +377,8 @@ export function ArtForm() {
 				certificateFile: undefined,
 			});
 			setFieldErrors({});
+			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+			router.push(parent);
 		}
 	}
 

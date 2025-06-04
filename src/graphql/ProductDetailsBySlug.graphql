@@ -82,5 +82,9 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 			isPublished
 			availableForPurchaseAt
 		}
+		metadata {
+			key
+			value
+		}
 	}
 }
