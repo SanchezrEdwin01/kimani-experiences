@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import "./filter.scss";
 import type { FiltersState } from "@/app/(main)/marketplace/real-estate/page";
 
@@ -45,6 +46,16 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 		setSortOption(`${currentFilters.sort.field}-${currentFilters.sort.direction}`);
 	}, [currentFilters, isOpen]);
 
+	useEffect(() => {
+		if (isOpen) {
+			const originalOverflow = document.body.style.overflow;
+			document.body.style.overflow = "hidden";
+			return () => {
+				document.body.style.overflow = originalOverflow;
+			};
+		}
+	}, [isOpen]);
+
 	if (!isOpen) return null;
 
 	const handleApplyClick = () => {
@@ -83,7 +94,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 		});
 	};
 
-	return (
+	return createPortal(
 		<div className="modal-overlay" onClick={onClose}>
 			<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 				<h2>Filters</h2>
@@ -146,6 +157,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 					</button>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body,
 	);
 };

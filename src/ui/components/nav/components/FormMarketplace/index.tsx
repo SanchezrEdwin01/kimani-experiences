@@ -1,6 +1,7 @@
 "use client";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 import React, { useState, type ChangeEvent, useRef, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import moment from "moment-timezone";
 import slugify from "slugify";
@@ -113,6 +114,8 @@ export function ServiceForm() {
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
 	const [phone, setPhone] = useState("");
+	const pathname = usePathname();
+	const router = useRouter();
 	const [categories, setCategories] = useState<
 		{ id: string; name: string; slug: string; grandchildren: { id: string; name: string; slug: string }[] }[]
 	>([]);
@@ -371,7 +374,8 @@ export function ServiceForm() {
 					{ id: "QXR0cmlidXRlOjE1", plainText: formData.contactMethod },
 					{ id: "QXR0cmlidXRlOjk=", boolean: formData.allowDM },
 				],
-				userId: user?._id || "0",
+				userId: user?._id || "",
+				userData: JSON.stringify(user),
 			};
 
 			const createData = await executeGraphQL(CreateServiceProductDocument, {
@@ -525,6 +529,8 @@ export function ServiceForm() {
 			console.error("Error al crear el servicio:", error);
 		} finally {
 			setIsLoading(false);
+			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+			router.push(parent);
 		}
 	}
 

@@ -1,0 +1,15 @@
+mutation UpdateFavorites($id: ID!, $favoritesJson: String!) {
+	productUpdate(id: $id, input: { metadata: [{ key: "favorites", value: $favoritesJson }] }) {
+		product {
+			id
+			metadata {
+				key
+				value
+			}
+		}
+		errors {
+			field
+			message
+		}
+	}
+}
