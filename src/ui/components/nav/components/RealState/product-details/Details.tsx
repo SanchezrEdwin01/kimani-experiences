@@ -225,6 +225,11 @@ export function ProductPage({ slug }: ProductPageProps) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
+	const levelListing = product?.attributes.find((attr) => attr.attribute.slug === "level-listing")
+		?.values?.[0]?.name;
+	const priceOptions = product?.attributes.find((attr) => attr.attribute.slug === "price-options")
+		?.values?.[0]?.name;
+
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
 
@@ -296,9 +301,11 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 			<h1 className={styles.title}>{product.name}</h1>
 			<p className={styles.subtype}>{product.productType.name}</p>
-
+			<p>{levelListing}</p>
 			{/* Price */}
-			<div className={styles.priceSection}>{formatMoneyRange(range)}</div>
+			<div className={styles.priceSection}>
+				{formatMoneyRange(range)}/{priceOptions}
+			</div>
 
 			<section>
 				{creatorUser ? (
@@ -439,7 +446,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					<div>
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
-								Eliminar producto
+								Delete
 							</button>
 						)}
 					</div>

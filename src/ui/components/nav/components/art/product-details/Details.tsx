@@ -438,7 +438,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 					<div>
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
-								Eliminar producto
+								Delete
 							</button>
 						)}
 					</div>

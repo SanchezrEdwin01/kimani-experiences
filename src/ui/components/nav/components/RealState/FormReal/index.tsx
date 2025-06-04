@@ -790,7 +790,7 @@ export function RealEstateForm() {
 				{fieldErrors.sizeUnit && <small className={styles.errorText}>{fieldErrors.sizeUnit}</small>}
 				<select id="size-unit" name="sizeUnit" value={formData.sizeUnit} onChange={handleChange}>
 					<option value="" disabled>
-						Select a unit
+						Select sqft/sqm
 					</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIx">sqft</option>
 					<option value="QXR0cmlidXRlVmFsdWU6MjIy">sqm</option>
