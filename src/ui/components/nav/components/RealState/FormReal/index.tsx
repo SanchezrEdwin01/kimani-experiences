@@ -35,6 +35,7 @@ export interface RealEstateFormData {
 	bedrooms: number;
 	bathrooms: number;
 	country: string;
+	email: string;
 	currency: string;
 	state: string;
 	levelListing: string;
@@ -92,6 +93,7 @@ export function RealEstateForm() {
 		bathrooms: 0,
 		country: "",
 		currency: "",
+		email: "",
 		state: "",
 		levelListing: "",
 		price: "",
@@ -212,19 +214,23 @@ export function RealEstateForm() {
 
 		if (name === "price") {
 			let filtered = value.replace(/[^0-9.]/g, "");
-
 			const parts = filtered.split(".");
-			if (parts.length > 2) {
-				filtered = parts.shift()! + "." + parts.join("");
-			}
+			if (parts.length > 2) filtered = parts.shift() + "." + parts.join("");
+			const [intPart, decPart] = filtered.split(".");
+			filtered = decPart !== undefined ? intPart + "." + decPart.slice(0, 2) : intPart;
 
 			setFormData((prev) => ({ ...prev, price: filtered }));
 			return;
 		}
 
 		if (name === "propertySize") {
-			const filtered = value.replace(/[^0-9.]/g, "");
-			setFormData((prev) => ({ ...prev, [name]: filtered }));
+			let filtered = value.replace(/[^0-9.]/g, "");
+			const parts = filtered.split(".");
+			if (parts.length > 2) filtered = parts.shift() + "." + parts.join("");
+			const [intPart, decPart] = filtered.split(".");
+			filtered = decPart !== undefined ? intPart + "." + decPart.slice(0, 2) : intPart;
+
+			setFormData((prev) => ({ ...prev, propertySize: filtered }));
 			return;
 		}
 
@@ -264,6 +270,7 @@ export function RealEstateForm() {
 			{ key: "bedrooms", label: "Bedrooms" },
 			{ key: "bathrooms", label: "Bathrooms" },
 			{ key: "parkingNumber", label: "ParkingNumber" },
+			{ key: "email", label: "Email" },
 		];
 
 		requiredFields.forEach(({ key, label }) => {
@@ -318,6 +325,7 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
+					{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
 					{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
 					{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
@@ -495,6 +503,7 @@ export function RealEstateForm() {
 				bathrooms: 0,
 				country: "",
 				currency: "",
+				email: "",
 				state: "",
 				levelListing: "",
 				price: "",
@@ -875,6 +884,12 @@ export function RealEstateForm() {
 					value={formData.description}
 					onChange={handleChange}
 				/>
+			</div>
+
+			<h3 className={styles.sectionTitle}>Contact information</h3>
+			<div className={styles.formGroup}>
+				{fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
+				<input name="email" value={formData.email} onChange={handleChange} type="text" placeholder="Email" />
 			</div>
 
 			<h3 className={styles.sectionTitle}>External links</h3>

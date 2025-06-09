@@ -33,6 +33,7 @@ interface ArtFormData {
 	dimensions: string;
 	unit: "cm" | "in";
 	printType: string;
+	email: string;
 	numberOfPrints: string;
 	datePainted: string;
 	frame: string;
@@ -68,6 +69,7 @@ export function ArtForm() {
 		unit: "cm",
 		printType: "",
 		numberOfPrints: "",
+		email: "",
 		datePainted: "",
 		frame: "",
 		collection: "",
@@ -90,6 +92,16 @@ export function ArtForm() {
 			...f,
 			[name]: type === "checkbox" ? checked : value,
 		}));
+		if (name === "price") {
+			let filtered = value.replace(/[^0-9.]/g, "");
+			const parts = filtered.split(".");
+			if (parts.length > 2) filtered = parts.shift() + "." + parts.join("");
+			const [intPart, decPart] = filtered.split(".");
+			filtered = decPart !== undefined ? intPart + "." + decPart.slice(0, 2) : intPart;
+
+			setForm((prev) => ({ ...prev, price: filtered }));
+			return;
+		}
 		if (submitted) {
 			const isValueValid = typeof value === "string" ? value.trim() !== "" : value !== "" && value !== null;
 
@@ -194,6 +206,7 @@ export function ArtForm() {
 			{ key: "frame", label: "Frame" },
 			{ key: "collection", label: "Collection" },
 			{ key: "description", label: "Description" },
+			{ key: "email", label: "Email" },
 		];
 
 		requiredFields.forEach(({ key, label }) => {
@@ -251,6 +264,7 @@ export function ArtForm() {
 					{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
 					...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
 					{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
+					{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
 					{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 					{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
@@ -366,6 +380,7 @@ export function ArtForm() {
 				artType: "",
 				dimensions: "",
 				unit: "cm",
+				email: "",
 				printType: "",
 				numberOfPrints: "",
 				datePainted: "",
@@ -606,6 +621,12 @@ export function ArtForm() {
 					value={form.description}
 					onChange={handleChange}
 				/>
+			</div>
+
+			<h3 className={styles.sectionTitle}>Contact information</h3>
+			<div className={styles.formGroup}>
+				{fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
+				<input name="email" value={form.email} onChange={handleChange} type="text" placeholder="Email" />
 			</div>
 
 			<hr className={styles.fullWidthSeparator} />

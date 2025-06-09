@@ -77,6 +77,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const datePainted = getAttr("date-painted");
 	const signature = getAttr("signature");
 	const artType = getAttr("art-type");
+	const email = getAttr("email");
 	const printType = getAttr("name");
 	const frame = getAttr("frame");
 
@@ -433,6 +434,21 @@ export function ProductPage({ slug }: ProductPageProps) {
 			</section> */}
 
 			{/* <button className={styles.messageButton}>Message listing member</button> */}
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact listing member
+					</button>
+				</div>
+			)}
 			<section>
 				{creatorUser && (
 					<div>

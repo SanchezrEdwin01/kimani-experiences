@@ -380,12 +380,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 							<p className={styles.infoValue}>{phoneNumber}</p>
 						</div>
 					)}
-					{email && (
-						<div className={styles.infoItem}>
-							<h3 className={styles.infoLabel}>Email</h3>
-							<p className={styles.infoValue}>{email}</p>
-						</div>
-					)}
 					{yearsInBusiness && (
 						<div className={styles.infoItem}>
 							<h3 className={styles.infoLabel}>Years in business</h3>
@@ -401,7 +395,21 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				</div>
 			</section>
 			<hr className={styles.divider} />
-
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
+			)}
 			{/* <button className={styles.messageButton}>Message service provider</button> */}
 			<section>
 				{creatorUser && (

@@ -63,6 +63,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 	const address = getAttr("address");
 	const city = getAttr("city");
+	const email = getAttr("email");
 
 	const startObj = product?.pricing?.priceRange?.start?.gross;
 	const stopObj = product?.pricing?.priceRange?.stop?.gross;
@@ -388,6 +389,22 @@ export function ProductPage({ slug }: ProductPageProps) {
 				</div>
 				<hr className={styles.divider} />
 			</section>
+
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
+			)}
 
 			{getAttr("external-link") && (
 				<>

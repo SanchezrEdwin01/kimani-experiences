@@ -43,6 +43,7 @@ export function LuxuryGoodsForm() {
 		state: "",
 		country: "",
 		priceOption: "",
+		email: "",
 		price: "",
 		currency: "",
 		condition: "",
@@ -116,9 +117,10 @@ export function LuxuryGoodsForm() {
 		if (name === "price") {
 			let filtered = value.replace(/[^0-9.]/g, "");
 			const parts = filtered.split(".");
-			if (parts.length > 2) {
-				filtered = parts[0] + "." + parts.slice(1).join("");
-			}
+			if (parts.length > 2) filtered = parts.shift() + "." + parts.join("");
+			const [intPart, decPart] = filtered.split(".");
+			filtered = decPart !== undefined ? intPart + "." + decPart.slice(0, 2) : intPart;
+
 			setForm((prev) => ({ ...prev, price: filtered }));
 			return;
 		}
@@ -194,6 +196,7 @@ export function LuxuryGoodsForm() {
 			description: "",
 			externalLink: "",
 			brandName: "",
+			email: "",
 		});
 		setFilesToUpload([]);
 		setStates([]);
@@ -241,6 +244,7 @@ export function LuxuryGoodsForm() {
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 					{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
 					{ id: "QXR0cmlidXRlOjIy", plainText: "" },
+					{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
 					{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
 				],
 				userId: user?._id || "",
@@ -394,6 +398,7 @@ export function LuxuryGoodsForm() {
 				state: "",
 				country: "",
 				priceOption: "",
+				email: "",
 				price: "",
 				currency: "",
 				condition: "",
@@ -590,6 +595,11 @@ export function LuxuryGoodsForm() {
 					<option value="used">Used</option>
 					<option value="vintage">Vintage</option>
 				</select>
+			</div>
+
+			<h3 className={styles.sectionTitle}>Contact information</h3>
+			<div className={styles.formGroup}>
+				<input name="email" value={form.email} onChange={handleChange} type="text" placeholder="Email" />
 			</div>
 
 			<div className={styles.formGroup}>

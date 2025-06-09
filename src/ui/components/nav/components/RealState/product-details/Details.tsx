@@ -65,6 +65,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const city = getAttr("city");
 	const state = getAttr("state");
 	const country = getAttr("country");
+	const email = getAttr("email");
 	const zipCode = getAttr("zip-code");
 	const fullAddress = [address, city, state, zipCode, country].filter(Boolean).join(", ");
 
@@ -439,6 +440,21 @@ export function ProductPage({ slug }: ProductPageProps) {
 						</a>
 					</div>
 				</section>
+			)}
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
 			)}
 			{/* <button className={styles.messageButton}>Message listing member</button> */}
 			<section>
