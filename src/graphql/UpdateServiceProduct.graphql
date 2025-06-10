@@ -1,0 +1,22 @@
+mutation UpdateServiceProduct(
+	$id: ID!
+	$name: String
+	$slug: String
+	$description: JSONString
+	$attributes: [AttributeValueInput!]
+) {
+	productUpdate(
+		id: $id
+		input: { name: $name, slug: $slug, description: $description, attributes: $attributes }
+	) {
+		product {
+			id
+			name
+			slug
+		}
+		errors {
+			field
+			message
+		}
+	}
+}

@@ -1,0 +1,11 @@
+mutation DeleteServiceImage($id: ID!) {
+	productMediaDelete(id: $id) {
+		media {
+			id
+		}
+		errors {
+			field
+			message
+		}
+	}
+}
