@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { MenuOutline } from "styled-icons/evaicons-outline";
@@ -11,16 +11,8 @@ import "./index.scss";
 
 export function Header() {
 	const router = useRouter();
-	const staticBase = useBaseURL();
-	const [baseURL, setBaseURL] = useState<string>(staticBase);
+	const baseURL = useBaseURL();
 	const [activeTab, setActiveTab] = useState<string>("Marketplace");
-
-	useEffect(() => {
-		const savedOrigin = localStorage.getItem("originAfterLogin");
-		if (savedOrigin) {
-			setBaseURL(savedOrigin);
-		}
-	}, []);
 
 	const navigate = (path: string) => {
 		if (path.startsWith("http")) {
