@@ -96,7 +96,7 @@ export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 		? `${selectedCity.name}, ${selectedCountry?.name}`
 		: selectedCountry
 		? selectedCountry.name
-		: "All over the world";
+		: "Global Destinations";
 
 	return (
 		<div className="location-selector relative flex items-center justify-between bg-gray-900 px-4 py-2 text-white">
@@ -116,13 +116,13 @@ export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 			{isOpen && (
 				<div
 					ref={dropdownRef}
-					className="max-h-screen-70 bg-gray dropdown-custom absolute left-[70px] top-[55px] z-50 w-60 overflow-auto rounded py-2 text-white shadow-lg"
+					className="bg-gray dropdown-custom absolute left-[70px] top-[55px] z-50 max-h-[50vh] w-60 overflow-y-auto rounded py-2 text-white shadow-lg"
 				>
 					<button
 						className="w-full px-4 py-2 text-left text-sm text-amber-400 hover:bg-slate-700"
 						onClick={handleClearLocation}
 					>
-						All over the world
+						Global Destinations
 					</button>
 					{!selectedCountry &&
 						countries.map((c) => (

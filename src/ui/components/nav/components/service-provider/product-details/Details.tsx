@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, BookmarkIcon } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutlineIcon } from "@heroicons/react/24/outline";
+import { ShareButtonWithModal } from "../../ShareButtonWithModal";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
 import type { User } from "@/UserKimani/types";
@@ -204,6 +205,12 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 		router.push(parent);
 	};
 
+	function handleEditProduct() {
+		router.push("/marketplace/service-providers/edit-service-provider/" + product?.slug);
+	}
+
+	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
 
@@ -234,9 +241,13 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 						)}
 					</button>
 
-					<button aria-label="Share">
-						<ShareIcon className="h-6 w-6" />
-					</button>
+					<div className={styles.actionGroup}>
+						<ShareButtonWithModal
+							title="Check this out!"
+							text="Have a look at this listing:"
+							url={currentUrl}
+						/>
+					</div>
 				</div>
 				{productImages.length > 1 && (
 					<div className={styles.galleryNavigation}>
@@ -380,12 +391,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 							<p className={styles.infoValue}>{phoneNumber}</p>
 						</div>
 					)}
-					{email && (
-						<div className={styles.infoItem}>
-							<h3 className={styles.infoLabel}>Email</h3>
-							<p className={styles.infoValue}>{email}</p>
-						</div>
-					)}
 					{yearsInBusiness && (
 						<div className={styles.infoItem}>
 							<h3 className={styles.infoLabel}>Years in business</h3>
@@ -401,7 +406,21 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				</div>
 			</section>
 			<hr className={styles.divider} />
-
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
+			)}
 			{/* <button className={styles.messageButton}>Message service provider</button> */}
 			<section>
 				{creatorUser && (
@@ -409,6 +428,17 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
 								Delete
+							</button>
+						)}
+					</div>
+				)}
+			</section>
+			<section>
+				{creatorUser && (
+					<div>
+						{createdByUserId === user?._id && (
+							<button className={styles.submitButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>

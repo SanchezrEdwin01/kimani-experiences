@@ -2,10 +2,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, BookmarkIcon } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutlineIcon } from "@heroicons/react/24/outline";
+import { ShareButtonWithModal } from "../../ShareButtonWithModal";
 import styles from "./index.module.scss";
-
 import type { DescriptionDoc } from "./types";
 import { type User } from "@/UserKimani/types";
 import { useUser } from "@/UserKimani/context/UserContext";
@@ -13,12 +13,12 @@ import { API_URL } from "@/UserKimani/utils/constants";
 import { executeGraphQL, formatMoneyRange } from "@/lib/graphql";
 import {
 	ProductDetailsBySlugDocument,
+	ProductDeleteDocument,
+	UpdateFavoritesDocument,
 	type ProductDetailsBySlugQuery,
 	type ProductDetailsBySlugQueryVariables,
-	ProductDeleteDocument,
 	type ProductDeleteMutation,
 	type ProductDeleteMutationVariables,
-	UpdateFavoritesDocument,
 	type UpdateFavoritesMutation,
 	type UpdateFavoritesMutationVariables,
 } from "@/gql/graphql";
@@ -77,6 +77,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const datePainted = getAttr("date-painted");
 	const signature = getAttr("signature");
 	const artType = getAttr("art-type");
+	const email = getAttr("email");
 	const printType = getAttr("name");
 	const frame = getAttr("frame");
 
@@ -210,6 +211,12 @@ export function ProductPage({ slug }: ProductPageProps) {
 		}
 	}
 
+	function handleEditProduct() {
+		router.push("/marketplace/art/edit-art/" + product?.slug);
+	}
+
+	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
 	const range = {
 		start: startObj
 			? {
@@ -256,9 +263,13 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<BookmarkOutlineIcon style={{ stroke: "gray" }} className="h-6 w-6" />
 						)}
 					</button>
-					<button aria-label="Share">
-						<ShareIcon />
-					</button>
+					<div className={styles.actionGroup}>
+						<ShareButtonWithModal
+							title="Check this out!"
+							text="Have a look at this listing:"
+							url={currentUrl}
+						/>
+					</div>
 				</div>
 				{productImages.length > 1 && (
 					<div className={styles.galleryNavigation}>
@@ -433,12 +444,38 @@ export function ProductPage({ slug }: ProductPageProps) {
 			</section> */}
 
 			{/* <button className={styles.messageButton}>Message listing member</button> */}
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact listing member
+					</button>
+				</div>
+			)}
 			<section>
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
 								Delete
+							</button>
+						)}
+					</div>
+				)}
+			</section>
+			<section>
+				{creatorUser && (
+					<div>
+						{createdByUserId === user?._id && (
+							<button className={styles.submitButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>

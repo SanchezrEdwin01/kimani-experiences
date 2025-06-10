@@ -45,6 +45,7 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 			values {
 				name
 				value
+				id
 			}
 		}
 		variants {

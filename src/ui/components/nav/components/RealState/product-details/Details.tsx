@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, BookmarkIcon } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutlineIcon } from "@heroicons/react/24/outline";
+import { ShareButtonWithModal } from "../../ShareButtonWithModal";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
 import { formatMoneyRange, executeGraphQL } from "@/lib/graphql";
@@ -12,19 +13,18 @@ import { type User } from "@/UserKimani/types";
 import { API_URL } from "@/UserKimani/utils/constants";
 import {
 	ProductDetailsBySlugDocument,
+	ProductDeleteDocument,
+	UpdateFavoritesDocument,
 	type ProductDetailsBySlugQuery,
 	type ProductDetailsBySlugQueryVariables,
-	ProductDeleteDocument,
 	type ProductDeleteMutation,
 	type ProductDeleteMutationVariables,
-	UpdateFavoritesDocument,
 	type UpdateFavoritesMutation,
 	type UpdateFavoritesMutationVariables,
 } from "@/gql/graphql";
 
 interface ProductPageProps {
 	slug: string;
-	categoryName: string;
 }
 
 export function ProductPage({ slug }: ProductPageProps) {
@@ -65,6 +65,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const city = getAttr("city");
 	const state = getAttr("state");
 	const country = getAttr("country");
+	const email = getAttr("email");
 	const zipCode = getAttr("zip-code");
 	const fullAddress = [address, city, state, zipCode, country].filter(Boolean).join(", ");
 
@@ -220,6 +221,10 @@ export function ProductPage({ slug }: ProductPageProps) {
 		}
 	}
 
+	function handleEditProduct() {
+		router.push("/marketplace/real-estate/edit-real-estate/" + product?.slug);
+	}
+
 	const productImages = product?.media?.map((m) => m.url) || [];
 	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
 		productImages.unshift(product.thumbnail.url);
@@ -229,6 +234,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 		?.values?.[0]?.name;
 	const priceOptions = product?.attributes.find((attr) => attr.attribute.slug === "price-options")
 		?.values?.[0]?.name;
+
+	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
@@ -260,9 +267,13 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<BookmarkOutlineIcon style={{ stroke: "gray" }} className="h-6 w-6" />
 						)}
 					</button>
-					<button aria-label="Share">
-						<ShareIcon />
-					</button>
+					<div className={styles.actionGroup}>
+						<ShareButtonWithModal
+							title="Check this out!"
+							text="Have a look at this listing:"
+							url={currentUrl}
+						/>
+					</div>
 				</div>
 				{productImages.length > 1 && (
 					<div className={styles.galleryNavigation}>
@@ -276,7 +287,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<ArrowLeftIcon />
 						</button>
 
-						{/* Agregar contador de imágenes */}
 						<div className={styles.imageCounter}>
 							{currentImageIndex + 1} / {productImages.length}
 						</div>
@@ -440,6 +450,21 @@ export function ProductPage({ slug }: ProductPageProps) {
 					</div>
 				</section>
 			)}
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
+			)}
 			{/* <button className={styles.messageButton}>Message listing member</button> */}
 			<section>
 				{creatorUser && (
@@ -447,6 +472,17 @@ export function ProductPage({ slug }: ProductPageProps) {
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
 								Delete
+							</button>
+						)}
+					</div>
+				)}
+			</section>
+			<section>
+				{creatorUser && (
+					<div>
+						{createdByUserId === user?._id && (
+							<button className={styles.submitButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>

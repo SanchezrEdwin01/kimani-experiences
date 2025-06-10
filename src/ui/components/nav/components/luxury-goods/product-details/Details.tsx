@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowLeftIcon, BookmarkIcon, ShareIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, BookmarkIcon } from "@heroicons/react/24/solid";
 import { BookmarkIcon as BookmarkOutlineIcon } from "@heroicons/react/24/outline";
+import { ShareButtonWithModal } from "../../ShareButtonWithModal";
 import styles from "./index.module.scss";
 import type { DescriptionDoc } from "./types";
 import { executeGraphQL, formatMoneyRange } from "@/lib/graphql";
@@ -12,19 +13,18 @@ import { useUser } from "@/UserKimani/context/UserContext";
 import { API_URL } from "@/UserKimani/utils/constants";
 import {
 	ProductDetailsBySlugDocument,
+	ProductDeleteDocument,
+	UpdateFavoritesDocument,
 	type ProductDetailsBySlugQuery,
 	type ProductDetailsBySlugQueryVariables,
-	ProductDeleteDocument,
 	type ProductDeleteMutation,
 	type ProductDeleteMutationVariables,
-	UpdateFavoritesDocument,
 	type UpdateFavoritesMutation,
 	type UpdateFavoritesMutationVariables,
 } from "@/gql/graphql";
 
 interface ProductPageProps {
 	slug: string;
-	categoryName: string;
 }
 
 export function ProductPage({ slug }: ProductPageProps) {
@@ -63,6 +63,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 
 	const address = getAttr("address");
 	const city = getAttr("city");
+	const email = getAttr("email");
+	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
 	const startObj = product?.pricing?.priceRange?.start?.gross;
 	const stopObj = product?.pricing?.priceRange?.stop?.gross;
@@ -214,6 +216,10 @@ export function ProductPage({ slug }: ProductPageProps) {
 		productImages.unshift(product.thumbnail.url);
 	}
 
+	function handleEditProduct() {
+		router.push("/marketplace/luxury-goods/edit-luxury-goods/" + product?.slug);
+	}
+
 	const goUpOneLevel = () => {
 		const parts = pathname.split("/");
 		const parent = parts.slice(0, -1).join("/") || "/";
@@ -257,10 +263,13 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<BookmarkOutlineIcon style={{ stroke: "gray" }} className="h-6 w-6" />
 						)}
 					</button>
-
-					<button aria-label="Share">
-						<ShareIcon className="h-6 w-6" />
-					</button>
+					<div className={styles.actionGroup}>
+						<ShareButtonWithModal
+							title="Check this out!"
+							text="Have a look at this listing:"
+							url={currentUrl}
+						/>
+					</div>
 				</div>
 
 				{productImages.length > 1 && (
@@ -389,6 +398,22 @@ export function ProductPage({ slug }: ProductPageProps) {
 				<hr className={styles.divider} />
 			</section>
 
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Service Provider
+					</button>
+				</div>
+			)}
+
 			{getAttr("external-link") && (
 				<>
 					<section className={styles.externalLinksSection}>
@@ -409,6 +434,17 @@ export function ProductPage({ slug }: ProductPageProps) {
 						{createdByUserId === user?._id && (
 							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
 								Delete
+							</button>
+						)}
+					</div>
+				)}
+			</section>
+			<section>
+				{creatorUser && (
+					<div>
+						{createdByUserId === user?._id && (
+							<button className={styles.submitButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>

@@ -17,7 +17,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 		<div className="min-h-screen bg-black pb-24">
 			<QueryClientProvider client={queryClient}>
 				<UserProvider>
-					<ProductPage slug={params.slug} categoryName="luxury-goods" />
+					<ProductPage slug={params.slug} />
 				</UserProvider>
 			</QueryClientProvider>
 		</div>
