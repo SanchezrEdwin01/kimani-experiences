@@ -19,6 +19,11 @@ import {
 	PublishVariantInChannelDocument,
 	AddProductToCollectionDocument,
 	AddServiceImageDocument,
+	DeleteServiceImageDocument,
+	UpdateServiceProductDocument,
+	ProductDetailsBySlugDocument,
+	type ProductDetailsBySlugQuery,
+	type ProductDetailsBySlugQueryVariables,
 	type CategoryTreeQuery,
 } from "@/gql/graphql";
 import { SuccessAnimation } from "@/ui/components/nav/components/animation";
@@ -44,11 +49,18 @@ interface ArtFormData {
 	certificateFile?: File;
 }
 
-export function ArtForm() {
+export interface RealEstateFormProps {
+	productSlug?: string;
+}
+
+export function ArtForm({ productSlug }: RealEstateFormProps) {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const pathname = usePathname();
+	const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
+	const [existingProductId, setExistingProductId] = useState<string>("");
+	const initialExistingImages = useRef<{ id: string; url: string }[]>([]);
 	const router = useRouter();
 	const [categories, setCategories] = useState<
 		{
@@ -142,6 +154,63 @@ export function ArtForm() {
 			.catch(console.error);
 	}, []);
 
+	useEffect(() => {
+		if (!productSlug) return;
+
+		executeGraphQL<ProductDetailsBySlugQuery, ProductDetailsBySlugQueryVariables>(
+			ProductDetailsBySlugDocument,
+			{ variables: { slug: productSlug, channel: "default-channel" } },
+		)
+			.then((data) => {
+				const p = data.product;
+				if (!p) return;
+
+				let descText = "";
+				if (typeof p.description === "string") {
+					try {
+						const parsed = JSON.parse(p.description) as {
+							blocks: Array<{ data: { text: string } }>;
+						};
+						descText = parsed.blocks?.[0]?.data.text ?? "";
+					} catch {
+						descText = "";
+					}
+				}
+
+				const getValue = (slug: string): string =>
+					p.attributes.find((a) => a.attribute.slug === slug)?.values?.[0]?.name ?? "";
+
+				setForm({
+					title: p.name,
+					artisName: getValue("painter-name"),
+					artCategory: p.category?.id ?? "",
+					price: p.pricing?.priceRange?.start?.gross.amount.toString() ?? "",
+					currency: getValue("currency"),
+					artType: getValue("art-type"),
+					dimensions: getValue("dimensions"),
+					unit: "cm",
+					printType: getValue("print-type"),
+					email: getValue("email"),
+					numberOfPrints: getValue("number-of-prints"),
+					datePainted: getValue("date-painted"),
+					frame: getValue("frame"),
+					collection: getValue("collection"),
+					signature: false,
+					description: descText,
+					externalLink: getValue("link-to-artwork"),
+					certificateFile: undefined,
+				});
+
+				setExistingProductId(p.id);
+				setSelectedCategory(p.category?.id ?? "");
+
+				const imgs = p.media?.map((m) => ({ id: m.id, url: m.url })) ?? [];
+				setExistingImages(imgs);
+				initialExistingImages.current = imgs;
+			})
+			.catch(console.error);
+	}, [productSlug]);
+
 	function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
 		setSelectedCategory(e.target.value);
 		setForm((prev) => ({ ...prev, artCategory: e.target.value }));
@@ -220,8 +289,14 @@ export function ArtForm() {
 			errors["price"] = "Price is required.";
 		}
 
-		if (filesToUpload.length === 0) {
-			errors["images"] = "Image is required. Please upload at least one image.";
+		if (productSlug) {
+			if (existingImages.length === 0 && filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required when no existing images";
+			}
+		} else {
+			if (filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required.";
+			}
 		}
 
 		setFieldErrors(errors);
@@ -229,30 +304,24 @@ export function ArtForm() {
 	}
 
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		setSubmitted(true);
+		if (productSlug) {
+			e.preventDefault();
+			setSubmitted(true);
 
-		if (!validateForm()) {
-			setIsLoading(false);
-			return;
-		}
-		setIsLoading(true);
-		try {
-			const descriptionJSON = JSON.stringify({
-				blocks: [{ type: "paragraph", data: { text: form.description } }],
-				version: "2.0",
-			});
+			if (!validateForm()) {
+				setSubmitted(false);
+				return;
+			}
 
-			const baseSlug = slugify(form.title, { lower: true });
-			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+			setIsLoading(true);
 
-			const createVars = {
-				name: form.title,
-				slug: uniqueSlug,
-				productType: "UHJvZHVjdFR5cGU6NQ==",
-				category: form.artCategory,
-				description: descriptionJSON,
-				attributes: [
+			try {
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: form.description } }],
+					version: "2.22.2",
+				});
+
+				const attributes = [
 					{ id: "QXR0cmlidXRlOjk=", boolean: form.signature },
 					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
 					{ id: "QXR0cmlidXRlOjMw", plainText: form.artisName },
@@ -268,132 +337,223 @@ export function ArtForm() {
 					{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
 					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
 					{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
-				],
-				userId: user?._id || "",
-				userData: JSON.stringify(user),
-			};
+				];
 
-			const createRes = await executeGraphQL(CreateServiceProductDocument, { variables: createVars });
-			const productId = createRes.productCreate?.product?.id;
-			if (!productId) {
-				console.error(createRes.productCreate?.errors);
-				return;
-			}
+				const toDelete = initialExistingImages.current
+					.map((img) => img.id)
+					.filter((id) => !existingImages.some((img) => img.id === id));
 
-			const variantRes = await executeGraphQL(CreateDefaultVariantDocument, {
-				variables: { productId, sku: `${createVars.slug}-DEFAULT` },
-			});
-			const variantId = variantRes.productVariantCreate?.productVariant?.id;
-			if (!variantId) {
-				console.error(variantRes.productVariantCreate?.errors);
-				return;
-			}
+				for (const imageId of toDelete) {
+					await executeGraphQL(DeleteServiceImageDocument, { variables: { id: imageId } });
+				}
 
-			await executeGraphQL(PublishProductInChannelDocument, {
-				variables: { productId, channelId: "Q2hhbm5lbDox" },
-			});
-			await executeGraphQL(PublishVariantInChannelDocument, {
-				variables: {
-					variantId,
-					channelId: "Q2hhbm5lbDox",
-					price: parseFloat(form.price),
-				},
-			});
+				const result = await executeGraphQL(UpdateServiceProductDocument, {
+					variables: {
+						id: existingProductId,
+						name: form.title,
+						slug: slugify(form.title, { lower: true }),
+						description: descriptionJSON,
+						attributes,
+					},
+				});
 
-			await executeGraphQL(AddProductToCollectionDocument, {
-				variables: { collectionId: "Q29sbGVjdGlvbjoyMDU=", productId },
-			});
+				const productId = result.productUpdate?.product?.id;
+				if (!productId || result.productUpdate?.errors?.length) {
+					console.error(result.productUpdate?.errors);
+					return;
+				}
 
-			if (filesToUpload.length) {
-				console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
 				for (let i = 0; i < filesToUpload.length; i++) {
-					let fileToSend = filesToUpload[i];
-					console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
-
-					if (/\.heic$/i.test(fileToSend.name)) {
-						console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
-						const arrayBuffer = await fileToSend.arrayBuffer();
-						console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
-						const uint8ArrayInput = new Uint8Array(arrayBuffer);
-
-						const actualFormat = detectImageFormat(uint8ArrayInput);
-						console.log(`🔍  Formato detectado: ${actualFormat}`);
-
-						if (actualFormat === "heic") {
-							console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
-
-							try {
-								const outputBuffer: ArrayBuffer = await convert({
-									buffer: uint8ArrayInput.buffer,
-									format: "JPEG",
-									quality: 0.8,
-								});
-								console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
-								const blob = new Blob([outputBuffer], { type: "image/jpeg" });
-								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-									type: "image/jpeg",
-								});
-								console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
-							} catch (conversionError) {
-								console.error("Error durante la conversión HEIC:", conversionError);
-								throw conversionError;
-							}
-						} else if (actualFormat === "jpeg") {
-							console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
-							const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
-							fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-								type: "image/jpeg",
-							});
-							console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
-						} else {
-							console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
-						}
-					} else {
-						console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
-					}
-
-					console.log(`🚀  Subiendo ${fileToSend.name}...`);
+					const fileToSend = filesToUpload[i];
 					await uploadGraphQL(AddServiceImageDocument, {
 						product: productId,
 						image: fileToSend,
 						alt: `${form.title}-${i}`,
 					});
-					console.log(`🎉  Subida completada para ${fileToSend.name}`);
 				}
-				console.log("🏁  Todas las imágenes procesadas y subidas.");
+
+				setShowSuccess(true);
+				setTimeout(() => setShowSuccess(false), 5000);
+
+				console.log("Producto actualizado con ID:", productId);
+			} catch (error) {
+				console.error("Error actualizando producto:", error);
+			} finally {
+				setIsLoading(false);
+				setSubmitted(false);
+				setFilesToUpload([]);
+				const segments = pathname.split("/").filter(Boolean);
+				const parentLevels = 2;
+				const base = "/" + segments.slice(0, -parentLevels).join("/");
+				router.push(base || "/");
 			}
-			setShowSuccess(true);
-			setTimeout(() => setShowSuccess(false), 5000);
-			console.log("Artwork created with ID", productId);
-		} catch (error) {
-			console.error("Error creating artwork:", error);
-		} finally {
-			setIsLoading(false);
-			setSubmitted(false);
-			setFilesToUpload([]);
-			setForm({
-				title: "",
-				artisName: "",
-				artCategory: "",
-				price: "",
-				currency: "",
-				artType: "",
-				dimensions: "",
-				unit: "cm",
-				email: "",
-				printType: "",
-				numberOfPrints: "",
-				datePainted: "",
-				frame: "",
-				collection: "",
-				signature: false,
-				description: "",
-				externalLink: "",
-				certificateFile: undefined,
-			});
-			setFieldErrors({});
-			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
-			router.push(parent);
+		} else {
+			e.preventDefault();
+			setSubmitted(true);
+
+			if (!validateForm()) {
+				setIsLoading(false);
+				return;
+			}
+			setIsLoading(true);
+			try {
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: form.description } }],
+					version: "2.0",
+				});
+
+				const baseSlug = slugify(form.title, { lower: true });
+				const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
+				const createVars = {
+					name: form.title,
+					slug: uniqueSlug,
+					productType: "UHJvZHVjdFR5cGU6NQ==",
+					category: form.artCategory,
+					description: descriptionJSON,
+					attributes: [
+						{ id: "QXR0cmlidXRlOjk=", boolean: form.signature },
+						{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
+						{ id: "QXR0cmlidXRlOjMw", plainText: form.artisName },
+						{ id: "QXR0cmlidXRlOjQy", plainText: form.artType },
+						{ id: "QXR0cmlidXRlOjQz", plainText: form.printType },
+						{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame },
+						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
+						{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
+						{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
+						...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
+						{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
+						{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
+						{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
+						{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
+						{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
+					],
+					userId: user?._id || "",
+					userData: JSON.stringify(user),
+				};
+
+				const createRes = await executeGraphQL(CreateServiceProductDocument, { variables: createVars });
+				const productId = createRes.productCreate?.product?.id;
+				if (!productId) {
+					console.error(createRes.productCreate?.errors);
+					return;
+				}
+
+				const variantRes = await executeGraphQL(CreateDefaultVariantDocument, {
+					variables: { productId, sku: `${createVars.slug}-DEFAULT` },
+				});
+				const variantId = variantRes.productVariantCreate?.productVariant?.id;
+				if (!variantId) {
+					console.error(variantRes.productVariantCreate?.errors);
+					return;
+				}
+
+				await executeGraphQL(PublishProductInChannelDocument, {
+					variables: { productId, channelId: "Q2hhbm5lbDox" },
+				});
+				await executeGraphQL(PublishVariantInChannelDocument, {
+					variables: {
+						variantId,
+						channelId: "Q2hhbm5lbDox",
+						price: parseFloat(form.price),
+					},
+				});
+
+				await executeGraphQL(AddProductToCollectionDocument, {
+					variables: { collectionId: "Q29sbGVjdGlvbjoyMDU=", productId },
+				});
+
+				if (filesToUpload.length) {
+					console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
+					for (let i = 0; i < filesToUpload.length; i++) {
+						let fileToSend = filesToUpload[i];
+						console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
+
+						if (/\.heic$/i.test(fileToSend.name)) {
+							console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
+							const arrayBuffer = await fileToSend.arrayBuffer();
+							console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
+							const uint8ArrayInput = new Uint8Array(arrayBuffer);
+
+							const actualFormat = detectImageFormat(uint8ArrayInput);
+							console.log(`🔍  Formato detectado: ${actualFormat}`);
+
+							if (actualFormat === "heic") {
+								console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
+
+								try {
+									const outputBuffer: ArrayBuffer = await convert({
+										buffer: uint8ArrayInput.buffer,
+										format: "JPEG",
+										quality: 0.8,
+									});
+									console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
+									const blob = new Blob([outputBuffer], { type: "image/jpeg" });
+									fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+										type: "image/jpeg",
+									});
+									console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
+								} catch (conversionError) {
+									console.error("Error durante la conversión HEIC:", conversionError);
+									throw conversionError;
+								}
+							} else if (actualFormat === "jpeg") {
+								console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
+								const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
+								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+									type: "image/jpeg",
+								});
+								console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
+							} else {
+								console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
+							}
+						} else {
+							console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
+						}
+
+						console.log(`🚀  Subiendo ${fileToSend.name}...`);
+						await uploadGraphQL(AddServiceImageDocument, {
+							product: productId,
+							image: fileToSend,
+							alt: `${form.title}-${i}`,
+						});
+						console.log(`🎉  Subida completada para ${fileToSend.name}`);
+					}
+					console.log("🏁  Todas las imágenes procesadas y subidas.");
+				}
+				setShowSuccess(true);
+				setTimeout(() => setShowSuccess(false), 5000);
+				console.log("Artwork created with ID", productId);
+			} catch (error) {
+				console.error("Error creating artwork:", error);
+			} finally {
+				setIsLoading(false);
+				setSubmitted(false);
+				setFilesToUpload([]);
+				setForm({
+					title: "",
+					artisName: "",
+					artCategory: "",
+					price: "",
+					currency: "",
+					artType: "",
+					dimensions: "",
+					unit: "cm",
+					email: "",
+					printType: "",
+					numberOfPrints: "",
+					datePainted: "",
+					frame: "",
+					collection: "",
+					signature: false,
+					description: "",
+					externalLink: "",
+					certificateFile: undefined,
+				});
+				setFieldErrors({});
+				const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+				router.push(parent);
+			}
 		}
 	}
 
@@ -425,7 +585,20 @@ export function ArtForm() {
 				</div>
 			)}
 			<div className={styles.formGroup}>
-				<div className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""}`}>
+				<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
+					{existingImages.map((img) => (
+						<div key={img.id} className={styles.thumbWrapper}>
+							<button
+								type="button"
+								className={styles.deleteButton}
+								onClick={() => setExistingImages((prev) => prev.filter((i) => i.id !== img.id))}
+							>
+								×
+							</button>
+							<Image src={img.url} alt="" width={100} height={100} className={styles.thumbnail} />
+						</div>
+					))}
+
 					{filesToUpload.map((file, idx) => {
 						const objectUrl = URL.createObjectURL(file);
 						return (

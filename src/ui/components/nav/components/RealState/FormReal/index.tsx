@@ -13,13 +13,18 @@ import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import {
 	CategoryTreeDocument,
-	type CategoryTreeQuery,
 	CreateServiceProductDocument,
 	CreateDefaultVariantDocument,
 	PublishProductInChannelDocument,
 	PublishVariantInChannelDocument,
 	AddProductToCollectionDocument,
 	AddServiceImageDocument,
+	DeleteServiceImageDocument,
+	UpdateServiceProductDocument,
+	ProductDetailsBySlugDocument,
+	type ProductDetailsBySlugQuery,
+	type ProductDetailsBySlugQueryVariables,
+	type CategoryTreeQuery,
 } from "@/gql/graphql";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import { SuccessAnimation } from "@/ui/components/nav/components/animation";
@@ -58,13 +63,20 @@ interface CustomCity {
 	stateCode: string;
 }
 
-export function RealEstateForm() {
+export interface RealEstateFormProps {
+	productSlug?: string;
+}
+
+export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
 	const { user } = useUser();
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
+	const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
+	const [existingProductId, setExistingProductId] = useState<string>("");
+	const initialExistingImages = useRef<{ id: string; url: string }[]>([]);
 	const [countryCode, setCountryCode] = useState<string>("");
 	const [stateCode, setStateCode] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -130,6 +142,80 @@ export function RealEstateForm() {
 			})
 			.catch(console.error);
 	}, []);
+
+	useEffect(() => {
+		if (!productSlug) return;
+
+		executeGraphQL<ProductDetailsBySlugQuery, ProductDetailsBySlugQueryVariables>(
+			ProductDetailsBySlugDocument,
+			{ variables: { slug: productSlug, channel: "default-channel" } },
+		)
+			.then((data) => {
+				const p = data.product;
+				if (!p) return;
+
+				let descText = "";
+				if (typeof p.description === "string") {
+					try {
+						const parsed = JSON.parse(p.description) as {
+							blocks: Array<{ data: { text: string } }>;
+						};
+						descText = parsed.blocks?.[0]?.data.text ?? "";
+					} catch {}
+				}
+
+				const getValue = (slug: string) =>
+					p.attributes.find((a) => a.attribute.slug === slug)?.values?.[0]?.name ?? "";
+
+				const getSelectedValueId = (slug: string) =>
+					p.attributes.find((a) => a.attribute.slug === slug)?.values?.[0]?.id ?? "";
+
+				setFormData({
+					title: p.name,
+					category: p.category?.id ?? "",
+					address: getValue("address"),
+					city: getValue("city"),
+					zipCode: getValue("zip-code"),
+					externalLink: getValue("external-link"),
+					description: descText,
+					bedrooms: Number(getValue("bedrooms")) || 0,
+					bathrooms: Number(getValue("bathrooms")) || 0,
+					country: getValue("country"),
+					email: getValue("email"),
+					currency: getValue("currency"),
+					state: getValue("state"),
+					levelListing: getValue("level-listing"),
+					priceOption: getSelectedValueId("price-options"),
+					price: p.pricing?.priceRange?.start?.gross.amount.toString() ?? "",
+					parkingNumber: Number(getValue("parking-number")) || 0,
+					propertySize: getValue("property-size"),
+					sizeUnit: getSelectedValueId("size-unit"),
+				});
+
+				setExistingProductId(p.id);
+
+				setSelectedCategory(p.category?.id ?? "");
+
+				const isoCountry =
+					Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "";
+
+				setCountryCode(Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "");
+
+				const allStates = State.getStatesOfCountry(isoCountry);
+				setStates(allStates);
+
+				setStateCode(
+					State.getStatesOfCountry(
+						Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "",
+					).find((s) => s.name === getValue("state"))?.isoCode ?? "",
+				);
+
+				const imgs = p.media?.map((m) => ({ id: m.id, url: m.url })) ?? [];
+				setExistingImages(imgs);
+				initialExistingImages.current = imgs;
+			})
+			.catch(console.error);
+	}, [productSlug]);
 
 	function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
 		if (!e.target.files || e.target.files.length === 0) return;
@@ -283,8 +369,14 @@ export function RealEstateForm() {
 			errors["price"] = "Price is required.";
 		}
 
-		if (filesToUpload.length === 0) {
-			errors["images"] = "At least one image is required.";
+		if (productSlug) {
+			if (existingImages.length === 0 && filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required when no existing images";
+			}
+		} else {
+			if (filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required.";
+			}
 		}
 
 		setFieldErrors(errors);
@@ -292,32 +384,24 @@ export function RealEstateForm() {
 	}
 
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		setSubmitted(true);
+		if (productSlug) {
+			e.preventDefault();
+			setSubmitted(true);
 
-		if (!validateForm()) {
-			setSubmitted(false);
-			return;
-		}
+			if (!validateForm()) {
+				setSubmitted(false);
+				return;
+			}
 
-		setIsLoading(true);
+			setIsLoading(true);
 
-		try {
-			const descriptionJSON = JSON.stringify({
-				blocks: [{ type: "paragraph", data: { text: formData.description } }],
-				version: "2.22.2",
-			});
+			try {
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: formData.description } }],
+					version: "2.22.2",
+				});
 
-			const baseSlug = slugify(formData.title, { lower: true });
-			const uniqueSlug = `${baseSlug}-${uuidv4()}`;
-
-			const createProductVars = {
-				name: formData.title,
-				slug: uniqueSlug,
-				productType: "UHJvZHVjdFR5cGU6NA==",
-				category: formData.category,
-				description: descriptionJSON,
-				attributes: [
+				const attributes = [
 					{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
 					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
 					...(formData.zipCode ? [{ id: "QXR0cmlidXRlOjE0", numeric: formData.zipCode }] : []),
@@ -335,186 +419,291 @@ export function RealEstateForm() {
 					{ id: "QXR0cmlidXRlOjQ5", numeric: String(formData.parkingNumber) },
 					{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
 					{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
-				],
-				userId: user?._id || "",
-				userData: JSON.stringify(user),
-			};
+				];
 
-			// 1) Crear producto
-			const createData = await executeGraphQL(CreateServiceProductDocument, {
-				variables: createProductVars,
-			});
-			const productId = createData?.productCreate?.product?.id;
-			if (!productId || createData.productCreate?.errors.length) {
-				console.error(createData.productCreate?.errors);
-				return;
-			}
+				const toDelete = initialExistingImages.current
+					.map((img) => img.id)
+					.filter((id) => !existingImages.some((img) => img.id === id));
 
-			const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
-				variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
-			});
-			const variantId = variantData?.productVariantCreate?.productVariant?.id;
-			if (!variantId || variantData.productVariantCreate?.errors.length) {
-				console.error(variantData.productVariantCreate?.errors);
-				return;
-			}
-
-			await executeGraphQL(PublishProductInChannelDocument, {
-				variables: { productId, channelId: "Q2hhbm5lbDox" },
-			});
-			await executeGraphQL(PublishVariantInChannelDocument, {
-				variables: {
-					variantId,
-					channelId: "Q2hhbm5lbDox",
-					price:
-						formData.priceOption === "QXR0cmlidXRlVmFsdWU6MjIw" ? 0.0 : parseFloat(formData.price.toString()),
-				},
-			});
-			await executeGraphQL(AddProductToCollectionDocument, {
-				variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
-			});
-
-			function detectImageFormat(uint8Array: Uint8Array): string {
-				if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
-					return "jpeg";
+				for (const imageId of toDelete) {
+					await executeGraphQL(DeleteServiceImageDocument, { variables: { id: imageId } });
 				}
 
-				if (
-					uint8Array[0] === 0x89 &&
-					uint8Array[1] === 0x50 &&
-					uint8Array[2] === 0x4e &&
-					uint8Array[3] === 0x47
-				) {
-					return "png";
+				const result = await executeGraphQL(UpdateServiceProductDocument, {
+					variables: {
+						id: existingProductId,
+						name: formData.title,
+						slug: slugify(formData.title, { lower: true }),
+						description: descriptionJSON,
+						attributes,
+					},
+				});
+
+				const productId = result.productUpdate?.product?.id;
+				if (!productId || result.productUpdate?.errors?.length) {
+					console.error(result.productUpdate?.errors);
+					return;
 				}
 
-				if (uint8Array.length > 12) {
-					const ftypCheck =
-						uint8Array[4] === 0x66 &&
-						uint8Array[5] === 0x74 &&
-						uint8Array[6] === 0x79 &&
-						uint8Array[7] === 0x70;
-
-					if (ftypCheck) {
-						const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
-						if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
-							return "heic";
-						}
-					}
-				}
-
-				if (
-					uint8Array.length > 12 &&
-					uint8Array[0] === 0x52 &&
-					uint8Array[1] === 0x49 &&
-					uint8Array[2] === 0x46 &&
-					uint8Array[3] === 0x46 &&
-					uint8Array[8] === 0x57 &&
-					uint8Array[9] === 0x45 &&
-					uint8Array[10] === 0x42 &&
-					uint8Array[11] === 0x50
-				) {
-					return "webp";
-				}
-
-				return "unknown";
-			}
-
-			if (filesToUpload.length) {
-				console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
 				for (let i = 0; i < filesToUpload.length; i++) {
-					let fileToSend = filesToUpload[i];
-					console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
-
-					if (/\.heic$/i.test(fileToSend.name)) {
-						console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
-						const arrayBuffer = await fileToSend.arrayBuffer();
-						console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
-						const uint8ArrayInput = new Uint8Array(arrayBuffer);
-
-						const actualFormat = detectImageFormat(uint8ArrayInput);
-						console.log(`🔍  Formato detectado: ${actualFormat}`);
-
-						if (actualFormat === "heic") {
-							console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
-
-							try {
-								const outputBuffer: ArrayBuffer = await convert({
-									buffer: uint8ArrayInput.buffer,
-									format: "JPEG",
-									quality: 0.8,
-								});
-								console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
-								const blob = new Blob([outputBuffer], { type: "image/jpeg" });
-								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-									type: "image/jpeg",
-								});
-								console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
-							} catch (conversionError) {
-								console.error("Error durante la conversión HEIC:", conversionError);
-								throw conversionError;
-							}
-						} else if (actualFormat === "jpeg") {
-							console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
-							const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
-							fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-								type: "image/jpeg",
-							});
-							console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
-						} else {
-							console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
-						}
-					} else {
-						console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
-					}
-
-					console.log(`🚀  Subiendo ${fileToSend.name}...`);
+					const fileToSend = filesToUpload[i];
 					await uploadGraphQL(AddServiceImageDocument, {
 						product: productId,
 						image: fileToSend,
 						alt: `${formData.title}-${i}`,
 					});
-					console.log(`🎉  Subida completada para ${fileToSend.name}`);
 				}
-				console.log("🏁  Todas las imágenes procesadas y subidas.");
-			}
-			setShowSuccess(true);
-			setTimeout(() => {
-				setShowSuccess(false);
-			}, 5000);
-			setShowSuccess(true);
 
-			console.log("Producto creado con ID:", productId);
-		} catch (error) {
-			console.error("Error al crear el producto:", error);
-		} finally {
-			setIsLoading(false);
-			setSubmitted(false);
-			setFilesToUpload([]);
-			setFormData({
-				title: "",
-				category: "",
-				address: "",
-				city: "",
-				zipCode: "",
-				externalLink: "",
-				description: "",
-				bedrooms: 0,
-				bathrooms: 0,
-				country: "",
-				currency: "",
-				email: "",
-				state: "",
-				levelListing: "",
-				price: "",
-				priceOption: "",
-				parkingNumber: 0,
-				propertySize: "",
-				sizeUnit: "",
-			});
-			setFieldErrors({});
-			const parent = pathname.split("/").slice(0, -1).join("/") || "/";
-			router.push(parent);
+				setShowSuccess(true);
+				setTimeout(() => setShowSuccess(false), 5000);
+
+				console.log("Producto actualizado con ID:", productId);
+			} catch (error) {
+				console.error("Error actualizando producto:", error);
+			} finally {
+				setIsLoading(false);
+				setSubmitted(false);
+				setFilesToUpload([]);
+				const segments = pathname.split("/").filter(Boolean);
+				const parentLevels = 2;
+				const base = "/" + segments.slice(0, -parentLevels).join("/");
+				router.push(base || "/");
+			}
+
+			return;
+		} else {
+			e.preventDefault();
+			setSubmitted(true);
+
+			if (!validateForm()) {
+				setSubmitted(false);
+				return;
+			}
+
+			setIsLoading(true);
+
+			try {
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: formData.description } }],
+					version: "2.22.2",
+				});
+
+				const baseSlug = slugify(formData.title, { lower: true });
+				const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
+				const createProductVars = {
+					name: formData.title,
+					slug: uniqueSlug,
+					productType: "UHJvZHVjdFR5cGU6NA==",
+					category: formData.category,
+					description: descriptionJSON,
+					attributes: [
+						{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
+						{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
+						...(formData.zipCode ? [{ id: "QXR0cmlidXRlOjE0", numeric: formData.zipCode }] : []),
+						{ id: "QXR0cmlidXRlOjE5", plainText: formData.externalLink },
+						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
+						{ id: "QXR0cmlidXRlOjI1", plainText: formData.description },
+						{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
+						{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
+						{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+						{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
+						{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
+						{ id: "QXR0cmlidXRlOjI3", numeric: String(formData.bedrooms) },
+						{ id: "QXR0cmlidXRlOjI4", numeric: String(formData.bathrooms) },
+						{ id: "QXR0cmlidXRlOjQ4", dropdown: { id: formData.priceOption } },
+						{ id: "QXR0cmlidXRlOjQ5", numeric: String(formData.parkingNumber) },
+						{ id: "QXR0cmlidXRlOjUw", numeric: String(formData.propertySize) },
+						{ id: "QXR0cmlidXRlOjUx", dropdown: { id: formData.sizeUnit } },
+					],
+					userId: user?._id || "",
+					userData: JSON.stringify(user),
+				};
+
+				const toDelete = initialExistingImages.current
+					.map((img) => img.id)
+					.filter((id) => !existingImages.some((img) => img.id === id));
+				for (const imageId of toDelete) {
+					await executeGraphQL(DeleteServiceImageDocument, { variables: { id: imageId } });
+				}
+
+				const createData = await executeGraphQL(CreateServiceProductDocument, {
+					variables: createProductVars,
+				});
+				const productId = createData?.productCreate?.product?.id;
+				if (!productId || createData.productCreate?.errors.length) {
+					console.error(createData.productCreate?.errors);
+					return;
+				}
+
+				const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
+					variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
+				});
+				const variantId = variantData?.productVariantCreate?.productVariant?.id;
+				if (!variantId || variantData.productVariantCreate?.errors.length) {
+					console.error(variantData.productVariantCreate?.errors);
+					return;
+				}
+
+				await executeGraphQL(PublishProductInChannelDocument, {
+					variables: { productId, channelId: "Q2hhbm5lbDox" },
+				});
+				await executeGraphQL(PublishVariantInChannelDocument, {
+					variables: {
+						variantId,
+						channelId: "Q2hhbm5lbDox",
+						price:
+							formData.priceOption === "QXR0cmlidXRlVmFsdWU6MjIw"
+								? 0.0
+								: parseFloat(formData.price.toString()),
+					},
+				});
+				await executeGraphQL(AddProductToCollectionDocument, {
+					variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
+				});
+
+				function detectImageFormat(uint8Array: Uint8Array): string {
+					if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
+						return "jpeg";
+					}
+
+					if (
+						uint8Array[0] === 0x89 &&
+						uint8Array[1] === 0x50 &&
+						uint8Array[2] === 0x4e &&
+						uint8Array[3] === 0x47
+					) {
+						return "png";
+					}
+
+					if (uint8Array.length > 12) {
+						const ftypCheck =
+							uint8Array[4] === 0x66 &&
+							uint8Array[5] === 0x74 &&
+							uint8Array[6] === 0x79 &&
+							uint8Array[7] === 0x70;
+
+						if (ftypCheck) {
+							const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
+							if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
+								return "heic";
+							}
+						}
+					}
+
+					if (
+						uint8Array.length > 12 &&
+						uint8Array[0] === 0x52 &&
+						uint8Array[1] === 0x49 &&
+						uint8Array[2] === 0x46 &&
+						uint8Array[3] === 0x46 &&
+						uint8Array[8] === 0x57 &&
+						uint8Array[9] === 0x45 &&
+						uint8Array[10] === 0x42 &&
+						uint8Array[11] === 0x50
+					) {
+						return "webp";
+					}
+
+					return "unknown";
+				}
+
+				if (filesToUpload.length) {
+					console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
+					for (let i = 0; i < filesToUpload.length; i++) {
+						let fileToSend = filesToUpload[i];
+						console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
+
+						if (/\.heic$/i.test(fileToSend.name)) {
+							console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
+							const arrayBuffer = await fileToSend.arrayBuffer();
+							console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
+							const uint8ArrayInput = new Uint8Array(arrayBuffer);
+
+							const actualFormat = detectImageFormat(uint8ArrayInput);
+							console.log(`🔍  Formato detectado: ${actualFormat}`);
+
+							if (actualFormat === "heic") {
+								console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
+
+								try {
+									const outputBuffer: ArrayBuffer = await convert({
+										buffer: uint8ArrayInput.buffer,
+										format: "JPEG",
+										quality: 0.8,
+									});
+									console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
+									const blob = new Blob([outputBuffer], { type: "image/jpeg" });
+									fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+										type: "image/jpeg",
+									});
+									console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
+								} catch (conversionError) {
+									console.error("Error durante la conversión HEIC:", conversionError);
+									throw conversionError;
+								}
+							} else if (actualFormat === "jpeg") {
+								console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
+								const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
+								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+									type: "image/jpeg",
+								});
+								console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
+							} else {
+								console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
+							}
+						} else {
+							console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
+						}
+
+						console.log(`🚀  Subiendo ${fileToSend.name}...`);
+						await uploadGraphQL(AddServiceImageDocument, {
+							product: productId,
+							image: fileToSend,
+							alt: `${formData.title}-${i}`,
+						});
+						console.log(`🎉  Subida completada para ${fileToSend.name}`);
+					}
+					console.log("🏁  Todas las imágenes procesadas y subidas.");
+				}
+				setShowSuccess(true);
+				setTimeout(() => {
+					setShowSuccess(false);
+				}, 5000);
+				setShowSuccess(true);
+
+				console.log("Producto creado con ID:", productId);
+			} catch (error) {
+				console.error("Error al crear el producto:", error);
+			} finally {
+				setIsLoading(false);
+				setSubmitted(false);
+				setFilesToUpload([]);
+				setFormData({
+					title: "",
+					category: "",
+					address: "",
+					city: "",
+					zipCode: "",
+					externalLink: "",
+					description: "",
+					bedrooms: 0,
+					bathrooms: 0,
+					country: "",
+					currency: "",
+					email: "",
+					state: "",
+					levelListing: "",
+					price: "",
+					priceOption: "",
+					parkingNumber: 0,
+					propertySize: "",
+					sizeUnit: "",
+				});
+				setFieldErrors({});
+				const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+				router.push(parent);
+			}
 		}
 	}
 
@@ -543,54 +732,65 @@ export function RealEstateForm() {
 					<Loader />
 				</div>
 			)}
-			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
-				<div
-					className={`${styles.imageUpload} ${filesToUpload.length ? styles.hasImages : ""} ${
-						submitted && fieldErrors.images ? styles.errorBorder : ""
-					}`}
-				>
-					{filesToUpload.map((file, idx) => {
-						const objectUrl = URL.createObjectURL(file);
-						return (
-							<div className={styles.thumbWrapper} key={idx}>
-								<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
-									×
-								</button>
-								<Image
-									src={objectUrl}
-									alt={`Image ${idx + 1}`}
-									width={700}
-									height={400}
-									className={styles.thumbnail}
-								/>
-							</div>
-						);
-					})}
 
-					<div className={styles.thumbWrapper}>
+			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
+				{existingImages.map((img) => (
+					<div key={img.id} className={styles.thumbWrapper}>
 						<button
 							type="button"
-							onClick={() => fileInputRef.current?.click()}
-							className={styles.uploadButton}
+							className={styles.deleteButton}
+							onClick={() => setExistingImages((prev) => prev.filter((i) => i.id !== img.id))}
 						>
-							＋
+							×
 						</button>
+						<Image src={img.url} alt="" width={100} height={100} className={styles.thumbnail} />
 					</div>
+				))}
 
-					<input
-						ref={fileInputRef}
-						type="file"
-						multiple
-						accept="image/*"
-						onChange={handleFilesChange}
-						style={{ display: "none" }}
-					/>
+				{filesToUpload.map((file, idx) => {
+					const objectUrl = URL.createObjectURL(file);
+					return (
+						<div className={styles.thumbWrapper} key={idx}>
+							<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
+								×
+							</button>
+							<Image
+								src={objectUrl}
+								alt={`Image ${idx + 1}`}
+								width={700}
+								height={400}
+								className={styles.thumbnail}
+							/>
+						</div>
+					);
+				})}
+
+				<div className={styles.thumbWrapper}>
+					<button type="button" onClick={() => fileInputRef.current?.click()} className={styles.uploadButton}>
+						＋
+					</button>
 				</div>
+
+				<input
+					ref={fileInputRef}
+					type="file"
+					multiple
+					accept="image/*"
+					onChange={handleFilesChange}
+					style={{ display: "none" }}
+				/>
 			</div>
-			{submitted && fieldErrors.images && (
+
+			{fieldErrors.images && (
 				<small
 					className={styles.errorText}
-					style={{ display: "block", marginTop: "0.25rem", marginBottom: "1rem", color: "red" }}
+					style={{
+						display: "block",
+						marginTop: "0.25rem",
+						marginBottom: "1rem",
+						color: "red",
+						paddingTop: "0.25rem",
+					}}
 				>
 					{fieldErrors.images}
 				</small>
@@ -657,6 +857,7 @@ export function RealEstateForm() {
 							name="address"
 							className="py-4"
 							placeholder="Address"
+							value={formData.address}
 							onChange={handleChange}
 						/>
 					</div>
