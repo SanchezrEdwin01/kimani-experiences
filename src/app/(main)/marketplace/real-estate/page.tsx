@@ -1,3 +1,4 @@
+//src/app/(main)/marketplace/real-estate/page.tsx
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -8,7 +9,12 @@ import {
 	type ProductListByCategoryUniqueQuery,
 	type ProductListByCategoryUniqueQueryVariables,
 	type ProductListItemNoReviewsFragment,
+	ProductListByCategoryByUserDocument,
+	type ProductListByCategoryByUserQuery,
+	type ProductListByCategoryByUserQueryVariables,
 } from "@/gql/graphql";
+import { useUser } from "@/UserKimani/context/UserContext";
+import { type User } from "@/UserKimani/types";
 import { executeGraphQL } from "@/lib/graphql";
 import { ClickableProductList } from "@/ui/components/nav/components/RealState/product-details/ClickableProductList";
 import { Loader } from "@/ui/atoms/Loader";
@@ -34,8 +40,8 @@ export type FiltersState = {
 };
 
 export default function CategoryProductsClientPage() {
-	const [allProducts, setAllProducts] = useState<ProductListItemNoReviewsFragment[]>([]);
-	const [filteredProducts, setFilteredProducts] = useState<ProductListItemNoReviewsFragment[]>([]);
+	const [filtered, setFiltered] = useState<ProductListItemNoReviewsFragment[]>([]);
+	const { user, isLoading } = useUser();
 	const [filters, setFilters] = useState<FiltersState>({
 		search: "",
 		mainCategorySlug: EVENT_TYPE_ALL,
@@ -43,37 +49,25 @@ export default function CategoryProductsClientPage() {
 		sort: { field: "price", direction: "asc" },
 	});
 	const [activeTab, setActiveTab] = useState<Tab>("explore");
+	const userId = user?._id ?? "";
 	const [loading, setLoading] = useState(true);
+	const [baseList, setBaseList] = useState<ProductListItemNoReviewsFragment[]>([]);
+	const [fetchedExplore, setFetchedExplore] = useState(false);
+	const [fetchedMyPosts, setFetchedMyPosts] = useState(false);
 
-	useEffect(() => {
-		async function fetchProducts() {
-			setLoading(true);
-			try {
-				const { category } = await executeGraphQL<
-					ProductListByCategoryUniqueQuery,
-					ProductListByCategoryUniqueQueryVariables
-				>(ProductListByCategoryUniqueDocument, {
-					variables: { slug: REAL_ESTATE_CATEGORY_SLUG },
-				});
-				const nodes =
-					category?.products?.edges
-						.map((e) => e?.node)
-						.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
-				setAllProducts(nodes);
-			} catch (err) {
-				console.error("Failed to fetch products:", err);
-			} finally {
-				setLoading(false);
-			}
-		}
-		void fetchProducts();
-	}, []);
+	const handleTabChange = (tab: Tab) => {
+		setFiltered([]);
+		setBaseList([]);
+		setFetchedExplore(false);
+		setFetchedMyPosts(false);
+		setActiveTab(tab);
+	};
 
 	const subCategoryOptionsForModal = useMemo(() => {
 		const map = new Map<string, string>();
-		let productsToConsider = allProducts;
+		let productsToConsider = filtered;
 		if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
-			productsToConsider = allProducts.filter((p) => {
+			productsToConsider = filtered.filter((p) => {
 				let currentCategory = p.category as typeof p.category & { parent?: typeof p.category };
 				while (currentCategory?.parent) {
 					currentCategory = currentCategory.parent;
@@ -88,88 +82,213 @@ export default function CategoryProductsClientPage() {
 			}
 		});
 		return Array.from(map.entries()).map(([slug, name]) => ({ slug, name }));
-	}, [allProducts, filters.mainCategorySlug]);
+	}, [filtered, filters.mainCategorySlug]);
 
 	useEffect(() => {
-		let tmp = [...allProducts];
+		if (activeTab === "explore") {
+			if (!fetchedExplore) {
+				setLoading(true);
+				void executeGraphQL<ProductListByCategoryUniqueQuery, ProductListByCategoryUniqueQueryVariables>(
+					ProductListByCategoryUniqueDocument,
+					{ variables: { slug: REAL_ESTATE_CATEGORY_SLUG } },
+				)
+					.then(({ category }) => {
+						const nodes =
+							category?.products?.edges
+								.map((e) => e?.node)
+								.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
+						setBaseList(nodes);
+						setFetchedExplore(true);
+					})
+					.catch(console.error)
+					.finally(() => setLoading(false));
+				return;
+			}
 
-		if (filters.search) {
-			const term = filters.search.toLowerCase();
-			tmp = tmp.filter((p) => p.name.toLowerCase().includes(term));
-		}
-
-		if (filters.location && filters.location.country) {
+			let tmp = [...baseList];
+			if (filters.search) {
+				const term = filters.search.toLowerCase();
+				tmp = tmp.filter((p) => p.name.toLowerCase().includes(term));
+			}
+			if (filters.location?.country) {
+				tmp = tmp.filter((p) => {
+					const countryName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "country")
+						?.values?.[0]?.name;
+					const cityName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "city")?.values?.[0]
+						?.name;
+					const countryMatch = countryName?.toLowerCase() === filters.location!.country.toLowerCase();
+					if (filters.location!.city) {
+						return countryMatch && cityName?.toLowerCase() === filters.location!.city.toLowerCase();
+					}
+					return countryMatch;
+				});
+			}
+			if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
+				tmp = tmp.filter((p) => {
+					let cat = p.category as typeof p.category & { parent?: typeof p.category };
+					while (cat?.parent) {
+						cat = cat.parent;
+					}
+					return cat?.slug === filters.mainCategorySlug;
+				});
+			}
+			if (filters.subCategorySlug) {
+				tmp = tmp.filter((p) => p.category?.slug === filters.subCategorySlug);
+			}
 			tmp = tmp.filter((p) => {
-				const productCountryName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "country")
-					?.values[0]?.name;
-				const productCityName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "city")
-					?.values[0]?.name;
-
-				const filterCountryName = filters.location!.country;
-				const filterCityName = filters.location!.city;
-
-				const countryMatch = productCountryName?.toLowerCase() === filterCountryName.toLowerCase();
-
-				if (filterCityName) {
-					const cityMatch = productCityName?.toLowerCase() === filterCityName.toLowerCase();
-					return cityMatch && countryMatch;
-				}
-				return countryMatch;
+				const price = p.pricing?.priceRange?.start?.gross.amount ?? 0;
+				return price >= filters.priceRange.min && price <= filters.priceRange.max;
 			});
-		}
-
-		if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
-			tmp = tmp.filter((p) => {
-				let productCategory = p.category as typeof p.category & { parent?: typeof p.category };
-				while (
-					productCategory &&
-					"parent" in productCategory &&
-					productCategory.parent &&
-					typeof productCategory.parent === "object" &&
-					productCategory.parent !== null &&
-					"slug" in productCategory.parent
-				) {
-					productCategory = productCategory.parent;
-				}
-				return productCategory?.slug === filters.mainCategorySlug;
-			});
-		}
-
-		if (filters.subCategorySlug) {
-			tmp = tmp.filter((p) => p.category?.slug === filters.subCategorySlug);
-		}
-
-		tmp = tmp.filter((p) => {
-			const price = p.pricing?.priceRange?.start?.gross.amount ?? 0;
-			return price >= filters.priceRange.min && price <= filters.priceRange.max;
-		});
-
-		tmp.sort((a, b) => {
-			if (filters.sort.field === "price") {
+			tmp.sort((a, b) => {
 				const pa = a.pricing?.priceRange?.start?.gross.amount ?? 0;
 				const pb = b.pricing?.priceRange?.start?.gross.amount ?? 0;
 				return filters.sort.direction === "asc" ? pa - pb : pb - pa;
+			});
+
+			setFiltered(tmp);
+			return;
+		}
+
+		if (activeTab === "saved" && user) {
+			if (!fetchedExplore) {
+				setLoading(true);
+				void executeGraphQL<ProductListByCategoryUniqueQuery, ProductListByCategoryUniqueQueryVariables>(
+					ProductListByCategoryUniqueDocument,
+					{ variables: { slug: REAL_ESTATE_CATEGORY_SLUG } },
+				)
+					.then(({ category }) => {
+						const nodes =
+							category?.products?.edges
+								.map((e) => e?.node)
+								.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
+						setBaseList(nodes);
+						setFetchedExplore(true);
+					})
+					.catch(console.error)
+					.finally(() => setLoading(false));
+				return;
 			}
-			// if (filters.sort.field === "date") {
-			//     const dateA: number = new Date(
-			//         (a.attributes.find((attr) => attr.attribute.name?.toLowerCase() === 'publication_date')?.values[0]?.value) ||
-			//         (a as any).created ||
-			//         0
-			//     ).getTime();
 
-			//     const dateB: number = new Date(
-			//         (b.attributes.find((attr) => attr.attribute.name?.toLowerCase() === 'publication_date')?.values[0]?.value) ||
-			//         (b as any).created ||
-			//         0
-			//     ).getTime();
+			let tmp = baseList.filter((p) => {
+				const entry = p.metadata?.find((m) => m.key === "favorites");
+				if (!entry) return false;
+				try {
+					const favs = JSON.parse(entry.value) as User[];
+					return favs.some((u) => u._id === user._id);
+				} catch {
+					return false;
+				}
+			});
 
-			//     return filters.sort.direction === "asc" ? dateA - dateB : dateB - dateA;
-			// }
-			return 0;
-		});
+			if (filters.search) {
+				const term = filters.search.toLowerCase();
+				tmp = tmp.filter((p) => p.name.toLowerCase().includes(term));
+			}
+			if (filters.location?.country) {
+				tmp = tmp.filter((p) => {
+					const countryName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "country")
+						?.values?.[0]?.name;
+					const cityName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "city")?.values?.[0]
+						?.name;
+					const countryMatch = countryName?.toLowerCase() === filters.location!.country.toLowerCase();
+					if (filters.location!.city) {
+						return countryMatch && cityName?.toLowerCase() === filters.location!.city.toLowerCase();
+					}
+					return countryMatch;
+				});
+			}
+			if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
+				tmp = tmp.filter((p) => {
+					let cat = p.category as typeof p.category & { parent?: typeof p.category };
+					while (cat?.parent) {
+						cat = cat.parent;
+					}
+					return cat?.slug === filters.mainCategorySlug;
+				});
+			}
+			if (filters.subCategorySlug) {
+				tmp = tmp.filter((p) => p.category?.slug === filters.subCategorySlug);
+			}
+			tmp = tmp.filter((p) => {
+				const price = p.pricing?.priceRange?.start?.gross.amount ?? 0;
+				return price >= filters.priceRange.min && price <= filters.priceRange.max;
+			});
+			tmp.sort((a, b) => {
+				const pa = a.pricing?.priceRange?.start?.gross.amount ?? 0;
+				const pb = b.pricing?.priceRange?.start?.gross.amount ?? 0;
+				return filters.sort.direction === "asc" ? pa - pb : pb - pa;
+			});
 
-		setFilteredProducts(tmp);
-	}, [allProducts, filters]);
+			setFiltered(tmp);
+			return;
+		}
+
+		if (activeTab === "myposts" && user && !isLoading) {
+			if (!fetchedMyPosts) {
+				setLoading(true);
+				void executeGraphQL<ProductListByCategoryByUserQuery, ProductListByCategoryByUserQueryVariables>(
+					ProductListByCategoryByUserDocument,
+					{ variables: { slug: REAL_ESTATE_CATEGORY_SLUG, userId } },
+				)
+					.then(({ category }) => {
+						const nodes =
+							category?.products?.edges
+								.map((e) => e?.node)
+								.filter((n): n is ProductListItemNoReviewsFragment => !!n) ?? [];
+						setBaseList(nodes);
+						setFetchedMyPosts(true);
+					})
+					.catch(console.error)
+					.finally(() => setLoading(false));
+				return;
+			}
+
+			let tmp = [...baseList];
+			if (filters.search) {
+				const term = filters.search.toLowerCase();
+				tmp = tmp.filter((p) => p.name.toLowerCase().includes(term));
+			}
+			if (filters.location?.country) {
+				tmp = tmp.filter((p) => {
+					const countryName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "country")
+						?.values?.[0]?.name;
+					const cityName = p.attributes.find((a) => a.attribute.name?.toLowerCase() === "city")?.values?.[0]
+						?.name;
+					const countryMatch = countryName?.toLowerCase() === filters.location!.country.toLowerCase();
+					if (filters.location!.city) {
+						return countryMatch && cityName?.toLowerCase() === filters.location!.city.toLowerCase();
+					}
+					return countryMatch;
+				});
+			}
+			if (filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL) {
+				tmp = tmp.filter((p) => {
+					let cat = p.category as typeof p.category & { parent?: typeof p.category };
+					while (cat?.parent) {
+						cat = cat.parent;
+					}
+					return cat?.slug === filters.mainCategorySlug;
+				});
+			}
+			if (filters.subCategorySlug) {
+				tmp = tmp.filter((p) => p.category?.slug === filters.subCategorySlug);
+			}
+			tmp = tmp.filter((p) => {
+				const price = p.pricing?.priceRange?.start?.gross.amount ?? 0;
+				return price >= filters.priceRange.min && price <= filters.priceRange.max;
+			});
+			tmp.sort((a, b) => {
+				const pa = a.pricing?.priceRange?.start?.gross.amount ?? 0;
+				const pb = b.pricing?.priceRange?.start?.gross.amount ?? 0;
+				return filters.sort.direction === "asc" ? pa - pb : pb - pa;
+			});
+
+			setFiltered(tmp);
+			return;
+		}
+
+		setFiltered([]);
+	}, [activeTab, baseList, filters, user, isLoading, userId, fetchedExplore, fetchedMyPosts]);
 
 	const handleSearchChange = (term: string) => {
 		setFilters((f) => ({ ...f, search: term }));
@@ -220,8 +339,6 @@ export default function CategoryProductsClientPage() {
 		});
 	};
 
-	const shown = activeTab === "explore" ? filteredProducts : activeTab === "saved" ? [] : filteredProducts;
-
 	return (
 		<div className="min-h-screen pb-24">
 			<FluidHideOnScrollHeader>
@@ -235,9 +352,9 @@ export default function CategoryProductsClientPage() {
 					onResetAllFilters={resetAllFilters}
 					subCategoryOptionsForModal={subCategoryOptionsForModal}
 				/>
-
-				<ConsoleNav activeTab={activeTab} onTabChange={setActiveTab} />
+				<ConsoleNav activeTab={activeTab} onTabChange={handleTabChange} />
 			</FluidHideOnScrollHeader>
+
 			{loading ? (
 				<div className="flex h-64 items-center justify-center">
 					<Loader />
@@ -245,12 +362,13 @@ export default function CategoryProductsClientPage() {
 			) : (
 				<ClientFloatingWrapperReal>
 					<ClickableProductList
-						products={shown}
+						products={filtered}
 						categoryName={
 							filters.subCategorySlug ||
-							(filters.mainCategorySlug && filters.mainCategorySlug !== EVENT_TYPE_ALL
+							(filters.mainCategorySlug !== EVENT_TYPE_ALL
 								? filters.mainCategorySlug
-								: REAL_ESTATE_CATEGORY_SLUG)
+								: REAL_ESTATE_CATEGORY_SLUG) ||
+							"Default Category"
 						}
 					/>
 				</ClientFloatingWrapperReal>

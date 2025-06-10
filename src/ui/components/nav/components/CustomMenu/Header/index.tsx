@@ -11,7 +11,7 @@ import "./index.scss";
 
 export function Header() {
 	const router = useRouter();
-	const BASE_URL: string = useBaseURL();
+	const baseURL = useBaseURL();
 	const [activeTab, setActiveTab] = useState<string>("Marketplace");
 
 	const navigate = (path: string) => {
@@ -23,13 +23,13 @@ export function Header() {
 	};
 
 	const tabs = [
-		{ title: "Local", url: `${BASE_URL}/communities` },
-		{ title: "Global", url: `${BASE_URL}/global` },
-		{ title: "Events", url: `${BASE_URL}/events` },
-		{ title: "Marketplace", url: `${BASE_URL}/marketplace/real-estate` },
+		{ title: "Local", url: `${baseURL}/communities` },
+		{ title: "Global", url: `${baseURL}/global` },
+		{ title: "Events", url: `${baseURL}/events` },
+		{ title: "Marketplace", url: `${baseURL}/marketplace/real-estate` },
 		{ title: "Concierge", url: "https://www.kimanilife.com/concierge" },
-		{ title: "Corporate", url: `${BASE_URL}/corporate` },
-		{ title: "Resident", url: `${BASE_URL}/resident` },
+		{ title: "Corporate", url: `${baseURL}/corporate` },
+		{ title: "Resident", url: `${baseURL}/resident` },
 	].map((tab) => ({
 		title: tab.title,
 		onClick: () => {
@@ -43,7 +43,7 @@ export function Header() {
 			<div className="hero">
 				<div
 					className="logo"
-					onClick={() => navigate(`${BASE_URL}/communities`)}
+					onClick={() => navigate(`${baseURL}/communities`)}
 					style={{ cursor: "pointer" }}
 				>
 					<Image

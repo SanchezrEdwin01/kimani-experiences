@@ -5,6 +5,8 @@ mutation CreateServiceProduct(
 	$category: ID!
 	$description: JSONString!
 	$attributes: [AttributeValueInput!]!
+	$userId: String!
+	$userData: String!
 ) {
 	productCreate(
 		input: {
@@ -15,6 +17,7 @@ mutation CreateServiceProduct(
 			description: $description
 			chargeTaxes: false
 			attributes: $attributes
+			metadata: [{ key: "createdBy", value: $userId }, { key: "userData", value: $userData }]
 		}
 	) {
 		product {

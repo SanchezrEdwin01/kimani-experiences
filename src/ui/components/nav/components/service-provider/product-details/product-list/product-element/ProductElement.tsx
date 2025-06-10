@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ProductImageWrapper } from "@/ui/atoms/ProductImageWrapper";
 
 import type { ProductListItemFragment } from "@/gql/graphql";
-import { formatMoneyRange } from "@/lib/graphql";
 
 export function ProductElement({
 	product,
@@ -24,13 +23,9 @@ export function ProductElement({
 							priority={priority}
 						/>
 					)}
-					<div className="mt-2 flex justify-between">
+					<div className="mb-2 mt-2 flex justify-between">
 						<div>
 							<h3 className="mt-1 text-sm font-semibold text-white">{product.name}</h3>
-							{formatMoneyRange({
-								start: product?.pricing?.priceRange?.start?.gross,
-								stop: product?.pricing?.priceRange?.stop?.gross,
-							})}
 						</div>
 					</div>
 				</div>

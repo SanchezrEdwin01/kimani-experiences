@@ -8,14 +8,13 @@ import type {
 import { MarketplaceActions } from "@/ui/components/nav/components/MarketplaceActions";
 import { Filters } from "@/ui/components/nav/components/Filters";
 import { SettingsMenu } from "@/ui/components/nav/components/settingsAdmin/settings";
-// Asegúrate que la ruta de importación para FiltersState, SimpleCountry, SimpleCity sea correcta
 import type { FiltersState, SimpleCountry, SimpleCity } from "@/app/(main)/marketplace/real-estate/page";
 
 interface MarketplaceControlsProps {
 	sectionSlug?: string;
 	currentFilters: FiltersState;
 	onSearchChange: (term: string) => void;
-	onLocationChange: (country?: SimpleCountry, city?: SimpleCity) => void; // Modificado para aceptar country opcional
+	onLocationChange: (country?: SimpleCountry, city?: SimpleCity) => void;
 	onMainCategoryChange: (slug?: string) => void;
 	onApplyModalFilters: (filters: {
 		subCategorySlug?: string;

@@ -1,14 +1,40 @@
 import Link from "next/link";
 import { ProductImageWrapper } from "@/ui/atoms/ProductImageWrapper";
 
-import type { ProductListItemFragment } from "@/gql/graphql";
+import type { ProductListItemNoReviewsFragment } from "@/gql/graphql";
 import { formatMoneyRange } from "@/lib/graphql";
 
 export function ProductElement({
 	product,
 	loading,
 	priority,
-}: { product: ProductListItemFragment } & { loading: "eager" | "lazy"; priority?: boolean }) {
+}: { product: ProductListItemNoReviewsFragment } & { loading: "eager" | "lazy"; priority?: boolean }) {
+	let currency: string | null = null;
+	if (Array.isArray(product.attributes)) {
+		const currencyAttr = product.attributes.find((attr) => attr.attribute.name?.toLowerCase() === "currency");
+		if (currencyAttr?.values?.length) {
+			currency = currencyAttr.values[0]?.name ?? null;
+		}
+	}
+
+	const startObj = product.pricing?.priceRange?.start?.gross;
+	const stopObj = product.pricing?.priceRange?.stop?.gross;
+
+	const range = {
+		start: startObj
+			? {
+					amount: startObj.amount,
+					currency: currency ?? startObj.currency,
+			  }
+			: null,
+		stop: stopObj
+			? {
+					amount: stopObj.amount,
+					currency: currency ?? stopObj.currency,
+			  }
+			: null,
+	};
+
 	return (
 		<li data-testid="ProductElement">
 			<Link href={`/marketplace/luxury-goods/${product.slug}`} key={product.id}>
@@ -27,10 +53,7 @@ export function ProductElement({
 					<div className="mt-2 flex justify-between">
 						<div>
 							<h3 className="mt-1 text-sm font-semibold text-white">{product.name}</h3>
-							{formatMoneyRange({
-								start: product?.pricing?.priceRange?.start?.gross,
-								stop: product?.pricing?.priceRange?.stop?.gross,
-							})}
+							{formatMoneyRange(range)}
 						</div>
 					</div>
 				</div>

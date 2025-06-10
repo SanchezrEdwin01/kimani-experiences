@@ -1,6 +1,7 @@
 "use client";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 import React, { useState, type ChangeEvent, useRef, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import moment from "moment-timezone";
 import slugify from "slugify";
@@ -10,11 +11,11 @@ import { Country, State, City } from "country-state-city";
 import PhoneInput from "react-phone-input-2";
 import Lottie from "lottie-react";
 import styles from "./index.module.scss";
+import { useUser } from "@/UserKimani/context/UserContext";
 import { Loader } from "@/ui/atoms/Loader";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import {
 	CategoryTreeDocument,
-	type CategoryTreeQuery,
 	CreateServiceProductDocument,
 	CreateDefaultVariantDocument,
 	PublishProductInChannelDocument,
@@ -22,6 +23,12 @@ import {
 	AddProductToCollectionDocument,
 	AddServiceImageDocument,
 	UpdateProductMetadataDocument,
+	DeleteServiceImageDocument,
+	UpdateServiceProductDocument,
+	ProductDetailsBySlugDocument,
+	type ProductDetailsBySlugQuery,
+	type ProductDetailsBySlugQueryVariables,
+	type CategoryTreeQuery,
 } from "@/gql/graphql";
 import "react-phone-input-2/lib/style.css";
 import { SuccessAnimation } from "@/ui/components/nav/components/animation";
@@ -67,7 +74,11 @@ interface CustomCity {
 	stateCode: string;
 }
 
-export function ServiceForm() {
+export interface RealEstateFormProps {
+	productSlug?: string;
+}
+
+export function ServiceForm({ productSlug }: RealEstateFormProps) {
 	const [allZones] = useState<string[]>(() => moment.tz.names());
 	const [formData, setFormData] = useState<FormData>({
 		title: "",
@@ -102,14 +113,20 @@ export function ServiceForm() {
 
 	const [editingDay, setEditingDay] = useState<string | null>(null);
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
-	const [alts, setAlts] = useState<string[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
+	const [countryCode, setCountryCode] = useState<string>("");
+	const [stateCode, setStateCode] = useState<string>("");
 	const [countries] = useState(Country.getAllCountries());
+	const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
+	const [existingProductId, setExistingProductId] = useState<string>("");
+	const initialExistingImages = useRef<{ id: string; url: string }[]>([]);
+	const { user } = useUser();
 	const [isLoading, setIsLoading] = useState(false);
 	const [states, setStates] = useState<CustomState[]>([]);
 	const [cities, setCities] = useState<CustomCity[]>([]);
 	const [phone, setPhone] = useState("");
+	const pathname = usePathname();
+	const router = useRouter();
 	const [categories, setCategories] = useState<
 		{ id: string; name: string; slug: string; grandchildren: { id: string; name: string; slug: string }[] }[]
 	>([]);
@@ -140,31 +157,140 @@ export function ServiceForm() {
 			.catch(console.error);
 	}, []);
 
+	useEffect(() => {
+		if (!productSlug) return;
+
+		executeGraphQL<ProductDetailsBySlugQuery, ProductDetailsBySlugQueryVariables>(
+			ProductDetailsBySlugDocument,
+			{ variables: { slug: productSlug, channel: "default-channel" } },
+		)
+			.then((data) => {
+				const p = data.product;
+				if (!p) return;
+
+				let descText = "";
+				if (typeof p.description === "string") {
+					try {
+						const parsed = JSON.parse(p.description) as {
+							blocks: Array<{ data: { text: string } }>;
+						};
+						descText = parsed.blocks?.[0]?.data.text ?? "";
+					} catch {}
+				}
+
+				const getValue = (slug: string) =>
+					p.attributes.find((a) => a.attribute.slug === slug)?.values?.[0]?.name ?? "";
+
+				const availMeta = p.metadata?.find((m) => m.key === "availability")?.value;
+				let availability: Array<{ day: string; from: string; to: string; tz: string }> = [];
+				try {
+					if (availMeta)
+						availability = JSON.parse(availMeta) as { day: string; from: string; to: string; tz: string }[];
+				} catch {}
+				const defaultTz = availability[0]?.tz ?? "";
+
+				const hoursInit: Record<string, { enabled: boolean; start?: string; end?: string }> = {
+					Monday: { enabled: false },
+					Tuesday: { enabled: false },
+					Wednesday: { enabled: false },
+					Thursday: { enabled: false },
+					Friday: { enabled: false },
+					Saturday: { enabled: false },
+					Sunday: { enabled: false },
+				};
+
+				availability.forEach(({ day, from, to }) => {
+					if (hoursInit[day]) {
+						hoursInit[day] = { enabled: true, start: from, end: to };
+					}
+				});
+
+				const countryName = getValue("country");
+				const isoCountry = Country.getAllCountries().find((c) => c.name === countryName)?.isoCode;
+
+				const allStates = isoCountry ? State.getStatesOfCountry(isoCountry) : [];
+				const stateName = getValue("state");
+				const derivedStateCode = allStates.find((s) => s.name === stateName)?.isoCode;
+				const citiesForState =
+					isoCountry && derivedStateCode ? City.getCitiesOfState(isoCountry, derivedStateCode) : [];
+
+				const currentCity = getValue("city");
+				const cityOptions = [...citiesForState];
+				if (currentCity && !cityOptions.find((c) => c.name === currentCity)) {
+					cityOptions.unshift({
+						name: currentCity,
+						countryCode: isoCountry!,
+						stateCode: derivedStateCode!,
+					});
+				}
+
+				setCountryCode(isoCountry ?? "");
+				setStates(allStates);
+				setStateCode(derivedStateCode ?? "");
+				setCities(cityOptions);
+
+				setFormData({
+					title: p.name,
+					serviceType: getValue("service-type"),
+					subcategory: p.category?.id ?? "",
+					discount: getValue("discount") + "%",
+					description: descText,
+					address: getValue("address"),
+					city: currentCity,
+					zip: getValue("zip-code"),
+					area: getValue("area") || "",
+					state: stateName,
+					country: countryName,
+					website: getValue("link"),
+					email: getValue("email"),
+					phone: getValue("phone-number"),
+					years: Number(getValue("years-in-business")) || 1,
+					contactMethod: getValue("best-contact-method"),
+					allowDM: getValue("allow-direct-messaging").toLowerCase().includes("yes"),
+					socialMediaLink: getValue("social-media-link") || "",
+					defaultTz,
+					hours: hoursInit,
+				});
+
+				setExistingProductId(p.id);
+
+				setPhone(getValue("phone-number") || "");
+
+				const imgs = p.media?.map((m) => ({ id: m.id, url: m.url })) ?? [];
+				setExistingImages(imgs);
+				initialExistingImages.current = imgs;
+			})
+			.catch(console.error);
+	}, [productSlug]);
+
 	function handleCountryChange(e: ChangeEvent<HTMLSelectElement>) {
-		const c = e.target.value;
-		setFormData((prev) => ({ ...prev, country: c, state: "", city: "" }));
-		if (submitted && c) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["country"];
-				return newErrors;
-			});
-		}
-		setStates(State.getStatesOfCountry(c) || []);
+		const iso = e.target.value;
+		setCountryCode(iso);
+		const countryObj = countries.find((c) => c.isoCode === iso);
+		const countryName = countryObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			country: countryName,
+			state: "",
+			city: "",
+		}));
+		const countryStates = State.getStatesOfCountry(iso) || [];
+		setStates(countryStates);
 		setCities([]);
 	}
 
 	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const s = e.target.value;
-		setFormData((prev) => ({ ...prev, state: s, city: "" }));
-		if (submitted && s) {
-			setFieldErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors["state"];
-				return newErrors;
-			});
-		}
-		setCities(City.getCitiesOfState(formData.country, s) || []);
+		const iso = e.target.value;
+		setStateCode(iso);
+		const stateObj = states.find((s) => s.isoCode === iso);
+		const stateName = stateObj?.name || "";
+		setFormData((prev) => ({
+			...prev,
+			state: stateName,
+			city: "",
+		}));
+		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
+		setCities(stateCities);
 	}
 
 	function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
@@ -181,9 +307,7 @@ export function ServiceForm() {
 	function handleFilesChange(e: ChangeEvent<HTMLInputElement>) {
 		if (!e.target.files) return;
 		const newFiles = Array.from(e.target.files);
-		const generatedAlts = newFiles.map(() => uuidv4());
 		setFilesToUpload((prev) => [...prev, ...newFiles]);
-		setAlts((prev) => [...prev, ...generatedAlts]);
 		e.target.value = "";
 		if (submitted && newFiles.length > 0) {
 			setFieldErrors((prev) => {
@@ -224,7 +348,6 @@ export function ServiceForm() {
 
 	function handleRemove(idx: number) {
 		setFilesToUpload((prev) => prev.filter((_, i) => i !== idx));
-		setAlts((prev) => prev.filter((_, i) => i !== idx));
 	}
 
 	function validateForm(): boolean {
@@ -262,9 +385,16 @@ export function ServiceForm() {
 			errors["hour"] = "At least one open hour (start and end)";
 		}
 
-		if (filesToUpload.length === 0) {
-			errors["images"] = "At least one image is required.";
+		if (productSlug) {
+			if (existingImages.length === 0 && filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required when no existing images";
+			}
+		} else {
+			if (filesToUpload.length === 0) {
+				errors["images"] = "At least one image is required.";
+			}
 		}
+
 		if (
 			formData.contactMethod === "socialMedia" &&
 			(!formData.socialMediaLink || formData.socialMediaLink.trim() === "")
@@ -308,51 +438,36 @@ export function ServiceForm() {
 			socialMediaLink: "",
 		});
 		setFilesToUpload([]);
-		setAlts([]);
 		setPhone("");
 		setStates([]);
 		setCities([]);
 	}
 
 	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		setSubmitted(true);
+		if (productSlug) {
+			e.preventDefault();
+			setSubmitted(true);
 
-		if (!validateForm()) {
-			return;
-		}
+			if (!validateForm()) {
+				setSubmitted(false);
+				return;
+			}
 
-		setIsLoading(true);
+			setIsLoading(true);
 
-		try {
-			const availability = JSON.stringify(
-				Object.entries(formData.hours)
-					.filter(([, h]) => h.enabled && h.start && h.end)
-					.map(([day, h]) => ({
-						day,
-						from: h.start,
-						to: h.end,
-						tz: formData.defaultTz,
-					})),
-			);
+			try {
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: formData.description } }],
+					version: "2.22.2",
+				});
 
-			const descriptionJSON = JSON.stringify({
-				blocks: [{ type: "paragraph", data: { text: formData.description } }],
-				version: "2.22.2",
-			});
-
-			const createProductVars = {
-				name: formData.title,
-				slug: slugify(formData.title, { lower: true }),
-				productType: "UHJvZHVjdFR5cGU6Mg==",
-				category: formData.subcategory,
-				description: descriptionJSON,
-				attributes: [
+				const attributes = [
 					{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
 					{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
 					{ id: "QXR0cmlidXRlOjE0", numeric: formData.zip },
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "0" },
 					{ id: "QXR0cmlidXRlOjE=", numeric: formData.discount.replace("%", "") },
 					{ id: "QXR0cmlidXRlOjQ=", plainText: formData.website },
 					{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
@@ -360,160 +475,282 @@ export function ServiceForm() {
 					{ id: "QXR0cmlidXRlOjc=", numeric: String(formData.years) },
 					{ id: "QXR0cmlidXRlOjE1", plainText: formData.contactMethod },
 					{ id: "QXR0cmlidXRlOjk=", boolean: formData.allowDM },
-				],
-			};
+				];
 
-			const createData = await executeGraphQL(CreateServiceProductDocument, {
-				variables: createProductVars,
-			});
-			const productId = createData?.productCreate?.product?.id;
-			if (!productId || createData.productCreate?.errors.length) {
-				console.error(createData.productCreate?.errors);
-				return;
-			}
+				const result = await executeGraphQL(UpdateServiceProductDocument, {
+					variables: {
+						id: existingProductId,
+						name: formData.title,
+						slug: slugify(formData.title, { lower: true }),
+						description: descriptionJSON,
+						attributes,
+					},
+				});
 
-			await executeGraphQL(UpdateProductMetadataDocument, {
-				variables: { id: productId, input: [{ key: "availability", value: availability }] },
-			});
+				const toDelete = initialExistingImages.current
+					.map((img) => img.id)
+					.filter((id) => !existingImages.some((img) => img.id === id));
 
-			const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
-				variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
-			});
-			const variantId = variantData?.productVariantCreate?.productVariant?.id;
-			if (!variantId || variantData.productVariantCreate?.errors.length) {
-				console.error(variantData.productVariantCreate?.errors);
-				return;
-			}
-
-			await executeGraphQL(PublishProductInChannelDocument, {
-				variables: { productId, channelId: "Q2hhbm5lbDox" },
-			});
-			await executeGraphQL(PublishVariantInChannelDocument, {
-				variables: {
-					variantId,
-					channelId: "Q2hhbm5lbDox",
-					price: parseFloat(formData.discount),
-				},
-			});
-			await executeGraphQL(AddProductToCollectionDocument, {
-				variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
-			});
-
-			function detectImageFormat(uint8Array: Uint8Array): string {
-				if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
-					return "jpeg";
+				for (const imageId of toDelete) {
+					await executeGraphQL(DeleteServiceImageDocument, { variables: { id: imageId } });
 				}
 
-				if (
-					uint8Array[0] === 0x89 &&
-					uint8Array[1] === 0x50 &&
-					uint8Array[2] === 0x4e &&
-					uint8Array[3] === 0x47
-				) {
-					return "png";
+				const availability = JSON.stringify(
+					Object.entries(formData.hours)
+						.filter(([, h]) => h.enabled && h.start && h.end)
+						.map(([day, h]) => ({
+							day,
+							from: h.start,
+							to: h.end,
+							tz: formData.defaultTz,
+						})),
+				);
+
+				await executeGraphQL(UpdateProductMetadataDocument, {
+					variables: { id: existingProductId, input: [{ key: "availability", value: availability }] },
+				});
+
+				const productId = result.productUpdate?.product?.id;
+				if (!productId || result.productUpdate?.errors?.length) {
+					console.error(result.productUpdate?.errors);
+					return;
 				}
 
-				if (uint8Array.length > 12) {
-					const ftypCheck =
-						uint8Array[4] === 0x66 &&
-						uint8Array[5] === 0x74 &&
-						uint8Array[6] === 0x79 &&
-						uint8Array[7] === 0x70;
-
-					if (ftypCheck) {
-						const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
-						if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
-							return "heic";
-						}
-					}
-				}
-
-				if (
-					uint8Array.length > 12 &&
-					uint8Array[0] === 0x52 &&
-					uint8Array[1] === 0x49 &&
-					uint8Array[2] === 0x46 &&
-					uint8Array[3] === 0x46 &&
-					uint8Array[8] === 0x57 &&
-					uint8Array[9] === 0x45 &&
-					uint8Array[10] === 0x42 &&
-					uint8Array[11] === 0x50
-				) {
-					return "webp";
-				}
-
-				return "unknown";
-			}
-
-			if (filesToUpload.length) {
-				console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
 				for (let i = 0; i < filesToUpload.length; i++) {
-					let fileToSend = filesToUpload[i];
-					console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
-
-					if (/\.heic$/i.test(fileToSend.name)) {
-						console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
-						const arrayBuffer = await fileToSend.arrayBuffer();
-						console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
-						const uint8ArrayInput = new Uint8Array(arrayBuffer);
-
-						const actualFormat = detectImageFormat(uint8ArrayInput);
-						console.log(`🔍  Formato detectado: ${actualFormat}`);
-
-						if (actualFormat === "heic") {
-							console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
-
-							try {
-								const outputBuffer: ArrayBuffer = await convert({
-									buffer: uint8ArrayInput.buffer,
-									format: "JPEG",
-									quality: 0.8,
-								});
-								console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
-								const blob = new Blob([outputBuffer], { type: "image/jpeg" });
-								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-									type: "image/jpeg",
-								});
-								console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
-							} catch (conversionError) {
-								console.error("Error durante la conversión HEIC:", conversionError);
-								throw conversionError;
-							}
-						} else if (actualFormat === "jpeg") {
-							console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
-							const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
-							fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
-								type: "image/jpeg",
-							});
-							console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
-						} else {
-							console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
-						}
-					} else {
-						console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
-					}
-
-					console.log(`🚀  Subiendo ${fileToSend.name}...`);
+					const fileToSend = filesToUpload[i];
 					await uploadGraphQL(AddServiceImageDocument, {
 						product: productId,
 						image: fileToSend,
 						alt: `${formData.title}-${i}`,
 					});
-					console.log(`🎉  Subida completada para ${fileToSend.name}`);
 				}
-				console.log("🏁  Todas las imágenes procesadas y subidas.");
+
+				setShowSuccess(true);
+				setTimeout(() => setShowSuccess(false), 5000);
+
+				console.log("Producto actualizado con ID:", productId);
+			} catch (error) {
+				console.error("Error actualizando producto:", error);
+			} finally {
+				setIsLoading(false);
+				setSubmitted(false);
+				setFilesToUpload([]);
+				const segments = pathname.split("/").filter(Boolean);
+				const parentLevels = 2;
+				const base = "/" + segments.slice(0, -parentLevels).join("/");
+				router.push(base || "/");
 			}
 
-			console.log("Servicio creado con ID:", productId);
-			resetForm();
-			setShowSuccess(true);
-			setTimeout(() => {
-				setShowSuccess(false);
-			}, 5000);
-		} catch (error) {
-			console.error("Error al crear el servicio:", error);
-		} finally {
-			setIsLoading(false);
+			return;
+		} else {
+			e.preventDefault();
+			setSubmitted(true);
+
+			if (!validateForm()) {
+				return;
+			}
+
+			setIsLoading(true);
+
+			try {
+				const availability = JSON.stringify(
+					Object.entries(formData.hours)
+						.filter(([, h]) => h.enabled && h.start && h.end)
+						.map(([day, h]) => ({
+							day,
+							from: h.start,
+							to: h.end,
+							tz: formData.defaultTz,
+						})),
+				);
+
+				const descriptionJSON = JSON.stringify({
+					blocks: [{ type: "paragraph", data: { text: formData.description } }],
+					version: "2.22.2",
+				});
+
+				const baseSlug = slugify(formData.title, { lower: true });
+				const uniqueSlug = `${baseSlug}-${uuidv4()}`;
+
+				const createProductVars = {
+					name: formData.title,
+					slug: uniqueSlug,
+					productType: "UHJvZHVjdFR5cGU6Mg==",
+					category: formData.subcategory,
+					description: descriptionJSON,
+					attributes: [
+						{ id: "QXR0cmlidXRlOjI=", plainText: formData.address },
+						{ id: "QXR0cmlidXRlOjEx", plainText: formData.city },
+						{ id: "QXR0cmlidXRlOjE0", numeric: formData.zip },
+						{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
+						{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "0" },
+						{ id: "QXR0cmlidXRlOjE=", numeric: formData.discount.replace("%", "") },
+						{ id: "QXR0cmlidXRlOjQ=", plainText: formData.website },
+						{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
+						{ id: "QXR0cmlidXRlOjY=", plainText: formData.phone },
+						{ id: "QXR0cmlidXRlOjc=", numeric: String(formData.years) },
+						{ id: "QXR0cmlidXRlOjE1", plainText: formData.contactMethod },
+						{ id: "QXR0cmlidXRlOjk=", boolean: formData.allowDM },
+					],
+					userId: user?._id || "",
+					userData: JSON.stringify(user),
+				};
+
+				const createData = await executeGraphQL(CreateServiceProductDocument, {
+					variables: createProductVars,
+				});
+				const productId = createData?.productCreate?.product?.id;
+				if (!productId || createData.productCreate?.errors.length) {
+					console.error(createData.productCreate?.errors);
+					return;
+				}
+
+				await executeGraphQL(UpdateProductMetadataDocument, {
+					variables: { id: productId, input: [{ key: "availability", value: availability }] },
+				});
+
+				const variantData = await executeGraphQL(CreateDefaultVariantDocument, {
+					variables: { productId, sku: `${createProductVars.slug}-DEFAULT` },
+				});
+				const variantId = variantData?.productVariantCreate?.productVariant?.id;
+				if (!variantId || variantData.productVariantCreate?.errors.length) {
+					console.error(variantData.productVariantCreate?.errors);
+					return;
+				}
+
+				await executeGraphQL(PublishProductInChannelDocument, {
+					variables: { productId, channelId: "Q2hhbm5lbDox" },
+				});
+				await executeGraphQL(PublishVariantInChannelDocument, {
+					variables: {
+						variantId,
+						channelId: "Q2hhbm5lbDox",
+						price: parseFloat(formData.discount),
+					},
+				});
+				await executeGraphQL(AddProductToCollectionDocument, {
+					variables: { collectionId: "Q29sbGVjdGlvbjox", productId },
+				});
+
+				function detectImageFormat(uint8Array: Uint8Array): string {
+					if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff) {
+						return "jpeg";
+					}
+
+					if (
+						uint8Array[0] === 0x89 &&
+						uint8Array[1] === 0x50 &&
+						uint8Array[2] === 0x4e &&
+						uint8Array[3] === 0x47
+					) {
+						return "png";
+					}
+
+					if (uint8Array.length > 12) {
+						const ftypCheck =
+							uint8Array[4] === 0x66 &&
+							uint8Array[5] === 0x74 &&
+							uint8Array[6] === 0x79 &&
+							uint8Array[7] === 0x70;
+
+						if (ftypCheck) {
+							const brand = String.fromCharCode(uint8Array[8], uint8Array[9], uint8Array[10], uint8Array[11]);
+							if (brand === "heic" || brand === "heix" || brand === "heis" || brand === "hevs") {
+								return "heic";
+							}
+						}
+					}
+
+					if (
+						uint8Array.length > 12 &&
+						uint8Array[0] === 0x52 &&
+						uint8Array[1] === 0x49 &&
+						uint8Array[2] === 0x46 &&
+						uint8Array[3] === 0x46 &&
+						uint8Array[8] === 0x57 &&
+						uint8Array[9] === 0x45 &&
+						uint8Array[10] === 0x42 &&
+						uint8Array[11] === 0x50
+					) {
+						return "webp";
+					}
+
+					return "unknown";
+				}
+
+				if (filesToUpload.length) {
+					console.log(`🖼️  Iniciando subida de ${filesToUpload.length} archivos...`);
+					for (let i = 0; i < filesToUpload.length; i++) {
+						let fileToSend = filesToUpload[i];
+						console.log(`\n📁 Archivo ${i + 1}: ${fileToSend.name}`);
+
+						if (/\.heic$/i.test(fileToSend.name)) {
+							console.log(`🔄  Verificando formato de ${fileToSend.name}...`);
+							const arrayBuffer = await fileToSend.arrayBuffer();
+							console.log(`📦  Leído como ArrayBuffer (${arrayBuffer.byteLength} bytes)`);
+							const uint8ArrayInput = new Uint8Array(arrayBuffer);
+
+							const actualFormat = detectImageFormat(uint8ArrayInput);
+							console.log(`🔍  Formato detectado: ${actualFormat}`);
+
+							if (actualFormat === "heic") {
+								console.log(`🔄  Convirtiendo ${fileToSend.name} de HEIC a JPEG...`);
+
+								try {
+									const outputBuffer: ArrayBuffer = await convert({
+										buffer: uint8ArrayInput.buffer,
+										format: "JPEG",
+										quality: 0.8,
+									});
+									console.log(`✅  Conversión completa (${outputBuffer.byteLength} bytes)`);
+									const blob = new Blob([outputBuffer], { type: "image/jpeg" });
+									fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+										type: "image/jpeg",
+									});
+									console.log(`🆕  Nuevo File: ${fileToSend.name}, type=${fileToSend.type}`);
+								} catch (conversionError) {
+									console.error("Error durante la conversión HEIC:", conversionError);
+									throw conversionError;
+								}
+							} else if (actualFormat === "jpeg") {
+								console.log(`📝  Archivo es JPEG con extensión .heic, renombrando...`);
+								const blob = new Blob([uint8ArrayInput], { type: "image/jpeg" });
+								fileToSend = new File([blob], fileToSend.name.replace(/\.heic$/i, ".jpg"), {
+									type: "image/jpeg",
+								});
+								console.log(`🆕  Archivo renombrado: ${fileToSend.name}, type=${fileToSend.type}`);
+							} else {
+								console.warn(`⚠️  Formato no reconocido (${actualFormat}) para ${fileToSend.name}`);
+							}
+						} else {
+							console.log(`✔️  No necesita conversión: ${fileToSend.name}`);
+						}
+
+						console.log(`🚀  Subiendo ${fileToSend.name}...`);
+						await uploadGraphQL(AddServiceImageDocument, {
+							product: productId,
+							image: fileToSend,
+							alt: `${formData.title}-${i}`,
+						});
+						console.log(`🎉  Subida completada para ${fileToSend.name}`);
+					}
+					console.log("🏁  Todas las imágenes procesadas y subidas.");
+				}
+
+				console.log("Servicio creado con ID:", productId);
+				resetForm();
+				setShowSuccess(true);
+				setTimeout(() => {
+					setShowSuccess(false);
+				}, 5000);
+			} catch (error) {
+				console.error("Error al crear el servicio:", error);
+			} finally {
+				setIsLoading(false);
+				const parent = pathname.split("/").slice(0, -1).join("/") || "/";
+				router.push(parent);
+			}
 		}
 	}
 
@@ -525,34 +762,45 @@ export function ServiceForm() {
 					<Loader />
 				</div>
 			)}
-			<div className={`${styles.imagesUploader} ${filesToUpload.length ? styles.hasImages : ""}`}>
+			<div className={styles.imageUpload} style={{ marginBottom: "0.5rem" }}>
+				{existingImages.map((img) => (
+					<div key={img.id} className={styles.thumbWrapper}>
+						<button
+							type="button"
+							className={styles.deleteButton}
+							onClick={() => setExistingImages((prev) => prev.filter((i) => i.id !== img.id))}
+						>
+							×
+						</button>
+						<Image src={img.url} alt="" width={100} height={100} className={styles.thumbnail} />
+					</div>
+				))}
+
 				{filesToUpload.map((file, idx) => {
 					const objectUrl = URL.createObjectURL(file);
 					return (
 						<div className={styles.thumbWrapper} key={idx}>
-							<button type="button" className={styles.deleteBtn} onClick={() => handleRemove(idx)}>
+							<button type="button" className={styles.deleteButton} onClick={() => handleRemove(idx)}>
 								×
 							</button>
 							<Image
 								src={objectUrl}
-								alt={alts[idx] || `Image ${idx + 1}`}
+								alt={`Image ${idx + 1}`}
 								width={700}
 								height={400}
-								className={styles.thumb}
+								style={{ width: "auto", height: "auto" }}
+								className={styles.thumbnail}
 							/>
 						</div>
 					);
 				})}
-				<div className={`${styles.thumbWrapper} ${styles.addButton}`}>
-					<button
-						type="button"
-						onClick={() => fileInputRef.current?.click()}
-						className={styles.uploadButton}
-						style={{ fontSize: "23px" }}
-					>
+
+				<div className={styles.thumbWrapper}>
+					<button type="button" onClick={() => fileInputRef.current?.click()} className={styles.uploadButton}>
 						＋
 					</button>
 				</div>
+
 				<input
 					ref={fileInputRef}
 					type="file"
@@ -564,7 +812,13 @@ export function ServiceForm() {
 			</div>
 			{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			{submitted && fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
-			<input type="text" name="title" placeholder="Title of the service" onChange={handleChange} />
+			<input
+				type="text"
+				name="title"
+				placeholder="Title of the service"
+				onChange={handleChange}
+				value={formData.title}
+			/>
 			{submitted && fieldErrors.subcategory && (
 				<small className={styles.errorText}>{fieldErrors.subcategory}</small>
 			)}
@@ -609,7 +863,13 @@ export function ServiceForm() {
 			{submitted && fieldErrors.description && (
 				<small className={styles.errorText}>{fieldErrors.description}</small>
 			)}
-			<textarea name="description" placeholder="Description" rows={3} onChange={handleChange} />
+			<textarea
+				name="description"
+				placeholder="Description"
+				rows={3}
+				onChange={handleChange}
+				value={formData.description}
+			/>
 
 			<div className={styles.sectionDivider} />
 
@@ -619,11 +879,17 @@ export function ServiceForm() {
 					{submitted && fieldErrors.address && (
 						<small className={styles.errorText}>{fieldErrors.address}</small>
 					)}
-					<input type="text" name="address" placeholder="Address" onChange={handleChange} />
+					<input
+						type="text"
+						name="address"
+						placeholder="Address"
+						onChange={handleChange}
+						value={formData.address}
+					/>
 					{submitted && fieldErrors.country && (
 						<small className={styles.errorText}>{fieldErrors.country}</small>
 					)}
-					<select name="country" value={formData.country} onChange={handleCountryChange}>
+					<select name="country" value={countryCode} onChange={handleCountryChange}>
 						<option value="">Select Country</option>
 						{countries.map((c) => (
 							<option key={c.isoCode} value={c.isoCode}>
@@ -632,8 +898,8 @@ export function ServiceForm() {
 						))}
 					</select>
 					{submitted && fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
-					<select name="state" value={formData.state} onChange={handleStateChange} disabled={!states.length}>
-						<option value="">State</option>
+					<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
+						<option value="">Select State</option>
 						{states.map((s) => (
 							<option key={s.isoCode} value={s.isoCode}>
 								{s.name}
@@ -643,7 +909,7 @@ export function ServiceForm() {
 
 					<div className={styles.cityZipRow}>
 						{submitted && fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
-						<select name="city" onChange={handleCityChange} disabled={!cities.length}>
+						<select name="city" onChange={handleCityChange} disabled={!cities.length} value={formData.city}>
 							<option value="">City</option>
 							{cities.map((ct) => (
 								<option key={ct.name} value={ct.name}>
@@ -658,6 +924,7 @@ export function ServiceForm() {
 							placeholder="Zip code"
 							className={styles.zipCode}
 							onChange={handleChange}
+							value={formData.zip}
 						/>
 					</div>
 				</div>
@@ -818,9 +1085,21 @@ export function ServiceForm() {
 					{submitted && fieldErrors.website && (
 						<small className={styles.errorText}>{fieldErrors.website}</small>
 					)}
-					<input type="url" name="website" placeholder="https://" onChange={handleChange} />
+					<input
+						type="url"
+						name="website"
+						placeholder="https://"
+						onChange={handleChange}
+						value={formData.website}
+					/>
 					{submitted && fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
-					<input type="email" name="email" placeholder="Email" onChange={handleChange} />
+					<input
+						type="email"
+						name="email"
+						placeholder="Email"
+						onChange={handleChange}
+						value={formData.email}
+					/>
 					{submitted && fieldErrors.phone && <small className={styles.errorText}>{fieldErrors.phone}</small>}
 					<PhoneInput
 						country={"us"}

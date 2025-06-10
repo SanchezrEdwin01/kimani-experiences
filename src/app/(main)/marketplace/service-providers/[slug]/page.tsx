@@ -1,3 +1,7 @@
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UserProvider } from "@/UserKimani/context/UserContext";
 import { ProductPageServiceProviders } from "@/ui/components/nav/components/service-provider/product-details/Details";
 
 interface ProductDetailPageProps {
@@ -6,10 +10,16 @@ interface ProductDetailPageProps {
 	};
 }
 
+const queryClient = new QueryClient();
+
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 	return (
 		<div className="min-h-screen bg-black pb-24">
-			<ProductPageServiceProviders slug={params.slug} categoryName="service-providers" />
+			<QueryClientProvider client={queryClient}>
+				<UserProvider>
+					<ProductPageServiceProviders slug={params.slug} categoryName="service-providers" />
+				</UserProvider>
+			</QueryClientProvider>
 		</div>
 	);
 }

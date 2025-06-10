@@ -14,6 +14,22 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 			name
 			slug
 		}
+		pricing {
+			priceRange {
+				start {
+					gross {
+						amount
+						currency
+					}
+				}
+				stop {
+					gross {
+						amount
+						currency
+					}
+				}
+			}
+		}
 		productType {
 			id
 			name
@@ -29,6 +45,7 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 			values {
 				name
 				value
+				id
 			}
 		}
 		variants {
@@ -41,29 +58,6 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 				}
 				values {
 					name
-				}
-			}
-			pricing {
-				price {
-					gross {
-						amount
-						currency
-					}
-					net {
-						amount
-						currency
-					}
-					tax {
-						amount
-						currency
-					}
-				}
-				onSale
-				discount {
-					gross {
-						amount
-						currency
-					}
 				}
 			}
 			channelListings {
@@ -88,6 +82,10 @@ query ProductDetailsBySlug($slug: String!, $channel: String!) {
 			}
 			isPublished
 			availableForPurchaseAt
+		}
+		metadata {
+			key
+			value
 		}
 	}
 }

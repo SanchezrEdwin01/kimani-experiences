@@ -1,6 +1,7 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
-import { Header } from "@/ui/components/nav/components/CustomMenu/Header/index";
+import { Providers } from "./Providers";
+import { Header } from "@/ui/components/nav/components/CustomMenu/Header";
 import "./index.scss";
 
 export const metadata = {
@@ -8,19 +9,16 @@ export const metadata = {
 	description: "Starter pack for building performant e-commerce experiences with Saleor.",
 };
 
-export default function MainLayout(props: { children: ReactNode }) {
+export default function MainLayout({ children }: { children: ReactNode }) {
 	return (
-		<>
-			{/* <FluidHideOnScrollHeader offsetTop={64}> */}
-			{/* 	<Header /> */}
-			{/* </FluidHideOnScrollHeader> */}
+		<Providers>
 			<div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
 				<Header />
 			</div>
 			<div className="bg-gray flex min-h-[calc(100dvh-64px)] flex-col text-white">
-				<main className="flex-1">{props.children}</main>
+				<main className="flex-1">{children}</main>
 			</div>
 			<Toaster position="top-center" />
-		</>
+		</Providers>
 	);
 }
