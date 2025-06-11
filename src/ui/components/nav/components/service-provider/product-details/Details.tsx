@@ -22,6 +22,14 @@ import {
 	type UpdateFavoritesMutation,
 	type UpdateFavoritesMutationVariables,
 } from "@/gql/graphql";
+
+interface AvailabilityData {
+	day: string;
+	from: string;
+	to: string;
+	tz: string;
+}
+
 interface ProductPageProps {
 	slug: string;
 	categoryName: string;
@@ -211,6 +219,43 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 
 	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
+	const availabilityData = useMemo(() => {
+		if (!product?.metadata) return [];
+		const entry = product.metadata.find((m) => m.key === "availability");
+		if (!entry) return [];
+		try {
+			return JSON.parse(entry.value) as AvailabilityData[];
+		} catch {
+			console.error("Error parseando availability data:", entry.value);
+			return [];
+		}
+	}, [product?.metadata]);
+
+	const workingHours = useMemo(() => {
+		if (availabilityData.length === 0) return {};
+
+		const grouped: Record<string, { from: string; to: string; tz: string }> = {};
+		availabilityData.forEach((item) => {
+			grouped[item.day] = {
+				from: item.from,
+				to: item.to,
+				tz: item.tz,
+			};
+		});
+
+		return grouped;
+	}, [availabilityData]);
+
+	const formatTime = (timeString: string) => {
+		const [hour, minute] = timeString.split(":");
+		const hourNum = parseInt(hour);
+		const ampm = hourNum >= 12 ? "PM" : "AM";
+		const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+		return `${displayHour}:${minute} ${ampm}`;
+	};
+
+	const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 	if (loading) return <p className={styles.loading}>Loading…</p>;
 	if (!product) return <p className={styles.error}>Product not found</p>;
 
@@ -341,14 +386,27 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 			<section>
 				<h2 className={styles.sectionTitle}>Working hours</h2>
 				<div className={styles.workingHours}>
-					<div className={styles.workDay}>
-						<span>Mon-Fri</span>
-						<span>08:00 - 18:00</span>
-					</div>
-					<div className={styles.workDay}>
-						<span>Sat-Sun</span>
-						<span>Closed</span>
-					</div>
+					{daysOfWeek.map((day) => {
+						const dayData = workingHours[day];
+						return (
+							<div key={day} className={styles.workDay}>
+								<span>{day}</span>
+								{dayData ? (
+									<span>
+										{formatTime(dayData.from)} - {formatTime(dayData.to)}
+									</span>
+								) : (
+									<span>Closed</span>
+								)}
+							</div>
+						);
+					})}
+					{availabilityData.length === 0 && (
+						<div className={styles.workDay}>
+							<span>Hours not available</span>
+							<span>Contact for availability</span>
+						</div>
+					)}
 				</div>
 			</section>
 			<hr className={styles.divider} />
