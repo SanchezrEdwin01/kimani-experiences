@@ -6,32 +6,28 @@
 	color: #fff;
 }
 
-/* Hero + botones superpuestos */
 .heroWrapper {
 	position: relative;
 	width: 100%;
-	height: 200px;
+	height: 480px;
 	border-radius: 8px;
 	overflow: hidden;
 	margin-bottom: 16px;
 
-	/* Solo al wrapper de Next/Image (usa un <span>) */
 	> span {
 		position: absolute !important;
 		inset: 0;
 		z-index: 1;
 	}
-
-	/* La propia imagen */
 	.hero {
 		position: absolute;
 		inset: 0;
-		object-fit: cover !important;
+		width: 100% !important;
+		height: 100% !important;
+		object-fit: contain !important;
 		object-position: center !important;
 		z-index: 1;
 	}
-
-	/* Botón de volver: cuadrado de 32×32px */
 	.backBtn {
 		position: absolute;
 		top: 12px;
@@ -56,13 +52,14 @@
 		}
 	}
 
-	/* Grupo de acciones (bookmark + share): cada botón cuadrado */
 	.actionGroup {
 		position: absolute;
 		top: 12px;
 		right: 12px;
 		z-index: 2;
 		display: flex;
+		flex-direction: row;
+		align-items: center;
 		gap: 8px;
 
 		button {
@@ -84,6 +81,87 @@
 				stroke: #fff;
 			}
 		}
+	}
+
+	.galleryControls {
+		position: absolute;
+		bottom: 12px;
+		left: 0;
+		right: 0;
+		z-index: 2;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+
+		.galleryDot {
+			width: 8px;
+			height: 8px;
+			background: rgba(255, 255, 255, 0.5);
+			border: none;
+			border-radius: 50%;
+			padding: 0;
+			cursor: pointer;
+
+			&.active {
+				background: #fff;
+			}
+		}
+	}
+
+	.galleryNavigation {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 2;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		pointer-events: none;
+
+		.prevBtn,
+		.nextBtn {
+			width: 40px;
+			height: 40px;
+			background: rgba(0, 0, 0, 0.5);
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			pointer-events: auto;
+			margin: 0 12px;
+
+			svg {
+				width: 20px;
+				height: 20px;
+				fill: #fff;
+				stroke: #fff;
+			}
+
+			&:hover {
+				background: rgba(0, 0, 0, 0.7);
+			}
+		}
+
+		.imageCounter {
+			background: rgba(0, 0, 0, 0.7);
+			color: white;
+			padding: 5px 10px;
+			border-radius: 15px;
+			font-size: 12px;
+			position: absolute;
+			bottom: 15px;
+			right: 15px;
+			pointer-events: auto;
+		}
+	}
+
+	.galleryControls {
+		display: none;
 	}
 }
 
