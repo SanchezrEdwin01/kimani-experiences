@@ -467,7 +467,7 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 							(window.location.href =
 								`mailto:${email}` +
 								`?subject=${encodeURIComponent("Service Inquiry")}` +
-								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+								`&body=${encodeURIComponent("Hello, I'm interested in your listing.")}`)
 						}
 					>
 						Contact Service Provider
