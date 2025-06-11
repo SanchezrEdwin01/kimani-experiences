@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Cog6ToothIcon, ChevronDownIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import { /*Cog6ToothIcon,*/ ChevronDownIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { Country, City, type ICountry, type ICity } from "country-state-city";
 import "./index.scss";
 
@@ -13,7 +13,7 @@ interface LocationSelectorProps {
 
 export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 	onLocationChange = () => {},
-	onSettingsClick = () => {},
+	// onSettingsClick = () => {},
 	currentLocation,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -166,14 +166,14 @@ export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 				</div>
 			)}
 
-			<button
+			{/* <button
 				type="button"
 				onClick={onSettingsClick}
 				className="ml-4 focus:outline-none"
 				aria-label="Open settings"
 			>
 				<Cog6ToothIcon className="h-6 w-6 text-white hover:text-gray-400" />
-			</button>
+			</button> */}
 		</div>
 	);
 };
