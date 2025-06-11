@@ -212,9 +212,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 			: "";
 
 	const productImages = product?.media?.map((m) => m.url) || [];
-	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
-		productImages.unshift(product.thumbnail.url);
-	}
 
 	function handleEditProduct() {
 		router.push("/marketplace/luxury-goods/edit-luxury-goods/" + product?.slug);
@@ -263,13 +260,11 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<BookmarkOutlineIcon style={{ stroke: "gray" }} className="h-6 w-6" />
 						)}
 					</button>
-					<div className={styles.actionGroup}>
-						<ShareButtonWithModal
-							title="Check this out!"
-							text="Have a look at this listing:"
-							url={currentUrl}
-						/>
-					</div>
+					<ShareButtonWithModal
+						title="Check this out!"
+						text="Have a look at this listing:"
+						url={currentUrl}
+					/>
 				</div>
 
 				{productImages.length > 1 && (
@@ -398,22 +393,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 				<hr className={styles.divider} />
 			</section>
 
-			{email && (
-				<div className={styles.infoItem}>
-					<button
-						className={styles.messageButton}
-						onClick={() =>
-							(window.location.href =
-								`mailto:${email}` +
-								`?subject=${encodeURIComponent("Service Inquiry")}` +
-								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
-						}
-					>
-						Contact Service Provider
-					</button>
-				</div>
-			)}
-
 			{getAttr("external-link") && (
 				<>
 					<section className={styles.externalLinksSection}>
@@ -428,12 +407,27 @@ export function ProductPage({ slug }: ProductPageProps) {
 				</>
 			)}
 			{/* <button className={styles.messageButton}>Message listing member</button> */}
+			{email && (
+				<div className={styles.infoItem}>
+					<button
+						className={styles.messageButton}
+						onClick={() =>
+							(window.location.href =
+								`mailto:${email}` +
+								`?subject=${encodeURIComponent("Service Inquiry")}` +
+								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+						}
+					>
+						Contact Listing Member
+					</button>
+				</div>
+			)}
 			<section>
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
-								Delete
+							<button className={styles.messageButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>
@@ -443,8 +437,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.submitButton} onClick={handleEditProduct}>
-								Edit
+							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
+								Delete
 							</button>
 						)}
 					</div>
