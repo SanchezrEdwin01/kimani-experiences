@@ -6,7 +6,7 @@ import { DisclaimerCard } from "@/ui/components/DisclaimerBanner";
 import "./index.scss";
 
 export const metadata = {
-	title: "Saleor Storefront example",
+	title: "Marketplace",
 	description: "Starter pack for building performant e-commerce experiences with Saleor.",
 };
 
