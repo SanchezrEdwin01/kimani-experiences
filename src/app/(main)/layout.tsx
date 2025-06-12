@@ -6,8 +6,9 @@ import { DisclaimerCard } from "@/ui/components/DisclaimerBanner";
 import "./index.scss";
 
 export const metadata = {
-	title: "Saleor Storefront example",
-	description: "Starter pack for building performant e-commerce experiences with Saleor.",
+	title: "Kimani Marketplace",
+	description:
+		"Join Kimani Marketplace: a dedicated space for Real Estate, Luxury Goods, and Art listings. Post, explore, and trade with our growing community.",
 };
 
 export default function MainLayout({ children }: { children: ReactNode }) {
