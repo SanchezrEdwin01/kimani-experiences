@@ -63,9 +63,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 	};
 
 	const productImages = product?.media?.map((m) => m.url) || [];
-	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
-		productImages.unshift(product.thumbnail.url);
-	}
 
 	const externalLink = getAttr("external-link");
 	// const certificateUrl = getAttr("certificate-of-authenticity");
@@ -263,13 +260,11 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<BookmarkOutlineIcon style={{ stroke: "gray" }} className="h-6 w-6" />
 						)}
 					</button>
-					<div className={styles.actionGroup}>
-						<ShareButtonWithModal
-							title="Check this out!"
-							text="Have a look at this listing:"
-							url={currentUrl}
-						/>
-					</div>
+					<ShareButtonWithModal
+						title="Check this out!"
+						text="Have a look at this listing:"
+						url={currentUrl}
+					/>
 				</div>
 				{productImages.length > 1 && (
 					<div className={styles.galleryNavigation}>
@@ -452,10 +447,10 @@ export function ProductPage({ slug }: ProductPageProps) {
 							(window.location.href =
 								`mailto:${email}` +
 								`?subject=${encodeURIComponent("Service Inquiry")}` +
-								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+								`&body=${encodeURIComponent("Hello, I'm interested in your listing.")}`)
 						}
 					>
-						Contact listing member
+						Contact Listing Member
 					</button>
 				</div>
 			)}
@@ -463,8 +458,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
-								Delete
+							<button className={styles.messageButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>
@@ -474,8 +469,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.submitButton} onClick={handleEditProduct}>
-								Edit
+							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
+								Delete
 							</button>
 						)}
 					</div>

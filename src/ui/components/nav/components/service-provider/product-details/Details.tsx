@@ -95,9 +95,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 	const mapQuery = hasValidAddressData ? `${address}, ${city}, ${state || ""} ${zipCode || ""}` : "";
 
 	const productImages = product?.media?.map((m) => m.url) || [];
-	if (product?.thumbnail?.url && !productImages.includes(product.thumbnail.url)) {
-		productImages.unshift(product.thumbnail.url);
-	}
 
 	const createdByUserId: string | null = useMemo(() => {
 		if (!product?.metadata) return null;
@@ -286,13 +283,11 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 						)}
 					</button>
 
-					<div className={styles.actionGroup}>
-						<ShareButtonWithModal
-							title="Check this out!"
-							text="Have a look at this listing:"
-							url={currentUrl}
-						/>
-					</div>
+					<ShareButtonWithModal
+						title="Check this out!"
+						text="Have a look at this listing:"
+						url={currentUrl}
+					/>
 				</div>
 				{productImages.length > 1 && (
 					<div className={styles.galleryNavigation}>
@@ -472,7 +467,7 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 							(window.location.href =
 								`mailto:${email}` +
 								`?subject=${encodeURIComponent("Service Inquiry")}` +
-								`&body=${encodeURIComponent("Hello, I'm interested in your service.")}`)
+								`&body=${encodeURIComponent("Hello, I'm interested in your listing.")}`)
 						}
 					>
 						Contact Service Provider
@@ -484,8 +479,8 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
-								Delete
+							<button className={styles.messageButton} onClick={handleEditProduct}>
+								Edit
 							</button>
 						)}
 					</div>
@@ -495,8 +490,8 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				{creatorUser && (
 					<div>
 						{createdByUserId === user?._id && (
-							<button className={styles.submitButton} onClick={handleEditProduct}>
-								Edit
+							<button className={styles.deleteButton} onClick={handleDeleteProduct}>
+								Delete
 							</button>
 						)}
 					</div>
