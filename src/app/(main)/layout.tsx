@@ -6,7 +6,7 @@ import { DisclaimerCard } from "@/ui/components/DisclaimerBanner";
 import "./index.scss";
 
 export const metadata = {
-	title: "Kimani marketplace",
+	title: "Kimani Marketplace",
 	description:
 		"Join Kimani Marketplace: a dedicated space for Real Estate, Luxury Goods, and Art listings. Post, explore, and trade with our growing community.",
 };
