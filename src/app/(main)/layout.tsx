@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "./Providers";
 import { Header } from "@/ui/components/nav/components/CustomMenu/Header";
+import { DisclaimerCard } from "@/ui/components/DisclaimerBanner";
 import "./index.scss";
 
 export const metadata = {
@@ -19,6 +20,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 				<main className="flex-1">{children}</main>
 			</div>
 			<Toaster position="top-center" />
+			<DisclaimerCard />
 		</Providers>
 	);
 }
