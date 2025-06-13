@@ -311,7 +311,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 			<div className={styles.priceSection}>
 				{formatMoneyRange(range)}/{priceOptions}
 			</div>
-
 			<section>
 				{creatorUser ? (
 					<div className={styles.ambassadorInfo}>
@@ -330,21 +329,18 @@ export function ProductPage({ slug }: ProductPageProps) {
 								alt={creatorUser.username}
 								width={48}
 								height={48}
-								objectFit="cover"
+								style={{ objectFit: "cover" }}
 							/>
 						</div>
 						<div className={styles.ambassadorDetails}>
-							<p>
-								{creatorUser.username}#{creatorUser.discriminator}
-							</p>
-							<p className={styles.ambassadorName}>{creatorUser.status.presence}</p>
+							<p>{creatorUser.username}</p>
+							<p className={styles.ambassadorName}>{creatorUser.status?.presence ?? ""}</p>
 						</div>
 					</div>
 				) : (
 					<p>Agent not available</p>
 				)}
 			</section>
-
 			<hr className={styles.divider} />
 
 			{/* Description */}

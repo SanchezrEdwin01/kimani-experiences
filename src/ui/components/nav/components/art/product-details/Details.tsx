@@ -317,14 +317,12 @@ export function ProductPage({ slug }: ProductPageProps) {
 								alt={creatorUser.username}
 								width={48}
 								height={48}
-								objectFit="cover"
+								style={{ objectFit: "cover" }}
 							/>
 						</div>
 						<div className={styles.ambassadorDetails}>
-							<p>
-								{creatorUser.username}#{creatorUser.discriminator}
-							</p>
-							<p className={styles.ambassadorName}>{creatorUser.status.presence}</p>
+							<p>{creatorUser.username}</p>
+							<p className={styles.ambassadorName}>{creatorUser.status?.presence ?? ""}</p>
 						</div>
 					</div>
 				) : (

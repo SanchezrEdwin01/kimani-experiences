@@ -325,7 +325,6 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 				{offerings && <p>{offerings}</p>}
 				{discount && <p className={styles.discount}>{discount}% discount for Kimani members</p>}
 			</section>
-
 			<section>
 				{creatorUser ? (
 					<div className={styles.ambassadorInfo}>
@@ -344,21 +343,18 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 								alt={creatorUser.username}
 								width={48}
 								height={48}
-								objectFit="cover"
+								style={{ objectFit: "cover" }}
 							/>
 						</div>
 						<div className={styles.ambassadorDetails}>
-							<p>
-								{creatorUser.username}#{creatorUser.discriminator}
-							</p>
-							<p className={styles.ambassadorName}>{creatorUser.status.presence}</p>
+							<p>{creatorUser.username}</p>
+							<p className={styles.ambassadorName}>{creatorUser.status?.presence ?? ""}</p>
 						</div>
 					</div>
 				) : (
 					<p>Agent not available</p>
 				)}
 			</section>
-
 			<hr className={styles.divider} />
 
 			<section>
