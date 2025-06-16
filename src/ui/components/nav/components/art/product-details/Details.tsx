@@ -62,6 +62,8 @@ export function ProductPage({ slug }: ProductPageProps) {
 		return typeof v === "string" ? v : undefined;
 	};
 
+	const artCategory = product?.category?.name || "Unknown Category";
+
 	const productImages = product?.media?.map((m) => m.url) || [];
 
 	const externalLink = getAttr("external-link");
@@ -74,6 +76,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const datePainted = getAttr("date-painted");
 	const signature = getAttr("signature");
 	const artType = getAttr("art-type");
+	const painterName = getAttr("painter-name");
 	const email = getAttr("email");
 	const printType = getAttr("name");
 	const frame = getAttr("frame");
@@ -297,6 +300,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 			</div>
 
 			<h1 className={styles.title}>{productName}</h1>
+			<div className={styles.category}>{artCategory}</div>
 
 			<div className={styles.priceAndLocation}>{formatMoneyRange(range)}</div>
 			<section>
@@ -352,59 +356,71 @@ export function ProductPage({ slug }: ProductPageProps) {
 			<section className={styles.artworkDetails}>
 				<h2 className={styles.sectionHeader}>Artwork details</h2>
 				<div className={styles.artworkDetailsList}>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Art type</div>
-						<div className={styles.artworkDetailValue}>{artType || "Unknown"}</div>
-					</div>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Dimensions</div>
-						<div className={styles.artworkDetailValue}>{dimensions || "Unknown"}</div>
-					</div>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Print type</div>
-						<div className={styles.artworkDetailValue}>{printType || "Unknown"}</div>
-					</div>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Date painted</div>
-						<div className={styles.artworkDetailValue}>{datePainted || "Unknown"}</div>
-					</div>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Frame</div>
-						<div className={styles.artworkDetailValue}>{frame || "No frame"}</div>
-					</div>
-					<div className={styles.artworkDetailItem}>
-						<div className={styles.artworkDetailLabel}>Signature</div>
-						<div className={styles.artworkDetailValue}>
-							{signature ? `Signature of ${signature}` : "No signature"}
+					{painterName && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Artist</div>
+							<div className={styles.artworkDetailValue}>{painterName}</div>
 						</div>
-					</div>
+					)}
+					{artType && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Art type</div>
+							<div className={styles.artworkDetailValue}>{artType}</div>
+						</div>
+					)}
+					{dimensions && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Dimensions</div>
+							<div className={styles.artworkDetailValue}>{dimensions}</div>
+						</div>
+					)}
+					{/* …and so on… */}
+					{printType && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Print type</div>
+							<div className={styles.artworkDetailValue}>{printType}</div>
+						</div>
+					)}
+					{datePainted && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Date painted</div>
+							<div className={styles.artworkDetailValue}>{datePainted}</div>
+						</div>
+					)}
+					{frame && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Frame</div>
+							<div className={styles.artworkDetailValue}>{frame}</div>
+						</div>
+					)}
+					{signature && (
+						<div className={styles.artworkDetailItem}>
+							<div className={styles.artworkDetailLabel}>Signature</div>
+							<div className={styles.artworkDetailValue}>Signature of {signature}</div>
+						</div>
+					)}
 				</div>
 			</section>
 
 			<hr className={styles.divider} />
 
 			<section className={styles.externalLinksSection}>
-				<h2 className={styles.sectionHeader}>External links</h2>
-				<div className={styles.externalLinkWrapper}>
-					{externalLink ? (
-						<input
-							type="text"
-							readOnly
-							value={`Https://${externalLink.replace(/^https?:\/\//, "")}`}
-							className={styles.externalLinkInput}
-							aria-label="External link"
-						/>
-					) : (
-						<input
-							type="text"
-							readOnly
-							value=""
-							placeholder="No external link available"
-							className={styles.externalLinkInput}
-							aria-label="External link"
-						/>
-					)}
-				</div>
+				{externalLink ? (
+					<div>
+						<h2 className={styles.sectionHeader}>External links</h2>
+						<div className={styles.externalLinkWrapper}>
+							<input
+								type="text"
+								readOnly
+								value={`Https://${externalLink.replace(/^https?:\/\//, "")}`}
+								className={styles.externalLinkInput}
+								aria-label="External link"
+							/>
+						</div>
+					</div>
+				) : (
+					<div></div>
+				)}
 			</section>
 
 			{/* <section className={styles.certificateSection}>
