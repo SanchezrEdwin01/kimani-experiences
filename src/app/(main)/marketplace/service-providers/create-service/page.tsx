@@ -1,9 +1,11 @@
 "use client";
+"/marketplace/service-providers/create-service/page.tsx";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { UserProvider } from "@/UserKimani/context/UserContext";
-import { ServiceForm } from "@/ui/components/nav/components/FormMarketplace/index";
+import { WizardProvider } from "@/ui/components/WizardContext";
+import { Wizard } from "@/ui/components/Wizard";
 
 const queryClient = new QueryClient();
 
@@ -13,7 +15,7 @@ export default function Page() {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<UserProvider>
-				<>
+				<WizardProvider>
 					<div className="px-6 py-4">
 						<button
 							onClick={() => void router.back()}
@@ -22,8 +24,8 @@ export default function Page() {
 							← Back
 						</button>
 					</div>
-					<ServiceForm />
-				</>
+					<Wizard />
+				</WizardProvider>
 			</UserProvider>
 		</QueryClientProvider>
 	);
