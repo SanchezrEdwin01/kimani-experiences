@@ -36,7 +36,7 @@ interface ArtFormData {
 	currency: string;
 	artType: string;
 	dimensions: string;
-	unit: "cm" | "in";
+	unit: string;
 	printType: string;
 	email: string;
 	numberOfPrints: string;
@@ -78,7 +78,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 		currency: "",
 		artType: "",
 		dimensions: "",
-		unit: "cm",
+		unit: "",
 		printType: "",
 		numberOfPrints: "",
 		email: "",
@@ -188,7 +188,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					currency: getValue("currency"),
 					artType: getValue("art-type"),
 					dimensions: getValue("dimensions"),
-					unit: "cm",
+					unit: getValue("size-unit"),
 					printType: getValue("print-type"),
 					email: getValue("email"),
 					numberOfPrints: getValue("number-of-prints"),
@@ -267,13 +267,6 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 			{ key: "artCategory", label: "Category" },
 			{ key: "price", label: "Price" },
 			{ key: "currency", label: "Currency" },
-			{ key: "artType", label: "Art Type" },
-			{ key: "dimensions", label: "Dimensions" },
-			{ key: "unit", label: "Unit" },
-			{ key: "printType", label: "Print Type" },
-			{ key: "datePainted", label: "Date Painted" },
-			{ key: "frame", label: "Frame" },
-			{ key: "collection", label: "Collection" },
 			{ key: "description", label: "Description" },
 			{ key: "email", label: "Email" },
 		];
@@ -287,6 +280,10 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 
 		if (form.price && form.price.trim() === "") {
 			errors["price"] = "Price is required.";
+		}
+
+		if (form.dimensions.trim() !== "" && (!form.unit || form.unit.trim() === "")) {
+			errors.unit = "Unit is required when dimensions are provided.";
 		}
 
 		if (productSlug) {
@@ -307,12 +304,11 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 		if (productSlug) {
 			e.preventDefault();
 			setSubmitted(true);
-
 			if (!validateForm()) {
+				setIsLoading(false);
 				setSubmitted(false);
 				return;
 			}
-
 			setIsLoading(true);
 
 			try {
@@ -322,21 +318,20 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 				});
 
 				const attributes = [
-					{ id: "QXR0cmlidXRlOjk=", boolean: form.signature },
-					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
+					// { id: "QXR0cmlidXRlOjk=", boolean: form.signature },
+					{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
+					...(form.dimensions ? [{ id: "QXR0cmlidXRlOjUx", plainText: form.unit }] : []),
+					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 					{ id: "QXR0cmlidXRlOjMw", plainText: form.artisName },
+					{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
+					...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
+					{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
+					{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
+					{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
+					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
 					{ id: "QXR0cmlidXRlOjQy", plainText: form.artType },
 					{ id: "QXR0cmlidXRlOjQz", plainText: form.printType },
 					{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame },
-					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
-					{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
-					{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
-					...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
-					{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
-					{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
-					{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
-					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
-					{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
 				];
 
 				const toDelete = initialExistingImages.current
@@ -393,9 +388,11 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 
 			if (!validateForm()) {
 				setIsLoading(false);
+				setSubmitted(false);
 				return;
 			}
 			setIsLoading(true);
+
 			try {
 				const descriptionJSON = JSON.stringify({
 					blocks: [{ type: "paragraph", data: { text: form.description } }],
@@ -412,21 +409,20 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					category: form.artCategory,
 					description: descriptionJSON,
 					attributes: [
-						{ id: "QXR0cmlidXRlOjk=", boolean: form.signature },
-						{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
+						// { id: "QXR0cmlidXRlOjk=", boolean: form.signature },
+						{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
+						...(form.dimensions ? [{ id: "QXR0cmlidXRlOjUx", plainText: form.unit }] : []),
+						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
 						{ id: "QXR0cmlidXRlOjMw", plainText: form.artisName },
+						{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
+						...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
+						{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
+						{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
+						{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
+						{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
 						{ id: "QXR0cmlidXRlOjQy", plainText: form.artType },
 						{ id: "QXR0cmlidXRlOjQz", plainText: form.printType },
 						{ id: "QXR0cmlidXRlOjQ0", plainText: form.frame },
-						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
-						{ id: "QXR0cmlidXRlOjM3", plainText: form.collection },
-						{ id: "QXR0cmlidXRlOjM4", plainText: form.externalLink },
-						...(form.numberOfPrints ? [{ id: "QXR0cmlidXRlOjM0", numeric: form.numberOfPrints }] : []),
-						{ id: "QXR0cmlidXRlOjMy", plainText: form.dimensions },
-						{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
-						{ id: "QXR0cmlidXRlOjM1", plainText: form.datePainted },
-						{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
-						{ id: "QXR0cmlidXRlOjIy", plainText: "0" },
 					],
 					userId: user?._id || "",
 					userData: JSON.stringify(user),
@@ -562,7 +558,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 		const newFiles = Array.from(e.target.files);
 		setFilesToUpload((prev) => [...prev, ...newFiles]);
 		e.target.value = "";
-		if (submitted && newFiles.length > 0) {
+		if (newFiles.length > 0) {
 			setFieldErrors((prev) => {
 				const newfieldErrors = { ...prev };
 				delete newfieldErrors["images"];
@@ -634,33 +630,31 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 						style={{ display: "none" }}
 					/>
 				</div>
-				{submitted && fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			</div>
+			{fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
+				{fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 				<input
 					type="text"
 					name="title"
 					value={form.title}
-					onChange={(e) => {
-						handleChange(e);
-						setForm((prev) => ({ ...prev, title: e.target.value }));
-					}}
+					onChange={handleChange}
 					placeholder="Artwork title"
 				/>
 			</div>
 
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.painterName && (
-					<small className={styles.errorText}>{fieldErrors.painterName}</small>
-				)}
-				<input name="artisName" value={form.artisName} onChange={handleChange} placeholder="Painter name" />{" "}
+				{fieldErrors.artisName && <small className={styles.errorText}>{fieldErrors.artisName}</small>}
+				<input
+					name="artisName"
+					value={form.artisName}
+					onChange={handleChange}
+					placeholder="Painter name"
+				/>{" "}
 			</div>
 
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.artCategory && (
-					<small className={styles.errorText}>{fieldErrors.artCategory}</small>
-				)}
+				{fieldErrors.artCategory && <small className={styles.errorText}>{fieldErrors.artCategory}</small>}
 				<select
 					name="artCategory"
 					value={selectedCategory}
@@ -682,13 +676,11 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 
 			<div className={styles.formRow}>
 				<div className={`${styles.formGroup} ${styles.dimensionsGroup}`}>
-					{submitted && fieldErrors.price && <small className={styles.errorText}>{fieldErrors.price}</small>}
+					{fieldErrors.price && <small className={styles.errorText}>{fieldErrors.price}</small>}
 					<input type="number" name="price" value={form.price} onChange={handleChange} placeholder="Price" />
 				</div>
 				<div className={`${styles.formGroup} ${styles.unitGroup}`}>
-					{submitted && fieldErrors.currency && (
-						<small className={styles.errorText}>{fieldErrors.currency}</small>
-					)}
+					{fieldErrors.currency && <small className={styles.errorText}>{fieldErrors.currency}</small>}
 					<select name="currency" value={form.currency} onChange={handleChange}>
 						<option value="" disabled>
 							Currency
@@ -703,44 +695,39 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 
 			<h3 className={styles.sectionTitle}>Artwork details</h3>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.artType && (
-					<small className={styles.errorText}>{fieldErrors.artType}</small>
-				)}
 				<input
 					type="text"
 					name="artType"
-					placeholder="Art type"
+					placeholder="Art type (optional)"
 					value={form.artType}
 					onChange={handleChange}
 				/>
 			</div>
 			<div className={styles.formRow}>
 				<div className={`${styles.formGroup} ${styles.dimensionsGroup}`}>
-					{submitted && fieldErrors.dimensions && (
-						<small className={styles.errorText}>{fieldErrors.dimensions}</small>
-					)}
 					<input
 						type="text"
 						name="dimensions"
 						value={form.dimensions}
 						onChange={handleChange}
-						placeholder="Dimensions"
+						placeholder="Dimensions (e.g., 30x40) (optional)"
 						className={styles.dimensionsInput}
 					/>
 				</div>
 				<div className={`${styles.formGroup} ${styles.unitGroup}`}>
-					<select>
-						<option value="cm">cm</option>
-						<option value="in">in</option>
+					{fieldErrors.unit && <small className={styles.errorText}>{fieldErrors.unit}</small>}
+					<select value={form.unit} name="unit" onChange={handleChange}>
+						<option value="" disabled>
+							cm / in
+						</option>
+						<option value="QXR0cmlidXRlVmFsdWU6MTI0Nw==">cm</option>
+						<option value="QXR0cmlidXRlVmFsdWU6MTI0OA==">in</option>
 					</select>
 				</div>
 			</div>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.printType && (
-					<small className={styles.errorText}>{fieldErrors.printType}</small>
-				)}
 				<select name="printType" value={form.printType} onChange={handleChange}>
-					<option value="">Selecciona Art type</option>
+					<option value="">Select Print Type (optional)</option>
 					<option value="Q2hvaWNlOjE=">Oil</option>
 					<option value="Q2hvaWNlOjI=">Watercolor</option>
 				</select>
@@ -755,38 +742,37 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 				/>
 			</div>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.datePainted && (
-					<small className={styles.errorText}>{fieldErrors.datePainted}</small>
-				)}
 				<input
 					type="text"
 					name="datePainted"
 					value={form.datePainted}
 					onChange={handleChange}
-					placeholder="Date painted"
+					placeholder="Date painted (optional)"
 				/>
 			</div>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.frame && <small className={styles.errorText}>{fieldErrors.frame}</small>}
-				<input type="text" name="frame" value={form.frame} onChange={handleChange} placeholder="Frame" />
+				{fieldErrors.frame && <small className={styles.errorText}>{fieldErrors.frame}</small>}
+				<input
+					type="text"
+					name="frame"
+					value={form.frame}
+					onChange={handleChange}
+					placeholder="Frame (Optional)"
+				/>
 			</div>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.collection && (
-					<small className={styles.errorText}>{fieldErrors.collection}</small>
-				)}
+				{fieldErrors.collection && <small className={styles.errorText}>{fieldErrors.collection}</small>}
 				<input
 					type="text"
 					name="collection"
 					value={form.collection}
 					onChange={handleChange}
-					placeholder="Collection"
+					placeholder="Collection (Optional)"
 				/>
 			</div>
 
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.description && (
-					<small className={styles.errorText}>{fieldErrors.description}</small>
-				)}
+				{fieldErrors.description && <small className={styles.errorText}>{fieldErrors.description}</small>}
 				<textarea
 					name="description"
 					placeholder="Description"
@@ -809,9 +795,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 				You can share the link to other websites where your artwork is listed
 			</p>
 			<div className={styles.formGroup}>
-				{submitted && fieldErrors.externalLink && (
-					<small className={styles.errorText}>{fieldErrors.externalLink}</small>
-				)}
+				{fieldErrors.externalLink && <small className={styles.errorText}>{fieldErrors.externalLink}</small>}
 				<input
 					type="url"
 					name="externalLink"

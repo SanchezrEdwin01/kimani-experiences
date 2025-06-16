@@ -1,0 +1,3 @@
+[submodule "libs/KIMANI-api-client-v2"]
+	path = libs/KIMANI-api-client-v2
+	url = git@github.com:KimaniLife/KIMANI-api-client-v2.git
