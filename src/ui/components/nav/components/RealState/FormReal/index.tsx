@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, type ChangeEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Country, State, City } from "country-state-city";
+import { Country } from "country-state-city";
 import slugify from "slugify";
 import convert from "heic-convert/browser";
 import { v4 as uuidv4 } from "uuid";
@@ -28,7 +28,6 @@ import {
 } from "@/gql/graphql";
 import { executeGraphQL, uploadGraphQL } from "@/lib/graphql";
 import { SuccessAnimation } from "@/ui/components/nav/components/animation";
-
 export interface RealEstateFormData {
 	title: string;
 	category: string;
@@ -51,17 +50,17 @@ export interface RealEstateFormData {
 	sizeUnit: string;
 }
 
-interface CustomState {
-	name: string;
-	isoCode: string;
-	countryCode: string;
-}
+// interface CustomState {
+// 	name: string;
+// 	isoCode: string;
+// 	countryCode: string;
+// }
 
-interface CustomCity {
-	name: string;
-	countryCode: string;
-	stateCode: string;
-}
+// interface CustomCity {
+// 	name: string;
+// 	countryCode: string;
+// 	stateCode: string;
+// }
 
 export interface RealEstateFormProps {
 	productSlug?: string;
@@ -72,13 +71,13 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [countries] = useState(Country.getAllCountries());
 	const { user } = useUser();
-	const [states, setStates] = useState<CustomState[]>([]);
-	const [cities, setCities] = useState<CustomCity[]>([]);
+	// const [states, setStates] = useState<CustomState[]>([]);
+	// const [cities, setCities] = useState<CustomCity[]>([]);
 	const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
 	const [existingProductId, setExistingProductId] = useState<string>("");
 	const initialExistingImages = useRef<{ id: string; url: string }[]>([]);
 	const [countryCode, setCountryCode] = useState<string>("");
-	const [stateCode, setStateCode] = useState<string>("");
+	// const [stateCode, setStateCode] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(false);
 	const pathname = usePathname();
 	const router = useRouter();
@@ -196,19 +195,13 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 
 				setSelectedCategory(p.category?.id ?? "");
 
-				const isoCountry =
-					Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "";
+				// const isoCountry =
+				// 	Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "";
 
 				setCountryCode(Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "");
 
-				const allStates = State.getStatesOfCountry(isoCountry);
-				setStates(allStates);
-
-				setStateCode(
-					State.getStatesOfCountry(
-						Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "",
-					).find((s) => s.name === getValue("state"))?.isoCode ?? "",
-				);
+				// const allStates = State.getStatesOfCountry(isoCountry);
+				// setStates(allStates);
 
 				const imgs = p.media?.map((m) => ({ id: m.id, url: m.url })) ?? [];
 				setExistingImages(imgs);
@@ -257,28 +250,25 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 			state: "",
 			city: "",
 		}));
-		const countryStates = State.getStatesOfCountry(iso) || [];
-		setStates(countryStates);
-		setCities([]);
 	}
 
-	function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
-		const iso = e.target.value;
-		setStateCode(iso);
-		const stateObj = states.find((s) => s.isoCode === iso);
-		const stateName = stateObj?.name || "";
-		setFormData((prev) => ({
-			...prev,
-			state: stateName,
-			city: "",
-		}));
-		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
-		setCities(stateCities);
-	}
+	// function handleStateChange(e: ChangeEvent<HTMLSelectElement>) {
+	// 	const iso = e.target.value;
+	// 	setStateCode(iso);
+	// 	const stateObj = states.find((s) => s.isoCode === iso);
+	// 	const stateName = stateObj?.name || "";
+	// 	setFormData((prev) => ({
+	// 		...prev,
+	// 		state: stateName,
+	// 		city: "",
+	// 	}));
+	// 	const stateCities = City.getCitiesOfState(countryCode, iso) || [];
+	// 	setCities(stateCities);
+	// }
 
-	function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
-		setFormData((prev) => ({ ...prev, city: e.target.value }));
-	}
+	// function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
+	// 	setFormData((prev) => ({ ...prev, city: e.target.value }));
+	// }
 
 	function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
 		const { name, value, type } = e.target;
@@ -872,53 +862,19 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 							))}
 						</select>
 					</div>
-					<div className="flex gap-2 py-2">
+					<div className={`${styles.formGroup} pb-2`}>
 						{fieldErrors.state && <small className={styles.errorText}>{fieldErrors.state}</small>}
-						<select name="state" value={stateCode} onChange={handleStateChange} disabled={!states.length}>
-							<option value="">Select State</option>
-							{states.map((s) => (
-								<option key={s.isoCode} value={s.isoCode}>
-									{s.name}
-								</option>
-							))}
-						</select>
-					</div>
-
-					<div className="flex gap-2 py-2">
-						{fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
-
-						{cities.length > 0 ? (
-							<>
-								<select name="city" value={formData.city} onChange={handleCityChange}>
-									<option value="">Select city</option>
-									{cities.map((cityItem) => (
-										<option key={cityItem.name} value={cityItem.name}>
-											{cityItem.name}
-										</option>
-									))}
-								</select>
-							</>
-						) : (
-							<>
-								<input
-									name="city"
-									type="text"
-									placeholder="Enter city"
-									value={formData.city}
-									onChange={handleChange}
-								/>
-							</>
-						)}
-
 						<input
-							name="zipCode"
+							name="state"
 							type="text"
-							inputMode="numeric"
-							pattern="\d*"
-							placeholder="Zip code"
-							value={formData.zipCode}
+							placeholder="State"
+							value={formData.state}
 							onChange={handleChange}
 						/>
+					</div>
+					<div className={styles.formGroup}>
+						{fieldErrors.city && <small className={styles.errorText}>{fieldErrors.city}</small>}
+						<input name="city" type="text" placeholder="City" value={formData.city} onChange={handleChange} />
 					</div>
 				</div>
 			</div>
