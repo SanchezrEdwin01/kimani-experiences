@@ -51,7 +51,12 @@ export function MarketplaceControls({
 	};
 
 	return (
-		<>
+		<div
+			style={{
+				maxWidth: "100vw",
+				overflowX: "hidden",
+			}}
+		>
 			<MarketplaceActions
 				onSettingsClick={() => setShowSettings(!showSettings)}
 				onLocationChange={handleLocationChangeForActions}
@@ -67,6 +72,6 @@ export function MarketplaceControls({
 				parentCategorySlug={currentFilters.mainCategorySlug}
 				subCategoryOptions={subCategoryOptionsForModal}
 			/>
-		</>
+		</div>
 	);
 }

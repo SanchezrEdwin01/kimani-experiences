@@ -46,10 +46,10 @@ export const ADMIN_LUXURY_GOODS_CATEGORY_CONTENT_VALUE = "admin_luxury_goods_cat
 export const ADMIN_LUXURY_GOODS_SUBCATEGORY_CREATE_PAGE_VALUE = "admin_luxury_goods_subcategory_create_page";
 
 export const TYPES = [
-	{ name: "Real estate", value: EVENT_TYPE_ALL, route: "marketplace/real-estate" },
+	{ name: "Real Estate", value: EVENT_TYPE_ALL, route: "marketplace/real-estate" },
 	{ name: "Art", value: EVENT_TYPE_KIMANI, route: "marketplace/art" },
-	{ name: "Luxury goods", value: EVENT_TYPE_OTHER, route: "marketplace/luxury-goods" },
-	{ name: "Service provider", value: EVENT_TYPE_MEMBER, route: "/marketplace/service-providers" },
+	{ name: "Luxury Goods", value: EVENT_TYPE_OTHER, route: "marketplace/luxury-goods" },
+	{ name: "Service Provider", value: EVENT_TYPE_MEMBER, route: "/marketplace/service-providers" },
 	{ name: "Category", value: CATEGORY, route: "marketplace/service-providers/category" },
 	{ name: "Admin Category", value: ADMIN_CATEGORY, route: "marketplace/service-providers/admin-category" },
 	{
