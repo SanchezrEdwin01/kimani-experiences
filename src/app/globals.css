@@ -3,11 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  ::before,
-  ::after {
-    content: none !important;
-    display: none !important;
-  }
+	::before,
+	::after {
+		content: none !important;
+		display: none !important;
+	}
+
+	html,
+	body,
+	#__next {
+		height: 100%;
+		margin: 0;
+	}
 }
 
 body {
