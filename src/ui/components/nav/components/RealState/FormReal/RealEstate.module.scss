@@ -1,4 +1,8 @@
 .formContainer {
+	height: 100%;
+	min-height: -webkit-fill-available;
+	overflow-y: auto;
+	padding-bottom: env(safe-area-inset-bottom);
 	background: #121212;
 	color: #fff;
 	padding: 20px;
