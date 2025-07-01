@@ -59,6 +59,9 @@ export function ProductElement({
 			: null,
 	};
 
+	const displayPrice =
+		range.start && range.start.amount === 0 ? "Contact For Price" : formatMoneyRange(range);
+
 	return (
 		<li key={product.id} data-testid="ProductElement">
 			<Link href={`/marketplace/art/${product.slug}`}>
@@ -78,7 +81,7 @@ export function ProductElement({
 					<div className="mt-2 flex justify-between pb-2">
 						<div>
 							<h3 className="mt-1 text-sm font-semibold text-white">{product.name}</h3>
-							<p className="mt-1 text-sm text-white">{formatMoneyRange(range)}</p>
+							<p className="mt-1 text-sm text-white">{displayPrice}</p>
 							<p className="mt-1 text-xs text-gray-300">{plainDescription}</p>
 						</div>
 					</div>

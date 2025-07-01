@@ -81,7 +81,7 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 		brandName: "",
 	});
 	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
-	const [errors, setErrors] = useState<{ imageError?: string }>({});
+	const [errors, setErrors] = useState<Record<string, string>>({});
 	const { user } = useUser();
 	const [successMessage, setSuccessMessage] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -289,6 +289,7 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 		const stateCities = City.getCitiesOfState(countryCode, iso) || [];
 		setCities(stateCities);
 	}
+
 	function handleCityChange(e: ChangeEvent<HTMLSelectElement>) {
 		setForm((prev) => ({ ...prev, city: e.target.value }));
 	}
@@ -318,9 +319,41 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 		setErrors({});
 	}
 
+	function validateForm(): boolean {
+		const newErrors: Record<string, string> = {};
+
+		if (filesToUpload.length === 0 && existingImages.length === 0) {
+			newErrors.imageError = "At least one image is required.";
+		}
+
+		if (!form.title.trim()) {
+			newErrors.title = "Title is required.";
+		}
+
+		if (!form.email.trim()) {
+			newErrors.email = "Email is required.";
+		}
+
+		if (!form.category) {
+			newErrors.category = "Category is required.";
+		}
+
+		if (form.price.trim() !== "" && !form.currency) {
+			newErrors.currency = "Currency is required when price is set.";
+		}
+
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	}
+
 	async function handleSubmit(e: React.FormEvent) {
 		if (productSlug) {
 			e.preventDefault();
+			setErrors({});
+			if (!validateForm()) {
+				window.scrollTo({ top: 0, behavior: "smooth" });
+				return;
+			}
 
 			setIsLoading(true);
 
@@ -331,18 +364,18 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 				});
 
 				const attributes = [
-					{ id: "QXR0cmlidXRlOjEx", plainText: form.city },
-					{ id: "QXR0cmlidXRlOjQw", plainText: form.country },
-					{ id: "QXR0cmlidXRlOjQ1", plainText: form.state },
-					{ id: "QXR0cmlidXRlOjE0", numeric: form.zip },
-					{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
-					{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
-					{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition },
-					{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
-					{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
-					{ id: "QXR0cmlidXRlOjI=", plainText: form.address },
 					{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
-					{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
+					...(form.city ? [{ id: "QXR0cmlidXRlOjEx", plainText: form.city }] : []),
+					...(form.country ? [{ id: "QXR0cmlidXRlOjQw", plainText: form.country }] : []),
+					...(form.state ? [{ id: "QXR0cmlidXRlOjQ1", plainText: form.state }] : []),
+					...(form.zip ? [{ id: "QXR0cmlidXRlOjE0", numeric: form.zip }] : []),
+					...(user?._id ? [{ id: "QXR0cmlidXRlOjIy", plainText: user?._id }] : []),
+					...(form.currency ? [{ id: "QXR0cmlidXRlOjQx", plainText: form.currency }] : []),
+					...(form.condition ? [{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition }] : []),
+					...(form.description ? [{ id: "QXR0cmlidXRlOjI1", plainText: form.description }] : []),
+					...(form.brandName ? [{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName }] : []),
+					...(form.address ? [{ id: "QXR0cmlidXRlOjI=", plainText: form.address }] : []),
+					...(form.externalLink ? [{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink }] : []),
 				];
 
 				const toDelete = initialExistingImages.current
@@ -395,18 +428,20 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 			return;
 		} else {
 			e.preventDefault();
+			setErrors({});
+			if (!validateForm()) {
+				window.scrollTo({ top: 0, behavior: "smooth" });
+				return;
+			}
 			setSuccessMessage("");
 
 			setIsLoading(true);
 
 			try {
 				if (filesToUpload.length === 0) {
-					setErrors((prev) => ({ ...prev, imageError: "At least one image is required" }));
 					window.scrollTo({ top: 0, behavior: "smooth" });
 					return;
 				}
-
-				setErrors((prev) => ({ ...prev, imageError: undefined }));
 
 				const baseSlug = slugify(form.title, { lower: true });
 				const uniqueSlug = `${baseSlug}-${uuidv4()}`;
@@ -423,18 +458,18 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 					category: form.category,
 					description: descriptionJSON,
 					attributes: [
-						{ id: "QXR0cmlidXRlOjEx", plainText: form.city },
-						{ id: "QXR0cmlidXRlOjQw", plainText: form.country },
-						{ id: "QXR0cmlidXRlOjQ1", plainText: form.state },
-						{ id: "QXR0cmlidXRlOjE0", numeric: form.zip },
-						{ id: "QXR0cmlidXRlOjIy", plainText: user?._id || "1" },
-						{ id: "QXR0cmlidXRlOjQx", plainText: form.currency },
-						{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition },
-						{ id: "QXR0cmlidXRlOjI1", plainText: form.description },
-						{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName },
-						{ id: "QXR0cmlidXRlOjI=", plainText: form.address },
 						{ id: "QXR0cmlidXRlOjU=", plainText: form.email },
-						{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink || "" },
+						...(form.city ? [{ id: "QXR0cmlidXRlOjEx", plainText: form.city }] : []),
+						...(form.country ? [{ id: "QXR0cmlidXRlOjQw", plainText: form.country }] : []),
+						...(form.state ? [{ id: "QXR0cmlidXRlOjQ1", plainText: form.state }] : []),
+						...(form.zip ? [{ id: "QXR0cmlidXRlOjE0", numeric: form.zip }] : []),
+						...(user?._id ? [{ id: "QXR0cmlidXRlOjIy", plainText: user?._id }] : []),
+						...(form.currency ? [{ id: "QXR0cmlidXRlOjQx", plainText: form.currency }] : []),
+						...(form.condition ? [{ id: "QXR0cmlidXRlOjQ2", plainText: form.condition }] : []),
+						...(form.description ? [{ id: "QXR0cmlidXRlOjI1", plainText: form.description }] : []),
+						...(form.brandName ? [{ id: "QXR0cmlidXRlOjIx", plainText: form.brandName }] : []),
+						...(form.address ? [{ id: "QXR0cmlidXRlOjI=", plainText: form.address }] : []),
+						...(form.externalLink ? [{ id: "QXR0cmlidXRlOjE5", plainText: form.externalLink }] : []),
 					],
 					userId: user?._id || "",
 					userData: JSON.stringify(user),
@@ -455,8 +490,9 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 				await executeGraphQL(PublishProductInChannelDocument, {
 					variables: { productId, channelId: "Q2hhbm5lbDox" },
 				});
+
 				await executeGraphQL(PublishVariantInChannelDocument, {
-					variables: { variantId, channelId: "Q2hhbm5lbDox", price: parseFloat(form.price) },
+					variables: { variantId, channelId: "Q2hhbm5lbDox", price: parseFloat(form.price) || 0 },
 				});
 
 				await executeGraphQL(AddProductToCollectionDocument, {
@@ -680,6 +716,11 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 
 			<div className={styles.formGroup}>
 				<input name="title" value={form.title} onChange={handleChange} placeholder="Title of luxury good" />
+				{errors.title && (
+					<p className={styles.errorText} style={{ color: "red", marginTop: "5px" }}>
+						{errors.title}
+					</p>
+				)}
 			</div>
 
 			<div className={styles.formGroup}>
@@ -693,6 +734,11 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 						</option>
 					))}
 				</select>
+				{errors.category && (
+					<p className={styles.errorText} style={{ color: "red", marginTop: "5px" }}>
+						{errors.category}
+					</p>
+				)}
 			</div>
 
 			<div className={styles.formGroup}>
@@ -785,6 +831,11 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 					<option value="USD">USD</option>
 					<option value="EUR">EUR</option>
 				</select>
+				{errors.currency && (
+					<p className={styles.errorText} style={{ color: "red", marginTop: "5px" }}>
+						{errors.currency}
+					</p>
+				)}
 			</div>
 
 			<h3 className={styles.sectionTitle}>Price details</h3>
@@ -807,6 +858,11 @@ export function LuxuryGoodsForm({ productSlug }: RealEstateFormProps) {
 			<h3 className={styles.sectionTitle}>Contact information</h3>
 			<div className={styles.formGroup}>
 				<input name="email" value={form.email} onChange={handleChange} type="text" placeholder="Email" />
+				{errors.email && (
+					<p className={styles.errorText} style={{ color: "red", marginTop: "5px" }}>
+						{errors.email}
+					</p>
+				)}
 			</div>
 
 			<div className={styles.formGroup}>
