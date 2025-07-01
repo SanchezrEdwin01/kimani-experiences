@@ -78,6 +78,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const sqft = getAttr("property-size") || "—";
 	const baths = getAttr("bathrooms") || "—";
 	const beds = getAttr("bedrooms") || "—";
+	const numberOfGuests = getAttr("number-of-guests") || "—";
 
 	const goUpOneLevel = () => {
 		const parts = pathname.split("/");
@@ -427,6 +428,12 @@ export function ProductPage({ slug }: ProductPageProps) {
 					<span className={styles.statValue}>{beds}</span>
 					<span className={styles.statLabel}>Bedroom</span>
 				</div>
+				{numberOfGuests && (
+					<div className={styles.statCard}>
+						<span className={styles.statValue}>{numberOfGuests}</span>
+						<span className={styles.statLabel}>Guests</span>
+					</div>
+				)}
 			</div>
 			<hr className={styles.divider} />
 

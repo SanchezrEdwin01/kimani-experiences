@@ -9,7 +9,7 @@
 	.floatingButton {
 		position: fixed;
 		bottom: 2rem;
-		right: 2rem;
+		right: calc(2rem + env(safe-area-inset-right));
 		z-index: 100;
 	}
 }
