@@ -48,6 +48,7 @@ export interface RealEstateFormData {
 	parkingNumber: number;
 	propertySize: string;
 	sizeUnit: string;
+	numberOfGuests: number;
 }
 
 // interface CustomState {
@@ -112,6 +113,7 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 		parkingNumber: 0,
 		propertySize: "",
 		sizeUnit: "",
+		numberOfGuests: 0,
 	});
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [submitted, setSubmitted] = useState(false);
@@ -189,19 +191,14 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 					parkingNumber: Number(getValue("parking-number")) || 0,
 					propertySize: getValue("property-size"),
 					sizeUnit: getSelectedValueId("size-unit"),
+					numberOfGuests: Number(getValue("number-of-guests")) || 0,
 				});
 
 				setExistingProductId(p.id);
 
 				setSelectedCategory(p.category?.id ?? "");
 
-				// const isoCountry =
-				// 	Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "";
-
 				setCountryCode(Country.getAllCountries().find((c) => c.name === getValue("country"))?.isoCode ?? "");
-
-				// const allStates = State.getStatesOfCountry(isoCountry);
-				// setStates(allStates);
 
 				const imgs = p.media?.map((m) => ({ id: m.id, url: m.url })) ?? [];
 				setExistingImages(imgs);
@@ -282,7 +279,13 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 			return;
 		}
 
-		if (name === "zipCode") {
+		if (
+			name === "zipCode" ||
+			name === "bedrooms" ||
+			name === "bathrooms" ||
+			name === "parkingNumber" ||
+			name === "numberOfGuests"
+		) {
 			const filtered = value.replace(/[^0-9]/g, "");
 			setFormData((prev) => ({ ...prev, [name]: filtered }));
 			return;
@@ -401,6 +404,7 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 					{ id: "QXR0cmlidXRlOjQ1", plainText: formData.state },
 					{ id: "QXR0cmlidXRlOjU=", plainText: formData.email },
 					{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
+					{ id: "QXR0cmlidXRlOjg0", numeric: String(formData.numberOfGuests) },
 					{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
 					{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
 					{ id: "QXR0cmlidXRlOjI3", numeric: String(formData.bedrooms) },
@@ -465,6 +469,8 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 			e.preventDefault();
 			setSubmitted(true);
 
+			console.log(`Number of guests: ${formData.numberOfGuests}`);
+
 			if (!validateForm()) {
 				setSubmitted(false);
 				return;
@@ -499,6 +505,7 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 						{ id: "QXR0cmlidXRlOjQw", plainText: formData.country },
 						{ id: "QXR0cmlidXRlOjQx", plainText: formData.currency },
 						{ id: "QXR0cmlidXRlOjQ3", plainText: formData.levelListing },
+						{ id: "QXR0cmlidXRlOjg0", numeric: String(formData.numberOfGuests) },
 						{ id: "QXR0cmlidXRlOjI3", numeric: String(formData.bedrooms) },
 						{ id: "QXR0cmlidXRlOjI4", numeric: String(formData.bathrooms) },
 						{ id: "QXR0cmlidXRlOjQ4", dropdown: { id: formData.priceOption } },
@@ -689,6 +696,7 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 					parkingNumber: 0,
 					propertySize: "",
 					sizeUnit: "",
+					numberOfGuests: 0,
 				});
 				setFieldErrors({});
 				const parent = pathname.split("/").slice(0, -1).join("/") || "/";
@@ -962,6 +970,34 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 					<option value="QXR0cmlidXRlVmFsdWU6MjIy">sqm</option>
 				</select>
 			</div>
+			<div className={styles.counterGroup}>
+				<span>Number of Guests (optional)</span>
+				<div className={styles.counterControls}>
+					<button
+						type="button"
+						onClick={() =>
+							setFormData((prev) => ({
+								...prev,
+								numberOfGuests: Math.max(0, Number(prev.numberOfGuests) - 1),
+							}))
+						}
+					>
+						−
+					</button>
+					<span className={styles.counterValue}>{formData.numberOfGuests}</span>
+					<button
+						type="button"
+						onClick={() =>
+							setFormData((prev) => ({
+								...prev,
+								numberOfGuests: Number(prev.numberOfGuests) + 1,
+							}))
+						}
+					>
+						+
+					</button>
+				</div>
+			</div>
 			{fieldErrors.bedrooms && <small className={styles.errorText}>{fieldErrors.bedrooms}</small>}
 			<div className={styles.counterGroup}>
 				<span>Number of bedrooms</span>
@@ -993,7 +1029,6 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 								parkingNumber: Math.max(0, Number(prev.parkingNumber) - 1),
 							}))
 						}
-						className={styles.counterButton}
 					>
 						−
 					</button>
@@ -1006,7 +1041,6 @@ export function RealEstateForm({ productSlug }: RealEstateFormProps) {
 								parkingNumber: Number(prev.parkingNumber) + 1,
 							}))
 						}
-						className={styles.counterButton}
 					>
 						+
 					</button>

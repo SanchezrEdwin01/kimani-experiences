@@ -202,6 +202,13 @@ export function ProductPage({ slug }: ProductPageProps) {
 			: null,
 	};
 
+	const priceDisplay = () => {
+		if (range.start && range.start.amount === 0) {
+			return "Contact for price";
+		}
+		return formatMoneyRange(range);
+	};
+
 	const formatDate = (d?: string) =>
 		d
 			? new Date(d).toLocaleDateString("en-US", {
@@ -304,7 +311,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 			<p className={styles.subtype}>{product.productType.name}</p>
 
 			<div className={styles.priceSection}>
-				<div className={styles.priceSection}>{formatMoneyRange(range)}</div>
+				<div className={styles.priceSection}>{priceDisplay()}</div>
 				{city && <p className={styles.cityDisplay}>{city}</p>}
 			</div>
 			<section>
@@ -377,10 +384,12 @@ export function ProductPage({ slug }: ProductPageProps) {
 							<span className={styles.detailValue}>{city}</span>
 						</div>
 					)}
-					<div className={styles.detailItem}>
-						<span className={styles.detailLabel}>Condition</span>
-						<span className={styles.detailValue}>{getAttr("condition") || "No condition"}</span>
-					</div>
+					{getAttr("condition") && (
+						<div className={styles.detailItem}>
+							<span className={styles.detailLabel}>Condition</span>
+							<span className={styles.detailValue}>{getAttr("condition")}</span>
+						</div>
+					)}
 					{product.created && (
 						<div className={styles.detailItem}>
 							<span className={styles.detailLabel}>Posted on</span>

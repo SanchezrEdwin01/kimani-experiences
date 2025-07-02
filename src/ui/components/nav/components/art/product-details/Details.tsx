@@ -67,7 +67,6 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const productImages = product?.media?.map((m) => m.url) || [];
 
 	const externalLink = getAttr("external-link");
-	// const certificateUrl = getAttr("certificate-of-authenticity");
 
 	const productName = product?.name || "No name";
 	const productDescription = product?.description || "No description available";
@@ -232,6 +231,9 @@ export function ProductPage({ slug }: ProductPageProps) {
 			: null,
 	};
 
+	const displayPrice =
+		range.start && range.start.amount === 0 ? "Contact For Price" : formatMoneyRange(range);
+
 	return (
 		<div className={styles.container}>
 			{/* Hero + overlay buttons */}
@@ -302,7 +304,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 			<h1 className={styles.title}>{productName}</h1>
 			<div className={styles.category}>{artCategory}</div>
 
-			<div className={styles.priceAndLocation}>{formatMoneyRange(range)}</div>
+			<div className={styles.priceAndLocation}>{displayPrice}</div>
 			<section>
 				{creatorUser ? (
 					<div className={styles.ambassadorInfo}>

@@ -263,11 +263,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 		const errors: Record<string, string> = {};
 		const requiredFields: { key: keyof ArtFormData; label: string }[] = [
 			{ key: "title", label: "Title" },
-			{ key: "artisName", label: "Artist Name" },
 			{ key: "artCategory", label: "Category" },
-			{ key: "price", label: "Price" },
-			{ key: "currency", label: "Currency" },
-			{ key: "description", label: "Description" },
 			{ key: "email", label: "Email" },
 		];
 
@@ -451,7 +447,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					variables: {
 						variantId,
 						channelId: "Q2hhbm5lbDox",
-						price: parseFloat(form.price),
+						price: parseFloat(form.price) || 0,
 					},
 				});
 
@@ -633,7 +629,6 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 			</div>
 			{fieldErrors.images && <small className={styles.errorText}>{fieldErrors.images}</small>}
 			<div className={styles.formGroup}>
-				{fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 				<input
 					type="text"
 					name="title"
@@ -641,20 +636,14 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					onChange={handleChange}
 					placeholder="Artwork title"
 				/>
+				{fieldErrors.title && <small className={styles.errorText}>{fieldErrors.title}</small>}
 			</div>
 
 			<div className={styles.formGroup}>
-				{fieldErrors.artisName && <small className={styles.errorText}>{fieldErrors.artisName}</small>}
-				<input
-					name="artisName"
-					value={form.artisName}
-					onChange={handleChange}
-					placeholder="Painter name"
-				/>{" "}
+				<input name="artisName" value={form.artisName} onChange={handleChange} placeholder="Painter name" />{" "}
 			</div>
 
 			<div className={styles.formGroup}>
-				{fieldErrors.artCategory && <small className={styles.errorText}>{fieldErrors.artCategory}</small>}
 				<select
 					name="artCategory"
 					value={selectedCategory}
@@ -672,15 +661,14 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 						</option>
 					))}
 				</select>
+				{fieldErrors.artCategory && <small className={styles.errorText}>{fieldErrors.artCategory}</small>}
 			</div>
 
 			<div className={styles.formRow}>
 				<div className={`${styles.formGroup} ${styles.dimensionsGroup}`}>
-					{fieldErrors.price && <small className={styles.errorText}>{fieldErrors.price}</small>}
 					<input type="number" name="price" value={form.price} onChange={handleChange} placeholder="Price" />
 				</div>
 				<div className={`${styles.formGroup} ${styles.unitGroup}`}>
-					{fieldErrors.currency && <small className={styles.errorText}>{fieldErrors.currency}</small>}
 					<select name="currency" value={form.currency} onChange={handleChange}>
 						<option value="" disabled>
 							Currency
@@ -715,7 +703,6 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					/>
 				</div>
 				<div className={`${styles.formGroup} ${styles.unitGroup}`}>
-					{fieldErrors.unit && <small className={styles.errorText}>{fieldErrors.unit}</small>}
 					<select value={form.unit} name="unit" onChange={handleChange}>
 						<option value="" disabled>
 							cm / in
@@ -725,6 +712,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 					</select>
 				</div>
 			</div>
+			{fieldErrors.unit && <small className={styles.errorText}>{fieldErrors.unit}</small>}
 			<div className={styles.formGroup}>
 				<select name="printType" value={form.printType} onChange={handleChange}>
 					<option value="">Select Print Type (optional)</option>
