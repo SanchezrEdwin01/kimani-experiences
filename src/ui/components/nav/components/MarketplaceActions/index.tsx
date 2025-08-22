@@ -116,7 +116,7 @@ export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 			{isOpen && (
 				<div
 					ref={dropdownRef}
-					className="bg-gray dropdown-custom absolute left-[70px] top-[55px] z-50 max-h-[50vh] w-60 overflow-y-auto rounded py-2 text-white shadow-lg"
+					className="bg-gray absolute left-[70px] top-[55px] z-50 h-[50vh] max-h-[50vh] w-60 overflow-y-auto rounded py-2 text-white shadow-lg"
 				>
 					<button
 						className="w-full px-4 py-2 text-left text-sm text-amber-400 hover:bg-slate-700"
