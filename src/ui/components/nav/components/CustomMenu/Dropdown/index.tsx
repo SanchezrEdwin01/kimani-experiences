@@ -33,17 +33,14 @@ export function Dropdown() {
 	};
 
 	const items: MenuItem[] = [
-		{ key: "benefits", label: "BENEFITS", path: "/member-benefits-platform" },
-		{ key: "privileges", label: "PRIVILEGES", path: "/privileges" },
+		{ key: "benefits", label: "BENEFITS", path: "/benefits", disabled: true },
+		{ key: "privileges", label: "PRIVILEGES", path: "/privileges", disabled: true },
 		{ key: "ambassadors", label: "AMBASSADORS", path: "/ambassadors", disabled: true },
-		{ key: "sponsors", label: "SPONSORS", path: "/sponsorship", disabled: true },
-		{ key: "corporate", label: "CORPORATE", path: "/membership/corporate", disabled: true },
-		{ key: "join-team", label: "JOIN OUR TEAM", path: "/hiring", disabled: true },
-	];
-
-	const footerItems: MenuItem[] = [
-		{ key: "contact", label: "CONTACT US", path: "/contact" },
-		{ key: "about-us", label: "ABOUT US", path: "/about-us" },
+		{ key: "sponsors", label: "SPONSORS", path: "/sponsor", disabled: true },
+		{ key: "corporate", label: "CORPORATE", path: "/corporate", disabled: true },
+		// { key: "join-team", label: "JOIN OUR TEAM", path: "/hiring", disabled: true },
+		{ key: "contact", label: "CONTACT US", path: "/contact", disabled: true },
+		{ key: "about-us", label: "ABOUT US", path: "/about-us", disabled: true },
 	];
 
 	const renderItem = (item: MenuItem) => {
@@ -95,8 +92,6 @@ export function Dropdown() {
 					</ConditionalLink>
 
 					{items.map(renderItem)}
-
-					<div className="menuWrap">{footerItems.map(renderItem)}</div>
 				</div>
 			</div>
 		</div>
