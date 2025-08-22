@@ -27,7 +27,7 @@ export function Header() {
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: `${baseURL}/events` },
 		{ title: "Marketplace", url: `${baseURL}/marketplace/real-estate` },
-		{ title: "Concierge", url: "https://www.kimanilife.com/concierge" },
+		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },
 	].map((tab) => ({

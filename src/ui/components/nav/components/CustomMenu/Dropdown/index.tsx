@@ -1,18 +1,83 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { ConditionalLink } from "../ConditionalLink";
 import menuIcon from "./link.png";
+import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 
 import "./index.scss";
+
+type MenuItem = {
+	key: string;
+	label: string;
+	path: string;
+	disabled?: boolean;
+};
 
 export function Dropdown() {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const pathname = usePathname();
+	const router = useRouter();
+	const baseURL = useBaseURL();
 
 	const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
+
+	const navigate = (url: string) => {
+		if (url.startsWith("http")) {
+			window.location.href = url;
+		} else {
+			router.push(url);
+		}
+	};
+
+	const items: MenuItem[] = [
+		{ key: "benefits", label: "BENEFITS", path: "/member-benefits-platform" },
+		{ key: "privileges", label: "PRIVILEGES", path: "/privileges" },
+		{ key: "ambassadors", label: "AMBASSADORS", path: "/ambassadors", disabled: true },
+		{ key: "sponsors", label: "SPONSORS", path: "/sponsorship", disabled: true },
+		{ key: "corporate", label: "CORPORATE", path: "/membership/corporate", disabled: true },
+		{ key: "join-team", label: "JOIN OUR TEAM", path: "/hiring", disabled: true },
+	];
+
+	const footerItems: MenuItem[] = [
+		{ key: "contact", label: "CONTACT US", path: "/contact" },
+		{ key: "about-us", label: "ABOUT US", path: "/about-us" },
+	];
+
+	const renderItem = (item: MenuItem) => {
+		const url = `${baseURL}${item.path}`;
+
+		const content = (
+			<div className={`option${item.disabled ? "" : ""}`} id={item.disabled ? "disabled" : undefined}>
+				{item.label}
+				<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
+			</div>
+		);
+
+		if (item.disabled) {
+			return (
+				<div key={item.key} onClick={(e) => e.preventDefault()}>
+					{content}
+				</div>
+			);
+		}
+
+		return (
+			<button
+				key={item.key}
+				type="button"
+				className="linkLikeButton"
+				onClick={(e) => {
+					e.stopPropagation();
+					navigate(url);
+				}}
+			>
+				{content}
+			</button>
+		);
+	};
 
 	return (
 		<div id="dropdown" className={`dropdown ${isDropdownOpen ? "open" : ""}`} onClick={toggleDropdown}>
@@ -22,69 +87,16 @@ export function Dropdown() {
 				<div className="options">
 					<div className="spacer" />
 
-					<ConditionalLink key="home" active={pathname === "/communities"} href="/communities">
+					<ConditionalLink key="home" active={pathname === "/communities"} href={`${baseURL}/communities`}>
 						<div className="option">
 							HOME
 							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
 						</div>
 					</ConditionalLink>
 
-					<a key="benefits" href="https://www.kimanilife.com/member-benefits-platform">
-						<div className="option">
-							BENEFITS
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
+					{items.map(renderItem)}
 
-					<a key="privileges" href="https://www.kimanilife.com/privileges">
-						<div className="option">
-							PRIVILEGES
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
-
-					<a key="ambassadors" href="https://www.kimanilife.com/ambassadors">
-						<div id="disabled" className="option">
-							AMBASSADORS
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
-
-					<a key="sponsors" href="https://www.kimanilife.com/sponsorship">
-						<div id="disabled" className="option">
-							SPONSORS
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
-
-					<a key="corporate" href="https://www.kimanilife.com/membership/corporate">
-						<div id="disabled" className="option">
-							CORPORATE
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
-
-					<a key="join-team" href="https://www.kimanilife.com/hiring">
-						<div id="disabled" className="option">
-							JOIN OUR TEAM
-							<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-						</div>
-					</a>
-
-					<div className="menuWrap">
-						<a key="contact" href="https://www.kimanilife.com/contact">
-							<div className="option">
-								CONTACT US
-								<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-							</div>
-						</a>
-						<a key="about-us" href="https://www.kimanilife.com/about-us">
-							<div className="option">
-								ABOUT US
-								<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-							</div>
-						</a>
-					</div>
+					<div className="menuWrap">{footerItems.map(renderItem)}</div>
 				</div>
 			</div>
 		</div>
