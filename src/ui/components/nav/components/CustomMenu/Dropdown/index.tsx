@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { ConditionalLink } from "../ConditionalLink";
 import menuIcon from "./link.png";
@@ -13,80 +13,39 @@ type MenuItem = {
 	key: string;
 	label: string;
 	path: string;
-	disabled?: boolean;
 };
 
 export function Dropdown() {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const pathname = usePathname();
-	const router = useRouter();
 	const baseURL = useBaseURL();
 
 	const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
-	const navigate = (url: string) => {
-		if (url.startsWith("http")) {
-			window.location.href = url;
-		} else {
-			router.push(url);
-		}
-	};
-
 	const items: MenuItem[] = [
-		{ key: "benefits", label: "BENEFITS", path: "/member-benefits-platform" },
+		{ key: "benefits", label: "BENEFITS", path: "/benefits" },
 		{ key: "privileges", label: "PRIVILEGES", path: "/privileges" },
-		{ key: "ambassadors", label: "AMBASSADORS", path: "/ambassadors", disabled: true },
-		{ key: "sponsors", label: "SPONSORS", path: "/sponsorship", disabled: true },
-		{ key: "corporate", label: "CORPORATE", path: "/membership/corporate", disabled: true },
-		{ key: "join-team", label: "JOIN OUR TEAM", path: "/hiring", disabled: true },
-	];
-
-	const footerItems: MenuItem[] = [
+		{ key: "ambassadors", label: "AMBASSADORS", path: "/ambassadors" },
+		{ key: "sponsors", label: "SPONSORS", path: "/sponsor" },
+		{ key: "corporate", label: "CORPORATE", path: "/corporate" },
 		{ key: "contact", label: "CONTACT US", path: "/contact" },
 		{ key: "about-us", label: "ABOUT US", path: "/about-us" },
 	];
 
-	const renderItem = (item: MenuItem) => {
-		const url = `${baseURL}${item.path}`;
-
-		const content = (
-			<div className={`option${item.disabled ? "" : ""}`} id={item.disabled ? "disabled" : undefined}>
-				{item.label}
-				<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
-			</div>
-		);
-
-		if (item.disabled) {
-			return (
-				<div key={item.key} onClick={(e) => e.preventDefault()}>
-					{content}
-				</div>
-			);
-		}
-
-		return (
-			<button
-				key={item.key}
-				type="button"
-				className="linkLikeButton"
-				onClick={(e) => {
-					e.stopPropagation();
-					navigate(url);
-				}}
-			>
-				{content}
-			</button>
-		);
-	};
+	const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
 
 	return (
 		<div id="dropdown" className={`dropdown ${isDropdownOpen ? "open" : ""}`} onClick={toggleDropdown}>
 			<div className="selected-option" />
 
-			<div className={`options-container ${isDropdownOpen ? "open" : ""}`}>
+			<div
+				className={`options-container ${isDropdownOpen ? "open" : ""}`}
+				onClick={(e) => e.stopPropagation()}
+			>
 				<div className="options">
 					<div className="spacer" />
 
+					{/* HOME */}
 					<ConditionalLink key="home" active={pathname === "/communities"} href={`${baseURL}/communities`}>
 						<div className="option">
 							HOME
@@ -94,9 +53,14 @@ export function Dropdown() {
 						</div>
 					</ConditionalLink>
 
-					{items.map(renderItem)}
-
-					<div className="menuWrap">{footerItems.map(renderItem)}</div>
+					{items.map((item) => (
+						<ConditionalLink key={item.key} active={isActive(item.path)} href={`${baseURL}${item.path}`}>
+							<div className="option">
+								{item.label}
+								<Image src={menuIcon} alt="menu icon" width={16} height={16} className="menuIcon" />
+							</div>
+						</ConditionalLink>
+					))}
 				</div>
 			</div>
 		</div>
