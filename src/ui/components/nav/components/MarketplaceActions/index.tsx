@@ -99,7 +99,10 @@ export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 		: "Global Destinations";
 
 	return (
-		<div className="location-selector relative flex items-center justify-between bg-gray-900 px-4 py-2 text-white">
+		<div
+			ref={dropdownRef}
+			className="location-selector relative flex items-center justify-between bg-gray-900 px-4 py-2 text-white"
+		>
 			<button
 				type="button"
 				onClick={handleToggle}
