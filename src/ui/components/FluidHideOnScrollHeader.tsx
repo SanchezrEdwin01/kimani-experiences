@@ -1,44 +1,50 @@
-import { useRef, useState, useEffect, type CSSProperties } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface FluidHideOnScrollHeaderProps {
 	children: React.ReactNode;
-	offsetTop?: number;
 }
 
-export function FluidHideOnScrollHeader({ children, offsetTop = 98 }: FluidHideOnScrollHeaderProps) {
+export function FluidHideOnScrollHeader({ children }: FluidHideOnScrollHeaderProps) {
 	const headerRef = useRef<HTMLDivElement>(null);
-	const lastScrollY = useRef(0);
-	const offsetY = useRef(0);
-	const [style, setStyle] = useState<CSSProperties>({
-		transform: "translateY(0px)",
-		top: `${offsetTop}px`,
-	});
+	const mainHeaderRef = useRef<HTMLElement | null>(null);
+	const [topOffset, setTopOffset] = useState(0);
 
 	useEffect(() => {
-		lastScrollY.current = window.scrollY;
-		offsetY.current = 0;
+		mainHeaderRef.current = document.getElementById("main-header") as HTMLElement;
+		if (!mainHeaderRef.current) return;
 
+		const rect = mainHeaderRef.current.getBoundingClientRect();
+		setTopOffset(rect.bottom);
+	}, []);
+
+	useEffect(() => {
 		const handleScroll = () => {
-			const currentY = window.scrollY;
-			const delta = currentY - lastScrollY.current;
-			const h = headerRef.current?.offsetHeight ?? 0;
+			if (!mainHeaderRef.current) return;
 
-			offsetY.current = Math.min(0, Math.max(offsetY.current - delta, -h));
+			const rect = mainHeaderRef.current.getBoundingClientRect();
 
-			setStyle({
-				transform: `translateY(${offsetY.current}px)`,
-				top: `${offsetTop}px`,
-			});
+			const headerBottom = rect.bottom;
 
-			lastScrollY.current = currentY;
+			if (headerBottom <= 0) {
+				setTopOffset(0);
+			} else {
+				setTopOffset(headerBottom);
+			}
 		};
 
 		window.addEventListener("scroll", handleScroll, { passive: true });
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [offsetTop]);
+	}, []);
 
 	return (
-		<div ref={headerRef} className="bg-gray sticky z-20 transition-transform duration-0" style={style}>
+		<div
+			ref={headerRef}
+			className="bg-gray sticky z-20"
+			style={{
+				top: `${topOffset}px`,
+				transition: "top 0.15s linear",
+			}}
+		>
 			{children}
 		</div>
 	);
