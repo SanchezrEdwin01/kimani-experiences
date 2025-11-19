@@ -14,7 +14,7 @@ export const metadata = {
 export default function MainLayout({ children }: { children: ReactNode }) {
 	return (
 		<Providers>
-			<div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+			<div id="main-header" style={{ position: "sticky", top: 0, zIndex: 1000 }}>
 				<Header />
 			</div>
 			<div className="bg-gray flex min-h-[calc(100dvh-64px)] flex-col text-white">

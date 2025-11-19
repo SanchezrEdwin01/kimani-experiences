@@ -14,6 +14,7 @@ interface LocationSelectorProps {
 export const MarketplaceActions: React.FC<LocationSelectorProps> = ({
 	onLocationChange = () => {},
 	// onSettingsClick = () => {},
+	// Commit
 	currentLocation,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
