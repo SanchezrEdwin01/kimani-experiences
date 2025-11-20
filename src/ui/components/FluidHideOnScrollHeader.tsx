@@ -7,7 +7,7 @@ interface FluidHideOnScrollHeaderProps {
 export function FluidHideOnScrollHeader({ children }: FluidHideOnScrollHeaderProps) {
 	const headerRef = useRef<HTMLDivElement>(null);
 	const mainHeaderRef = useRef<HTMLElement | null>(null);
-	const [topOffset, setTopOffset] = useState(0);
+	const [topOffset, setTopOffset] = useState(40);
 
 	useEffect(() => {
 		mainHeaderRef.current = document.getElementById("main-header") as HTMLElement;
