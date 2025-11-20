@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
       <head>
         <meta charset="utf-8" />
         <title>Logging in…</title>
-		<meta
-      		name="viewport"
-      		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+		<meta 
+		  name="viewport" 
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
       </head>
       <body>
         <script>
