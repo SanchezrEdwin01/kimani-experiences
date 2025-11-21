@@ -10,7 +10,11 @@
 	position: fixed;
 	top: 0;
 
-	padding: 9px 20px 12px;
+	padding-top: calc(env(safe-area-inset-top) + 9px);
+
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-bottom: 12px;
 
 	z-index: 9999;
 
