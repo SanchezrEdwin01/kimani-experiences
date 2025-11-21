@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { type ReactNode } from "react";
-import { type Metadata } from "next";
+import { type Metadata, type Viewport } from "next";
 import { AuthProvider } from "@/ui/components/AuthProvider";
 import { DraftModeNotification } from "@/ui/components/DraftModeNotification";
 
@@ -15,10 +15,18 @@ export const metadata: Metadata = {
 		: undefined,
 };
 
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
+	viewportFit: "cover",
+	userScalable: false,
+};
+
 export default function RootLayout(props: { children: ReactNode }) {
 	return (
-		<html lang="en" className="min-h-[100dvh]">
-			<body className={`${inter.className} min-h-[100dvh]`}>
+		<html lang="en">
+			<body className={inter.className}>
 				<AuthProvider>{props.children}</AuthProvider>
 				<DraftModeNotification />
 			</body>

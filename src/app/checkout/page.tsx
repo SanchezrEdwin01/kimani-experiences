@@ -3,6 +3,7 @@ import { RootWrapper } from "./pageWrapper";
 
 export const metadata = {
 	title: "Checkout · Saleor Storefront example",
+	viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 };
 
 export default function CheckoutPage({
