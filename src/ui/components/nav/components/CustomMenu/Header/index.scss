@@ -7,9 +7,8 @@
 	border-radius: 0 0 16px 16px;
 	overflow: visible;
 
-	position: fixed;
+	position: sticky;
 	top: 0;
-
 	padding-top: calc(env(safe-area-inset-top) + 9px);
 
 	padding-left: 20px;
