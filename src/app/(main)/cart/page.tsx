@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/graphql";
 
 export const metadata = {
 	title: "Shopping Cart · Saleor Storefront example",
+	viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 };
 
 export default async function Page() {
