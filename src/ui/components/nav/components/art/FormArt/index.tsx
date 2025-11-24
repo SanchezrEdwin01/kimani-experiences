@@ -75,7 +75,7 @@ export function ArtForm({ productSlug }: RealEstateFormProps) {
 		artisName: "",
 		artCategory: "",
 		price: "",
-		currency: "",
+		currency: "USD",
 		artType: "",
 		dimensions: "",
 		unit: "",
