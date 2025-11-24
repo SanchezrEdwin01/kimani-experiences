@@ -69,11 +69,17 @@ export class HTTPError extends Error {
 	}
 }
 
-export const formatMoney = (amount: number, currency: string) =>
-	new Intl.NumberFormat("en-US", {
+export const formatMoney = (amount: number, currency: string) => {
+	if (!currency || currency.length !== 3) {
+		console.error("🔥 Invalid currency in formatMoney:", { amount, currency });
+		return amount.toString();
+	}
+
+	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency,
 	}).format(amount);
+};
 
 export const formatMoneyRange = (
 	range: {
