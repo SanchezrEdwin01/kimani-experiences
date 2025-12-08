@@ -66,10 +66,6 @@ export function useStatusColour(user?: User | null): string {
 		}
 	}
 
-	if (typeof user.online === "boolean") {
-		return user.online ? "#3ABF7E" : "#808080";
-	}
-
 	return "#3ABF7E";
 }
 
