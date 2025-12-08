@@ -1,0 +1,114 @@
+// Footer.module.scss
+// Variables SCSS (no CSS custom properties para evitar error de CSS Modules)
+$bottom-navigation-height: 60px;
+$foreground: #ffffff;
+$hover: rgba(255, 255, 255, 0.1);
+$font-stack:
+	"Hanken Grotesk",
+	-apple-system,
+	BlinkMacSystemFont,
+	"Segoe UI",
+	Roboto,
+	sans-serif;
+
+.footer {
+	position: fixed;
+	width: 100vw;
+	bottom: 0;
+	left: 0;
+	min-width: 335px;
+	background-color: #020202;
+	border-top: 1px solid #767676;
+	z-index: 10;
+	padding-bottom: 4px;
+	padding-bottom: env(safe-area-inset-bottom, 4px);
+}
+
+.navigation {
+	z-index: 500;
+	display: flex;
+	margin: 0 auto;
+	max-width: 500px;
+	height: $bottom-navigation-height;
+
+	img {
+		position: relative;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+		transform: translateZ(0);
+	}
+
+	a {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: $font-stack;
+		font-size: 10px;
+		font-weight: 500;
+		flex: 1;
+		color: $foreground;
+		transition: all 0.2s ease-in-out;
+		text-decoration: none;
+
+		button {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-direction: column;
+			gap: 5px;
+			background: transparent;
+			border: none;
+			cursor: pointer;
+			padding: 8px 12px;
+			color: $foreground;
+			width: 100%;
+			height: 100%;
+
+			svg {
+				color: $foreground;
+				width: 24px;
+				height: 24px;
+			}
+
+			span {
+				margin-top: -3px;
+				color: $foreground;
+			}
+		}
+
+		&:hover {
+			background: $hover;
+			cursor: pointer;
+		}
+	}
+}
+
+.profileButton {
+	padding: 0 !important;
+
+	svg {
+		width: 50px !important;
+		height: 50px !important;
+	}
+}
+
+// Responsive adjustments
+@media (max-width: 360px) {
+	.navigation {
+		a {
+			font-size: 9px;
+
+			button {
+				padding: 8px 6px;
+				gap: 3px;
+			}
+		}
+	}
+}
+
+// iOS Safari safe area support
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+	.footer {
+		padding-bottom: calc(4px + env(safe-area-inset-bottom));
+	}
+}

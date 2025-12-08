@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserProvider } from "@/UserKimani/context/UserContext";
 import { WizardProvider } from "@/ui/components/WizardContext";
 import { Wizard } from "@/ui/components/Wizard";
-
+import { Footer } from "@/kimani-footer-module";
 const queryClient = new QueryClient();
 
 export default function Page() {
@@ -27,6 +27,7 @@ export default function Page() {
 					<Wizard />
 				</WizardProvider>
 			</UserProvider>
+			<Footer />
 		</QueryClientProvider>
 	);
 }
