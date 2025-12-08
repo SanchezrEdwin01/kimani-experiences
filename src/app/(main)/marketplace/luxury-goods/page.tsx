@@ -20,7 +20,7 @@ import { ClickableProductList } from "@/ui/components/nav/components/luxury-good
 import { Loader } from "@/ui/atoms/Loader";
 import { LUXURY_GOODS_CATEGORY_SLUG, EVENT_TYPE_ALL } from "@/checkout/utils/constants";
 import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
-
+import { Footer } from "@/kimani-footer-module";
 export interface SimpleCountry {
 	name: string;
 	isoCode: string;
@@ -369,6 +369,7 @@ export default function CategoryProductsClientPage() {
 							"Default Category"
 						}
 					/>
+					<Footer />
 				</ClientFloatingWrapperLuxury>
 			)}
 		</div>

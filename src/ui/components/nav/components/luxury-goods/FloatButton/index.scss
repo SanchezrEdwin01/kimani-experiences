@@ -6,10 +6,23 @@
 	width: 100%;
 	box-sizing: border-box;
 
+	@media (max-width: 768px) {
+		padding-bottom: 9rem; /* Aumentamos para dar espacio al botón flotante y al footer */
+	}
+
 	.floatingButton {
 		position: fixed;
 		bottom: 2rem;
 		right: 2rem;
 		z-index: 100;
+
+		@media (max-width: 768px) {
+			bottom: 6.5rem; /* Ajustamos para que esté por encima del footer, que asumimos de 60px, más un margen de 0.5rem */
+		}
+
+		@media (max-width: 480px) {
+			bottom: 5.5rem;
+			right: 1.5rem;
+		}
 	}
 }

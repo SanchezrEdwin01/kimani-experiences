@@ -26,6 +26,7 @@ import {
 	type ProductListByCategoryByUserQueryVariables,
 } from "@/gql/graphql";
 import type { User } from "@/UserKimani/types";
+import { Footer } from "@/kimani-footer-module";
 export interface SimpleCountry {
 	name: string;
 	isoCode: string;
@@ -386,6 +387,7 @@ export default function ArtProductsClientPage() {
 							"Default Category"
 						}
 					/>
+					<Footer />
 				</ClientFloatingWrapperArt>
 			)}
 		</div>

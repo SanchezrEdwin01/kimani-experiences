@@ -20,7 +20,7 @@ import { ClickableProductList } from "@/ui/components/nav/components/service-pro
 import { Loader } from "@/ui/atoms/Loader";
 import { EVENT_TYPE_ALL } from "@/checkout/utils/constants";
 import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
-
+import { Footer } from "@/kimani-footer-module";
 const SERVICE_PROVIDERS_SLUG = "service-providers";
 
 export interface SimpleCountry {
@@ -370,6 +370,7 @@ export default function ServiceProvidersClientPage() {
 							"Default Category"
 						}
 					/>
+					<Footer />
 				</ClientFloatingWrapper>
 			)}
 		</div>

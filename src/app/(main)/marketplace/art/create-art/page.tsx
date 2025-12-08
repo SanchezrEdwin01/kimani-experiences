@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { UserProvider } from "@/UserKimani/context/UserContext";
 import { ArtForm } from "@/ui/components/nav/components/art/FormArt";
-
+import { Footer } from "@/kimani-footer-module";
 const queryClient = new QueryClient();
 
 export default function Page() {
@@ -24,6 +24,7 @@ export default function Page() {
 					</div>
 					<ArtForm />
 				</div>
+				<Footer />
 			</UserProvider>
 		</QueryClientProvider>
 	);
