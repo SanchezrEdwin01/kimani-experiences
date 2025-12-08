@@ -21,6 +21,7 @@ import { Loader } from "@/ui/atoms/Loader";
 import { REAL_ESTATE_CATEGORY_SLUG, EVENT_TYPE_ALL } from "@/checkout/utils/constants";
 import { ClientFloatingWrapperReal } from "@/ui/components/nav/components/RealState/FloatButton/FloatingWrapper";
 import { FluidHideOnScrollHeader } from "@/ui/components/FluidHideOnScrollHeader";
+import { Footer } from "@/kimani-footer-module";
 
 export interface SimpleCountry {
 	name: string;
@@ -371,6 +372,7 @@ export default function CategoryProductsClientPage() {
 							"Default Category"
 						}
 					/>
+					<Footer />
 				</ClientFloatingWrapperReal>
 			)}
 		</div>
