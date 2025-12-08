@@ -1,8 +1,10 @@
+// src/kimani-footer-module/components/UserIcon.tsx
 "use client";
 
 import React from "react";
 import Image from "next/image";
-import { type User, generateFileURL } from "../stores/userStore";
+import { type User } from "@/UserKimani/types";
+import { getStoredBaseUrl } from "@/UserKimani/lib/useUrlParamsProcessor";
 
 interface UserIconProps {
 	target?: User | null;
@@ -15,6 +17,33 @@ interface UserIconProps {
 // Imagen fallback SVG (usuario genérico)
 const FALLBACK_AVATAR =
 	"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSIjNjY2Ij48Y2lyY2xlIGN4PSIxNiIgY3k9IjEyIiByPSI2IiBmaWxsPSIjODg4Ii8+PHBhdGggZD0iTTQgMjh2LTJhOCA4IDAgMCAxIDgtOGg4YTggOCAwIDAgMSA4IDh2MiIgZmlsbD0iIzg4OCIvPjwvc3ZnPg==";
+
+/**
+ * Genera URL para archivos/avatares del servidor Autumn
+ */
+function generateFileURL(
+	file?: string | { _id: string; tag?: string; filename?: string } | null,
+	options?: { max_side?: number },
+): string | null {
+	if (!file) return null;
+
+	let fileId: string;
+
+	if (typeof file === "object" && "_id" in file) {
+		fileId = file._id;
+	} else if (typeof file === "string") {
+		if (file.startsWith("http://") || file.startsWith("https://")) {
+			return file;
+		}
+		fileId = file;
+	} else {
+		return null;
+	}
+
+	const baseUrl = getStoredBaseUrl();
+	const maxSide = options?.max_side || 256;
+	return `${baseUrl}/autumn/avatars/${fileId}?max_side=${maxSide}`;
+}
 
 /**
  * Hook para obtener el color del indicador de estado del usuario
@@ -48,10 +77,10 @@ export function UserIcon({ target, size = 32, status = false, style, className }
 	const avatarUrl = React.useMemo(() => {
 		if (!target) return FALLBACK_AVATAR;
 
-		const generatedUrl = generateFileURL(target.avatar, { max_side: 256 });
+		// Intentar obtener avatar del usuario
+		const avatar = target.avatar;
+		const generatedUrl = generateFileURL(avatar, { max_side: 256 });
 		if (generatedUrl) return generatedUrl;
-
-		if (target.defaultAvatarURL) return target.defaultAvatarURL;
 
 		return FALLBACK_AVATAR;
 	}, [target]);

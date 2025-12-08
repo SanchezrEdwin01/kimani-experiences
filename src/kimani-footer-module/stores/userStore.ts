@@ -3,17 +3,15 @@
 import { create } from "zustand";
 
 // ============================================
-// CONFIGURACIÓN - Ajusta estas URLs según tu entorno
+// CONFIGURACIÓN
 // ============================================
-const CONFIG = {
-	BASE_URL: process.env.NEXT_PUBLIC_KIMANI_BASE_URL || "https://community.kimanilife.com",
-	API_URL: process.env.NEXT_PUBLIC_KIMANI_API_URL || "https://community.kimanilife.com/api",
-	AUTUMN_URL: process.env.NEXT_PUBLIC_KIMANI_AUTUMN_URL || "https://community.kimanilife.com/autumn",
+const DEFAULT_CONFIG = {
+	BASE_URL: "https://community.kimanilife.com",
 	DEFAULT_SERVER_ID: process.env.NEXT_PUBLIC_KIMANI_SERVER_ID || "01HP41709DFJP1DRSTSA88J81A",
 };
 
-const BASE_URL_KEY = "base_url";
-const TOKEN_KEY = "token";
+const BASE_URL_KEY = "kimani_base_url";
+const TOKEN_KEY = "kimani_token";
 
 // ============================================
 // TIPOS
@@ -50,7 +48,6 @@ interface UserState {
 	isInitialized: boolean;
 	error: string | null;
 
-	// Actions
 	fetchUser: () => Promise<void>;
 	logout: () => void;
 	getBaseUrl: () => string;
@@ -58,22 +55,102 @@ interface UserState {
 }
 
 // ============================================
-// HELPERS
+// HELPERS - Exportados para uso externo
 // ============================================
-function getUrlParameter(name: string): string | null {
+
+/**
+ * Obtiene un parámetro de la URL actual
+ */
+export function getUrlParameter(name: string): string | null {
 	if (typeof window === "undefined") return null;
 	const urlParams = new URLSearchParams(window.location.search);
 	return urlParams.get(name);
 }
 
-function getStoredBaseUrl(): string {
-	if (typeof window === "undefined") return CONFIG.BASE_URL;
-	return localStorage.getItem(BASE_URL_KEY) || CONFIG.BASE_URL;
+/**
+ * Obtiene la URL base guardada o el default
+ */
+export function getStoredBaseUrl(): string {
+	if (typeof window === "undefined") {
+		return process.env.NEXT_PUBLIC_KIMANI_BASE_URL || DEFAULT_CONFIG.BASE_URL;
+	}
+
+	const stored = localStorage.getItem(BASE_URL_KEY);
+	if (stored) return stored;
+
+	return process.env.NEXT_PUBLIC_KIMANI_BASE_URL || DEFAULT_CONFIG.BASE_URL;
 }
 
-function getStoredToken(): string | null {
+/**
+ * Obtiene el token guardado
+ */
+export function getStoredToken(): string | null {
 	if (typeof window === "undefined") return null;
 	return localStorage.getItem(TOKEN_KEY);
+}
+
+/**
+ * Guarda la base URL en localStorage
+ */
+export function saveBaseUrl(url: string): void {
+	if (typeof window !== "undefined") {
+		localStorage.setItem(BASE_URL_KEY, url);
+	}
+}
+
+/**
+ * Guarda el token en localStorage
+ */
+export function saveToken(token: string): void {
+	if (typeof window !== "undefined") {
+		localStorage.setItem(TOKEN_KEY, token);
+	}
+}
+
+/**
+ * Procesa y guarda los parámetros de autenticación de la URL actual.
+ * Busca 'token' y 'origin'/'native' en los query params.
+ * Retorna true si encontró y guardó nuevos valores.
+ */
+export function processAuthParams(): { hasNewData: boolean; token: string | null; baseUrl: string } {
+	if (typeof window === "undefined") {
+		return { hasNewData: false, token: null, baseUrl: DEFAULT_CONFIG.BASE_URL };
+	}
+
+	const urlToken = getUrlParameter("token");
+	const urlBaseUrl = getUrlParameter("origin") || getUrlParameter("native");
+
+	let hasNewData = false;
+
+	if (urlBaseUrl) {
+		saveBaseUrl(urlBaseUrl);
+		hasNewData = true;
+	}
+
+	if (urlToken) {
+		saveToken(urlToken);
+		hasNewData = true;
+	}
+
+	return {
+		hasNewData,
+		token: urlToken || getStoredToken(),
+		baseUrl: getStoredBaseUrl(),
+	};
+}
+
+/**
+ * Construye la API URL
+ */
+export function getApiUrl(): string {
+	return `${getStoredBaseUrl()}/api`;
+}
+
+/**
+ * Construye la Autumn URL
+ */
+export function getAutumnUrl(): string {
+	return `${getStoredBaseUrl()}/autumn`;
 }
 
 // ============================================
@@ -87,38 +164,25 @@ export const useUserStore = create<UserState>((set, get) => ({
 	error: null,
 
 	getBaseUrl: () => getStoredBaseUrl(),
-
 	getToken: () => getStoredToken(),
 
 	fetchUser: async () => {
-		// Evitar múltiples llamadas simultáneas
 		if (get().isLoading) return;
 
 		set({ isLoading: true, error: null });
 
 		try {
-			// 1. Verificar si hay token en URL (para webviews nativos)
-			const urlToken = getUrlParameter("token");
-			const nativeBaseUrl = getUrlParameter("native");
-
-			if (nativeBaseUrl && typeof window !== "undefined") {
-				localStorage.setItem(BASE_URL_KEY, nativeBaseUrl);
-			}
-
-			if (urlToken && typeof window !== "undefined") {
-				localStorage.setItem(TOKEN_KEY, urlToken);
-			}
-
-			// 2. Obtener el token final
-			const token = urlToken || getStoredToken();
+			// Obtener token (ya debe estar procesado)
+			const token = getStoredToken();
 
 			if (!token) {
 				set({ user: null, isLoading: false, isInitialized: true });
 				return;
 			}
 
-			// 3. Llamar a la API para obtener el usuario
-			const response = await fetch(`${CONFIG.API_URL}/users/@me`, {
+			const apiUrl = getApiUrl();
+
+			const response = await fetch(`${apiUrl}/users/@me`, {
 				method: "GET",
 				headers: {
 					"X-Session-Token": token,
@@ -128,7 +192,6 @@ export const useUserStore = create<UserState>((set, get) => ({
 
 			if (!response.ok) {
 				if (response.status === 401) {
-					// Token inválido, limpiar
 					get().logout();
 					return;
 				}
@@ -137,33 +200,30 @@ export const useUserStore = create<UserState>((set, get) => ({
 
 			const user = (await response.json()) as User;
 
-			// 4. Intentar obtener info de admin (opcional)
+			// Admin check
 			let isAdmin = false;
 			try {
-				const serverId = CONFIG.DEFAULT_SERVER_ID;
+				const serverId = DEFAULT_CONFIG.DEFAULT_SERVER_ID;
 				const userId = user._id || user.id;
 
 				if (serverId && userId) {
-					const serverRes = await fetch(`${CONFIG.API_URL}/servers/${serverId}`, {
+					const serverRes = await fetch(`${apiUrl}/servers/${serverId}`, {
 						headers: { "X-Session-Token": token },
 					});
 
 					if (serverRes.ok) {
 						const server = (await serverRes.json()) as Server;
 
-						// Verificar si es owner
 						if (server.owner === userId) {
 							isAdmin = true;
 						} else {
-							// Intentar obtener member info
 							const memberRes = await fetch(
-								`${CONFIG.API_URL}/servers/${serverId}/members/${encodeURIComponent(userId)}`,
+								`${apiUrl}/servers/${serverId}/members/${encodeURIComponent(userId)}`,
 								{ headers: { "X-Session-Token": token } },
 							).catch(() => null);
 
 							if (memberRes?.ok) {
 								const member = (await memberRes.json()) as ServerMember;
-								// Verificar roles de admin
 								const adminRoles = ["admin"];
 								if (member.roles?.some((r) => adminRoles.includes(r.toLowerCase()))) {
 									isAdmin = true;
@@ -172,9 +232,8 @@ export const useUserStore = create<UserState>((set, get) => ({
 						}
 					}
 				}
-			} catch (adminError) {
-				// Ignorar errores de admin check, no es crítico
-				console.warn("[UserStore] Admin check failed:", adminError);
+			} catch {
+				// Ignorar errores de admin check
 			}
 
 			set({ user, isAdmin, isLoading: false, isInitialized: true });
@@ -193,17 +252,14 @@ export const useUserStore = create<UserState>((set, get) => ({
 		if (typeof window !== "undefined") {
 			localStorage.removeItem(TOKEN_KEY);
 		}
-		set({ user: null, isAdmin: false, error: null });
+		set({ user: null, isAdmin: false, error: null, isInitialized: true });
 	},
 }));
 
 // ============================================
-// HOOKS CONVENIENTES
+// HOOKS
 // ============================================
 
-/**
- * Hook principal para obtener el usuario - equivalente a useUser() del proyecto original
- */
 export const useKimaniUser = () => {
 	const { user, isAdmin, isLoading, fetchUser, isInitialized } = useUserStore();
 
@@ -215,16 +271,13 @@ export const useKimaniUser = () => {
 	};
 };
 
-/**
- * Hook para obtener la baseUrl - equivalente a useBaseURL() del proyecto original
- */
 export const useBaseURL = (): string => {
 	const getBaseUrl = useUserStore((state) => state.getBaseUrl);
 	return getBaseUrl();
 };
 
 /**
- * Genera URL para archivos/avatares del servidor Autumn de Kimani
+ * Genera URL para archivos/avatares
  */
 export function generateFileURL(
 	file?: string | { _id: string; tag?: string; filename?: string } | null,
@@ -235,11 +288,9 @@ export function generateFileURL(
 
 	let fileId: string;
 
-	// Manejar objeto de archivo
 	if (typeof file === "object" && file._id) {
 		fileId = file._id;
 	} else if (typeof file === "string") {
-		// Si ya es una URL completa
 		if (file.startsWith("http://") || file.startsWith("https://")) {
 			return file;
 		}
@@ -248,6 +299,7 @@ export function generateFileURL(
 		return null;
 	}
 
+	const autumnUrl = getAutumnUrl();
 	const maxSide = options?.max_side || 256;
-	return `${CONFIG.AUTUMN_URL}/avatars/${fileId}?max_side=${maxSide}`;
+	return `${autumnUrl}/avatars/${fileId}?max_side=${maxSide}`;
 }

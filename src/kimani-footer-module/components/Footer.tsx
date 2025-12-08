@@ -1,20 +1,17 @@
+// src/kimani-footer-module/components/Footer.tsx
 "use client";
 
-import React, { memo, useEffect } from "react";
+import React, { memo } from "react";
 import { HomeIcon, MagnifyingGlassIcon, UserPlusIcon, UserGroupIcon } from "@heroicons/react/24/outline";
-import { useUserStore, useBaseURL } from "../stores/userStore";
+import { useUser } from "../../UserKimani/context/UserContext";
 import styles from "./Footer.module.scss";
 import { UserIcon } from "./UserIcon";
+import { getStoredBaseUrl } from "@/UserKimani/lib/useUrlParamsProcessor";
 
 const FooterComponent = () => {
-	const { user, fetchUser, isInitialized } = useUserStore();
-	const BASE_URL = useBaseURL();
-
-	useEffect(() => {
-		if (!isInitialized) {
-			void fetchUser();
-		}
-	}, [fetchUser, isInitialized]);
+	// Usa el contexto de usuario principal de la app (NO el store propio)
+	const { user } = useUser();
+	const BASE_URL = getStoredBaseUrl();
 
 	return (
 		<footer className={styles.footer}>
