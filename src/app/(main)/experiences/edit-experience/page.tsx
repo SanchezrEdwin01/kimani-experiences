@@ -553,7 +553,7 @@ export default function ExperiencesClientPage() {
 							<div className="flex items-center gap-4">
 								{user && (
 									<div className="hidden text-sm text-gray-400 sm:block">
-										Welcome back, <span className="text-white">{user.name || user.email}</span>
+										Welcome back, <span className="text-white">{user.username}</span>
 									</div>
 								)}
 								<FloatingButtonExperiences>

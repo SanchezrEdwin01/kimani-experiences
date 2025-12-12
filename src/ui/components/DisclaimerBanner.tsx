@@ -26,7 +26,7 @@ export function DisclaimerCard() {
 	if (!visible) return null;
 
 	return (
-		<div className="bg-gray fixed inset-x-0 bottom-0 z-50 border-t border-gray-300 p-4 shadow-lg">
+		<div className="bg-gray fixed inset-x-0 bottom-0 z-[2000] border-t border-gray-300 p-4 shadow-lg">
 			<div className="mx-auto flex max-w-3xl flex-col items-start justify-between space-y-4 md:flex-row md:items-center md:space-y-0">
 				<div className="text-sm text-gray-900 dark:text-gray-100">
 					<strong>🛑 Marketplace Listing Disclaimer:</strong> Kimani is a neutral marketplace platform that

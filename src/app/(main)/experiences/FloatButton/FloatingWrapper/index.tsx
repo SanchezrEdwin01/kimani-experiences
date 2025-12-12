@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { FloatingButtonExperiences } from "../floatButton";
 
 interface Props {
-	children: ReactNode;
+	children?: ReactNode;
 	parent?: string;
 }
 

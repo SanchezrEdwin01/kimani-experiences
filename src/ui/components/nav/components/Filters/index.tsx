@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { FilterModal } from "./FilterDetails/filterDetails";
-import { TYPES, EVENT_TYPE_ALL, REAL_ESTATE_CATEGORY_SLUG } from "@/checkout/utils/constants";
+import { EVENT_TYPE_ALL, REAL_ESTATE_CATEGORY_SLUG } from "@/checkout/utils/constants";
 import type { FiltersState } from "@/app/(main)/experiences/page";
 import "./index.scss";
 
@@ -26,19 +25,11 @@ interface FiltersComponentProps {
 export function Filters({
 	currentFilters,
 	onSearchChange,
-	onMainCategoryChange,
 	onApplyModalFilters,
 	onResetAllFilters,
 	parentCategorySlug,
 	subCategoryOptions,
 }: FiltersComponentProps) {
-	const router = useRouter();
-
-	const pathname = usePathname();
-
-	type TagUIType = { name: string; value: string; route?: string };
-	type Tag = { name: string; value: string; route?: string };
-
 	const [internalSearchValue, setInternalSearchValue] = useState<string>(currentFilters.search || "");
 	const [showModal, setShowModal] = useState(false);
 
@@ -50,28 +41,9 @@ export function Filters({
 		onSearchChange(val);
 	}, 700);
 
-	const defaultTag: Tag = TYPES.find((tag) => tag.value === EVENT_TYPE_ALL) || {
-		name: "All",
-		value: EVENT_TYPE_ALL,
-	};
-
-	const _selectedTag: Tag =
-		TYPES.find((tag) => {
-			if (!tag.route) return false;
-			const normalizedRoute = tag.route.startsWith("/") ? tag.route : `/${tag.route}`;
-			return pathname === normalizedRoute || pathname.startsWith(`${normalizedRoute}/`);
-		}) || defaultTag;
-
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setInternalSearchValue(e.target.value);
 		debouncedSearch(e.target.value);
-	};
-
-	const _handleSelectedTag = (tag: TagUIType) => {
-		if (tag.route && router) {
-			router.push(tag.route.startsWith("/") ? tag.route : `/${tag.route}`);
-		}
-		onMainCategoryChange(tag.value);
 	};
 
 	const isAnyFilterActive = () => {

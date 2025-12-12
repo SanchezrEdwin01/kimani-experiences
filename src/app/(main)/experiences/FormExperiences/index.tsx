@@ -52,7 +52,7 @@ export function ExperienceForm({ productSlug }: ExperienceFormProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const pathname = usePathname();
 	const router = useRouter();
-	const _CONTACT_FOR_PRICE_ID = "contact_for_price"; // Solo para lógica interna
+	// const _CONTACT_FOR_PRICE_ID = "contact_for_price";
 
 	const [categories, setCategories] = useState<
 		{
