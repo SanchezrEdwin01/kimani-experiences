@@ -13,7 +13,7 @@ export const ClientFloatingWrapper = ({ children }: Props) => {
 
 	const handleFloatingClick = () => {
 		console.log("Floating + clicked");
-		void router.push("/marketplace/service-providers/create-service");
+		void router.push("/experiences/service-providers/create-service");
 	};
 
 	return <FloatingButtonLayout onClick={handleFloatingClick}>{children}</FloatingButtonLayout>;

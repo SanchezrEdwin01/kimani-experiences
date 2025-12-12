@@ -34,7 +34,7 @@ export function DisclaimerCard() {
 					guarantee the accuracy of any listings, the condition of items, or the legitimacy of offers.
 					<div className="mt-2">
 						<Link
-							href="/marketplace/disclaimer"
+							href="/experiences/disclaimer"
 							className="inline text-sm text-blue-600 no-underline hover:underline"
 						>
 							Read more

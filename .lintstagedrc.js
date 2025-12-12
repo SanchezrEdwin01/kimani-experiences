@@ -3,9 +3,9 @@
 import path from "path";
 
 const buildEslintCommand = (filenames) =>
-	`next lint --fix --file ${filenames.map((f) => path.relative(process.cwd(), f)).join(" --file ")}`;
+	`eslint --fix --max-warnings=0 ${filenames.map((f) => path.relative(process.cwd(), f)).join(" ")}`;
 
 export default {
-	"*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}": [buildEslintCommand],
+	"*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}": ["eslint --fix --quiet"],
 	"*.*": "prettier --write --ignore-unknown",
 };

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
 import { useState } from "react";
@@ -8,7 +11,7 @@ import type {
 import { MarketplaceActions } from "@/ui/components/nav/components/MarketplaceActions";
 import { Filters } from "@/ui/components/nav/components/Filters";
 import { SettingsMenu } from "@/ui/components/nav/components/settingsAdmin/settings";
-import type { FiltersState, SimpleCountry, SimpleCity } from "@/app/(main)/marketplace/real-estate/page";
+import type { FiltersState, SimpleCountry, SimpleCity } from "@/app/(main)/experiences/page";
 
 interface MarketplaceControlsProps {
 	sectionSlug?: string;

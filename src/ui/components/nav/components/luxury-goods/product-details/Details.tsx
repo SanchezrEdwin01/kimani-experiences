@@ -221,7 +221,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	const productImages = product?.media?.map((m) => m.url) || [];
 
 	function handleEditProduct() {
-		router.push("/marketplace/luxury-goods/edit-luxury-goods/" + product?.slug);
+		router.push("/experiences/luxury-goods/edit-luxury-goods/" + product?.slug);
 	}
 
 	const goUpOneLevel = () => {

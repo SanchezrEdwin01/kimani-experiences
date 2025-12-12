@@ -26,7 +26,7 @@ export function Header() {
 		{ title: "Local", url: `${baseURL}/communities` },
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: `${baseURL}/events` },
-		{ title: "Marketplace", url: `${baseURL}/marketplace/real-estate` },
+		{ title: "Marketplace", url: `${baseURL}/experiences/real-estate` },
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },

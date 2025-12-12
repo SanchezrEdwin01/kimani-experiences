@@ -12,7 +12,7 @@ export const CategoryList = ({ categories }: { categories: readonly CategoryNode
 			className="mx-4 grid grid-cols-2 gap-2 sm:mx-6 sm:grid-cols-2 md:mx-8 lg:grid-cols-2 xl:mx-auto xl:max-w-5xl"
 		>
 			{categories.map((category) => (
-				<CategoryElement key={category.id} category={category} baseRoute="/marketplace/service-providers" />
+				<CategoryElement key={category.id} category={category} baseRoute="/experiences/service-providers" />
 			))}
 		</ul>
 	);

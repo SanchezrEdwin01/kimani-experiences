@@ -3,11 +3,10 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import classNames from "classnames";
 import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { FilterModal } from "./FilterDetails/filterDetails";
 import { TYPES, EVENT_TYPE_ALL, REAL_ESTATE_CATEGORY_SLUG } from "@/checkout/utils/constants";
-import type { FiltersState } from "@/app/(main)/marketplace/real-estate/page";
+import type { FiltersState } from "@/app/(main)/experiences/page";
 import "./index.scss";
 
 interface FiltersComponentProps {
@@ -56,7 +55,7 @@ export function Filters({
 		value: EVENT_TYPE_ALL,
 	};
 
-	const selectedTag: Tag =
+	const _selectedTag: Tag =
 		TYPES.find((tag) => {
 			if (!tag.route) return false;
 			const normalizedRoute = tag.route.startsWith("/") ? tag.route : `/${tag.route}`;
@@ -68,7 +67,7 @@ export function Filters({
 		debouncedSearch(e.target.value);
 	};
 
-	const handleSelectedTag = (tag: TagUIType) => {
+	const _handleSelectedTag = (tag: TagUIType) => {
 		if (tag.route && router) {
 			router.push(tag.route.startsWith("/") ? tag.route : `/${tag.route}`);
 		}
@@ -97,7 +96,7 @@ export function Filters({
 						id="search-input"
 						type="text"
 						className="search-input"
-						placeholder="Search services, products..."
+						placeholder="Search experience..."
 						value={internalSearchValue}
 						onChange={handleInputChange}
 					/>
@@ -131,27 +130,6 @@ export function Filters({
 					}
 					subCategoryOptions={subCategoryOptions}
 				/>
-			</div>
-
-			<div className="tags">
-				{TYPES.slice(0, 4).map((type, idx) => (
-					<div
-						key={idx}
-						role="button"
-						tabIndex={0}
-						className={classNames("tag", {
-							selected_tag: selectedTag.value === type.value,
-						})}
-						onClick={() => handleSelectedTag(type as Tag)}
-						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								handleSelectedTag(type as Tag);
-							}
-						}}
-					>
-						<span>{type.name}</span>
-					</div>
-				))}
 			</div>
 		</div>
 	);

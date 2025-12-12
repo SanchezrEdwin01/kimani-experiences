@@ -22,7 +22,7 @@ export const EventPlaningList = ({ categories }: { categories: readonly Category
 
 			<ul role="list" data-testid="CategoryList" className="category-list flex flex-col gap-4">
 				{categories.map((category) => (
-					<EventService key={category.id} category={category} baseRoute="/marketplace/service-providers" />
+					<EventService key={category.id} category={category} baseRoute="/experiences/service-providers" />
 				))}
 			</ul>
 		</section>

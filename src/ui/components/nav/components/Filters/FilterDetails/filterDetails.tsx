@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import "./filter.scss";
-import type { FiltersState } from "@/app/(main)/marketplace/real-estate/page";
+import type { FiltersState } from "@/app/(main)/experiences/page";
 
 interface FilterModalProps {
 	isOpen: boolean;

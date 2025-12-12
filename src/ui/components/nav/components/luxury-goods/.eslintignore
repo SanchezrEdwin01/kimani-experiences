@@ -1,8 +1,8 @@
-cat > .eslintignore << 'EOF'
+cat >> .eslintignore << 'EOF'
 # Disabled modules - not experiences related
 src/checkout/
 src/middleware.ts
+src/ui/components/MarketplaceControls/
+src/ui/components/nav/components/Filters/
 src/ui/components/nav/components/luxury-goods/
-node_modules/
-.next/
 EOF

@@ -223,7 +223,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	}
 
 	function handleEditProduct() {
-		router.push("/marketplace/real-estate/edit-real-estate/" + product?.slug);
+		router.push("/experiences/real-estate/edit-real-estate/" + product?.slug);
 	}
 
 	const productImages = product?.media?.map((m) => m.url) || [];

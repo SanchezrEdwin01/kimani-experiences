@@ -25,7 +25,7 @@ export const ManageProvider = ({ categories }: { categories: readonly CategoryNo
 					<ManageProviderElement
 						key={category.id}
 						category={category}
-						baseRoute="/marketplace/service-providers"
+						baseRoute="/experiences/service-providers"
 					/>
 				))}
 			</ul>

@@ -1,19 +1,18 @@
 "use client";
-
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { FloatingButtonLayoutCreate } from "../floatButton";
+import { FloatingButtonExperiences } from "../floatButton";
 
 interface Props {
 	children: ReactNode;
 	parent?: string;
 }
 
-export const ClientFloatingWrapperReal = ({ children, parent }: Props) => {
+export const ClientFloatingExperiences = ({ children, parent }: Props) => {
 	const router = useRouter();
 
 	const handleFloatingClick = () => {
-		const base = "/experiences/real-estate/create-real-estate";
+		const base = "experiences/create-experience";
 		const url = parent ? `${base}?parent=${parent}` : base;
 		try {
 			void router.push(url);
@@ -22,5 +21,5 @@ export const ClientFloatingWrapperReal = ({ children, parent }: Props) => {
 		}
 	};
 
-	return <FloatingButtonLayoutCreate onClick={handleFloatingClick}>{children}</FloatingButtonLayoutCreate>;
+	return <FloatingButtonExperiences onClick={handleFloatingClick}>{children}</FloatingButtonExperiences>;
 };

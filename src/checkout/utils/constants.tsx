@@ -45,11 +45,17 @@ export const ADMIN_LUXURY_GOODS_CATEGORIES_PAGE_VALUE = "admin_luxury_goods_cate
 export const ADMIN_LUXURY_GOODS_CATEGORY_CONTENT_VALUE = "admin_luxury_goods_category_content";
 export const ADMIN_LUXURY_GOODS_SUBCATEGORY_CREATE_PAGE_VALUE = "admin_luxury_goods_subcategory_create_page";
 
+export const EXPERIENCES_CATEGORY_SLUG = "experiences";
+export const EXPERIENCES_ADMIN_CATEGORIES_PAGE_VALUE = "admin_experiences_categories_page";
+export const EXPERIENCES_ADMIN_CATEGORY_CONTENT_VALUE = "admin_experiences_category_content";
+export const EXPERIENCES_ADMIN_SUBCATEGORY_CREATE_PAGE_VALUE = "admin_experiences_subcategory_create_page";
+export const EXPERIENCES_PRODUCT_CREATE_ROUTE_VALUE = "experiences_product_create_page";
+
 export const TYPES = [
 	{ name: "Real Estate", value: EVENT_TYPE_ALL, route: "marketplace/real-estate" },
 	{ name: "Art", value: EVENT_TYPE_KIMANI, route: "marketplace/art" },
 	{ name: "Luxury Goods", value: EVENT_TYPE_OTHER, route: "marketplace/luxury-goods" },
-	{ name: "Service Provider", value: EVENT_TYPE_MEMBER, route: "/marketplace/service-providers" },
+	{ name: "Service Provider", value: EVENT_TYPE_MEMBER, route: "/experiences/service-providers" },
 	{ name: "Category", value: CATEGORY, route: "marketplace/service-providers/category" },
 	{ name: "Admin Category", value: ADMIN_CATEGORY, route: "marketplace/service-providers/admin-category" },
 	{
@@ -112,5 +118,25 @@ export const TYPES = [
 		name: "Admin Luxury Goods SubCategory Create",
 		value: ADMIN_LUXURY_GOODS_SUBCATEGORY_CREATE_PAGE_VALUE,
 		route: "marketplace/luxury-goods/admin-categories/create",
+	},
+	{
+		name: "Admin Experiences Categories",
+		value: EXPERIENCES_ADMIN_CATEGORIES_PAGE_VALUE,
+		route: "experiences/admin-categories",
+	},
+	{
+		name: "Admin Experiences Category Content",
+		value: EXPERIENCES_ADMIN_CATEGORY_CONTENT_VALUE,
+		route: "experiences/admin-categories",
+	},
+	{
+		name: "Admin Experiences SubCategory Create",
+		value: EXPERIENCES_ADMIN_SUBCATEGORY_CREATE_PAGE_VALUE,
+		route: "experiences/admin-categories/create",
+	},
+	{
+		name: "Experiences Product Create",
+		value: EXPERIENCES_PRODUCT_CREATE_ROUTE_VALUE,
+		route: "experiences/create-experience",
 	},
 ];

@@ -13,6 +13,7 @@ export interface User {
 		size: number;
 	};
 	badges: number;
+	online?: boolean;
 	status: {
 		presence: string;
 	};

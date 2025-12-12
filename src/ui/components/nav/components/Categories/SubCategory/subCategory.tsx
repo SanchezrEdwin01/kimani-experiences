@@ -32,7 +32,7 @@ export async function SubCategory({ slug }: SubCategoryProps) {
 			<ul className="subcategories-grid two-columns">
 				{subcategories.map((sub) => (
 					<li key={sub.id} className="subcategories-card">
-						<Link href={`/marketplace/service-providers/sub-categories/${sub.slug}`} className="card-link">
+						<Link href={`/experiences/service-providers/sub-categories/${sub.slug}`} className="card-link">
 							<div className="card-image-wrapper">
 								{sub.backgroundImage?.url ? (
 									<Image

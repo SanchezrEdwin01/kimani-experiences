@@ -211,7 +211,7 @@ export function ProductPage({ slug }: ProductPageProps) {
 	}
 
 	function handleEditProduct() {
-		router.push("/marketplace/art/edit-art/" + product?.slug);
+		router.push("/experiences/art/edit-art/" + product?.slug);
 	}
 
 	const currentUrl = typeof window !== "undefined" ? window.location.href : "";

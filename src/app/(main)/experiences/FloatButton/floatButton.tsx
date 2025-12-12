@@ -9,7 +9,7 @@ interface FloatingButtonLayoutProps {
 	children: React.ReactNode;
 }
 
-export const FloatingButtonLayoutCreate: React.FC<FloatingButtonLayoutProps> = ({
+export const FloatingButtonExperiences: React.FC<FloatingButtonLayoutProps> = ({
 	onClick = () => {},
 	children,
 }) => (
@@ -29,7 +29,7 @@ export const FloatingButtonLayoutCreate: React.FC<FloatingButtonLayoutProps> = (
         focus:outline-none focus:ring-2
         focus:ring-yellow-300
       "
-			style={{ backgroundColor: "#ffffffff" }}
+			style={{ backgroundColor: "#fcc419" }}
 		>
 			<PlusIcon className="h-6 w-6" />
 		</button>

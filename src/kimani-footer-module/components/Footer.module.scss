@@ -1,5 +1,4 @@
 // Footer.module.scss
-// Variables SCSS (no CSS custom properties para evitar error de CSS Modules)
 $bottom-navigation-height: 60px;
 $foreground: #ffffff;
 $hover: rgba(255, 255, 255, 0.1);
@@ -13,15 +12,19 @@ $font-stack:
 
 .footer {
 	position: fixed;
-	width: 100vw;
+	width: 100%;
 	bottom: 0;
 	left: 0;
 	min-width: 335px;
 	background-color: #020202;
 	border-top: 1px solid #767676;
-	z-index: 10;
+	z-index: 1000;
 	padding-bottom: 4px;
 	padding-bottom: env(safe-area-inset-bottom, 4px);
+	transform: translate3d(0, 0, 0);
+	-webkit-transform: translate3d(0, 0, 0);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
 }
 
 .navigation {
@@ -30,13 +33,6 @@ $font-stack:
 	margin: 0 auto;
 	max-width: 500px;
 	height: $bottom-navigation-height;
-
-	img {
-		position: relative;
-		backface-visibility: hidden;
-		-webkit-backface-visibility: hidden;
-		transform: translateZ(0);
-	}
 
 	a {
 		display: flex;
@@ -47,8 +43,9 @@ $font-stack:
 		font-weight: 500;
 		flex: 1;
 		color: $foreground;
-		transition: all 0.2s ease-in-out;
+		transition: background 0.2s ease-in-out;
 		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
 
 		button {
 			display: flex;
@@ -63,6 +60,7 @@ $font-stack:
 			color: $foreground;
 			width: 100%;
 			height: 100%;
+			-webkit-tap-highlight-color: transparent;
 
 			svg {
 				color: $foreground;
@@ -80,19 +78,18 @@ $font-stack:
 			background: $hover;
 			cursor: pointer;
 		}
+
+		&:active {
+			background: $hover;
+		}
 	}
 }
 
 .profileButton {
 	padding: 0 !important;
-
-	svg {
-		width: 50px !important;
-		height: 50px !important;
-	}
+	overflow: visible !important;
 }
 
-// Responsive adjustments
 @media (max-width: 360px) {
 	.navigation {
 		a {
@@ -106,7 +103,6 @@ $font-stack:
 	}
 }
 
-// iOS Safari safe area support
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
 	.footer {
 		padding-bottom: calc(4px + env(safe-area-inset-bottom));
