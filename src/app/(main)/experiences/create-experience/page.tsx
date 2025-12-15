@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ExperienceForm } from "../FormExperiences";
 import { UserProvider } from "@/UserKimani/context/UserContext";
 import { Footer } from "@/kimani-footer-module";
+import { SERVER_ID } from "@/UserKimani/constants/server";
 
 const queryClient = new QueryClient();
 
@@ -13,7 +14,7 @@ export default function CreateExperiencePage() {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<UserProvider>
+			<UserProvider serverId={SERVER_ID}>
 				<div>
 					<div className="px-6 py-4">
 						<button

@@ -5,6 +5,7 @@ import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useUrlParamsProcessor } from "../lib/useUrlParamsProcessor";
 import { UserProvider } from "@/UserKimani/context/UserContext";
+import { SERVER_ID } from "@/UserKimani/constants/server";
 
 function UrlParamsHandler({ children }: { children: ReactNode }) {
 	// Procesa origin y token de la URL y los guarda en localStorage
@@ -29,7 +30,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<UrlParamsHandler>
-				<UserProvider>{children}</UserProvider>
+				<UserProvider serverId={SERVER_ID}>{children}</UserProvider>
 			</UrlParamsHandler>
 		</QueryClientProvider>
 	);

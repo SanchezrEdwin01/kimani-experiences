@@ -1,18 +1,18 @@
 "use client";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode, useMemo } from "react";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-import { type User } from "../types";
-import { type ServerMember } from "../types/serverMember";
-import { type ServerRole } from "../types/serverRole";
-import { useUserRoles } from "../hooks/useUserRoles";
+import { useCurrentMember } from "../hooks/useCurrentMember";
+import type { ServerMember } from "../types/serverMember";
+import type { User } from "../types";
+import { ADMIN_ROLE_ID } from "../constants/roles";
 
 interface UserContextType {
 	user: User | null;
 	member: ServerMember | null;
-	roles: ServerRole[];
+	isAdmin: boolean;
+	hasRoleId: (roleId: string) => boolean;
 	isLoading: boolean;
 	isError: boolean;
-	hasRole: (roleName: string) => boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -20,19 +20,21 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children, serverId }: { children: ReactNode; serverId: string }) {
 	const { data: user, isLoading, isError } = useCurrentUser();
 
-	const { member, roles, isLoading: rolesLoading } = useUserRoles(serverId, user?._id);
+	const { data: member, isLoading: memberLoading } = useCurrentMember(serverId, user?._id);
 
-	const hasRole = (roleName: string) => roles.some((r) => r.name.toLowerCase() === roleName.toLowerCase());
+	const hasRoleId = (roleId: string) => Boolean(member?.roles.includes(roleId));
+
+	const isAdmin = useMemo(() => hasRoleId(ADMIN_ROLE_ID), [member]);
 
 	return (
 		<UserContext.Provider
 			value={{
 				user: user ?? null,
 				member: member ?? null,
-				roles,
-				isLoading: isLoading || rolesLoading,
+				isAdmin,
+				hasRoleId,
+				isLoading: isLoading || memberLoading,
 				isError,
-				hasRole,
 			}}
 		>
 			{children}
@@ -42,8 +44,6 @@ export function UserProvider({ children, serverId }: { children: ReactNode; serv
 
 export function useUser() {
 	const ctx = useContext(UserContext);
-	if (!ctx) {
-		throw new Error("useUser must be used within a UserProvider");
-	}
+	if (!ctx) throw new Error("useUser must be used within UserProvider");
 	return ctx;
 }

@@ -79,15 +79,21 @@ const HIDDEN_ATTRIBUTES = ["user id", "userid", "phone", "phone number", "phonen
 function ExperienceCard({
 	product,
 	currentUserId,
+	isAdmin,
 }: {
 	product: ProductListItemNoReviewsFragment;
 	currentUserId?: string;
+	isAdmin?: boolean;
 }) {
 	const router = useRouter();
 	const thumbnailUrl = product.thumbnail?.url || "/placeholder-image.jpg";
 	const thumbnailAlt = product.thumbnail?.alt || product.name;
 
 	const description = parseEditorJSDescription(product.description);
+
+	const handleOpenExperience = () => {
+		router.push(`/experiences/${product.slug}`);
+	};
 
 	const visibleAttributes = product.attributes?.filter((attr) => {
 		const attrName = attr.attribute.name?.toLowerCase() || "";
@@ -103,6 +109,8 @@ function ExperienceCard({
 		return userId === currentUserId;
 	}, [product, currentUserId]);
 
+	const isOwnerOrAdmin = isOwner || isAdmin;
+
 	const handleContactClick = () => {
 		console.log("Contact clicked for:", product.name);
 	};
@@ -113,14 +121,13 @@ function ExperienceCard({
 
 	return (
 		<div className="relative flex w-full flex-col overflow-hidden rounded-xl bg-zinc-900">
-			{/* Imagen */}
-			<div className="relative w-full overflow-hidden">
+			<div className="relative w-full cursor-pointer overflow-hidden" onClick={handleOpenExperience}>
 				<div className="relative aspect-[2/1] w-full">
 					<Image
 						src={thumbnailUrl}
 						alt={thumbnailAlt}
 						fill
-						className="object-cover"
+						className="object-cover transition-transform duration-300 hover:scale-105"
 						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 					/>
 
@@ -159,7 +166,7 @@ function ExperienceCard({
 						Contact
 					</button>
 
-					{isOwner && (
+					{isOwnerOrAdmin && (
 						<button
 							onClick={handleEditClick}
 							className="rounded-lg bg-zinc-800 p-2 transition-colors hover:bg-zinc-700"
@@ -178,9 +185,11 @@ function ExperienceCard({
 function ExperiencesGrid({
 	products,
 	currentUserId,
+	isAdmin,
 }: {
 	products: ProductListItemNoReviewsFragment[];
 	currentUserId?: string;
+	isAdmin?: boolean;
 }) {
 	if (products.length === 0) {
 		return (
@@ -194,7 +203,12 @@ function ExperiencesGrid({
 		<div className="px-4 sm:px-6 lg:px-8">
 			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				{products.map((product) => (
-					<ExperienceCard key={product.id} product={product} currentUserId={currentUserId} />
+					<ExperienceCard
+						key={product.id}
+						product={product}
+						currentUserId={currentUserId}
+						isAdmin={isAdmin}
+					/>
 				))}
 			</div>
 		</div>
@@ -203,7 +217,10 @@ function ExperiencesGrid({
 
 export default function ExperiencesClientPage() {
 	const [filtered, setFiltered] = useState<ProductListItemNoReviewsFragment[]>([]);
-	const { user, isLoading } = useUser();
+	const { user, isLoading, isAdmin, member } = useUser();
+	console.log("User in ExperiencesClientPage:", user);
+	console.log("Member in ExperiencesClientPage:", member);
+	console.log("isAdmin in ExperiencesClientPage:", isAdmin);
 	const [filters, setFilters] = useState<FiltersState>({
 		search: "",
 		mainCategorySlug: EVENT_TYPE_ALL,
@@ -433,8 +450,8 @@ export default function ExperiencesClientPage() {
 				</div>
 			) : (
 				<>
-					<ExperiencesGrid products={filtered} currentUserId={userId} />
-					<ClientFloatingExperiences />
+					<ExperiencesGrid products={filtered} currentUserId={userId} isAdmin={isAdmin} />
+					{isAdmin && <ClientFloatingExperiences />}
 				</>
 			)}
 
