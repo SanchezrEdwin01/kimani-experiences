@@ -2,14 +2,13 @@
 "use client";
 
 import React, { memo } from "react";
-import { HomeIcon, MagnifyingGlassIcon, UserPlusIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, ChatBubbleLeftRightIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { useUser } from "../../UserKimani/context/UserContext";
 import styles from "./Footer.module.scss";
 import { UserIcon } from "./UserIcon";
 import { getStoredBaseUrl } from "@/UserKimani/lib/useUrlParamsProcessor";
 
 const FooterComponent = () => {
-	// Usa el contexto de usuario principal de la app (NO el store propio)
 	const { user } = useUser();
 	const BASE_URL = getStoredBaseUrl();
 
@@ -23,10 +22,10 @@ const FooterComponent = () => {
 					</button>
 				</a>
 
-				<a href={`${BASE_URL}/search`}>
+				<a href={`${BASE_URL}/chat`}>
 					<button type="button">
-						<MagnifyingGlassIcon height={24} aria-label="Search" />
-						<span>Search</span>
+						<ChatBubbleLeftRightIcon height={24} aria-label="Chat" />
+						<span>Chat</span>
 					</button>
 				</a>
 
@@ -48,7 +47,7 @@ const FooterComponent = () => {
 
 				<a href={`${BASE_URL}/friends`}>
 					<button type="button">
-						<UserPlusIcon height={24} aria-label="Friends" />
+						<UserGroupIcon height={24} aria-label="Friends" />
 						<span>Friends</span>
 					</button>
 				</a>

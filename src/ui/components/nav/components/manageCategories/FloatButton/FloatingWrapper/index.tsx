@@ -14,10 +14,10 @@ export const ClientFloatingWrapper = ({ children }: Props) => {
 	const handleFloatingClick = () => {
 		console.log("Floating + clicked");
 		try {
-			void router.push("/marketplace/service-providers/admin-category/create-category");
+			void router.push("/experiences/service-providers/admin-category/create-category");
 		} catch (error) {
 			console.error("Error navegando:", error);
-			window.location.href = "/marketplace/service-providers/admin-category/create-category";
+			window.location.href = "/experiences/service-providers/admin-category/create-category";
 		}
 	};
 

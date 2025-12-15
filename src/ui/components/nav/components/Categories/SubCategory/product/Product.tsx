@@ -95,7 +95,7 @@ export function ProductListByCategory({ slug }: { slug: string }) {
 					<div
 						key={node.id ?? idx}
 						className={styles.productListItem}
-						onClick={() => router.push(`/marketplace/service-providers/sub-categories/${slug}/${node.slug}`)}
+						onClick={() => router.push(`/experiences/service-providers/sub-categories/${slug}/${node.slug}`)}
 					>
 						{/* Thumbnail */}
 						<div className={styles.thumb}>

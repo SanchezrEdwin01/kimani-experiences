@@ -14,12 +14,7 @@ const config = {
 		return [
 			{
 				source: "/",
-				destination: "/marketplace/real-estate",
-				permanent: true,
-			},
-			{
-				source: "/marketplace",
-				destination: "/marketplace/real-estate",
+				destination: "/experiences",
 				permanent: true,
 			},
 		];

@@ -40,7 +40,7 @@ export function ProductElement({
 
 	return (
 		<li data-testid="ProductElement">
-			<Link href={`/marketplace/luxury-goods/${product.slug}`} key={product.id}>
+			<Link href={`/experiences/luxury-goods/${product.slug}`} key={product.id}>
 				<div>
 					{product?.thumbnail?.url && (
 						<ProductImageWrapper

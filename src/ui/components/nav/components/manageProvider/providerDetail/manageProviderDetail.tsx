@@ -18,7 +18,7 @@ export const ManageDetail = () => {
 			</button>
 
 			<div className="category-list flex flex-col gap-4">
-				<ProviderDetail baseRoute="/marketplace/service-providers" />
+				<ProviderDetail baseRoute="/experiences/service-providers" />
 			</div>
 		</section>
 	);

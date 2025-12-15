@@ -1,32 +1,54 @@
-import { NextResponse, type NextRequest } from "next/server";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "/";
-
-export const config = {
-	matcher: [
-		/*
-		 * Match all request paths except for the ones starting with:
-		 * - api (API routes)
-		 * - marketplace/portal (login route handler)
-		 * - _next/static (static files)
-		 * - _next/image (image optimization files)
-		 * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-		 */
-		"/((?!api|marketplace/portal|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-	],
-};
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-	const { pathname } = request.nextUrl;
+	const url = request.url;
+	const searchParams = new URL(url).searchParams;
 
-	if (pathname === "/marketplace/portal" || pathname.startsWith("/marketplace/portal/")) {
+	console.log(`🔍 Middleware: ${url}`);
+
+	const excludedPaths = [
+		"/experiences/portal",
+		"/experiences/create-experience",
+		"/experiences/edit-experience",
+		"/experiences",
+	];
+
+	if (excludedPaths.some((path) => url.includes(path))) {
 		return NextResponse.next();
 	}
 
-	const tokenCookie = request.cookies.get("authToken");
-	if (!tokenCookie) {
-		return NextResponse.redirect(new URL(BASE_URL, request.url));
+	if (url.includes("/experiences/")) {
+		const token = searchParams.get("token");
+		const origin = searchParams.get("origin");
+
+		if (!token && !origin) {
+			return NextResponse.next();
+		}
+
+		const redirectUrl = new URL("/experiences", url);
+		const response = NextResponse.redirect(redirectUrl);
+
+		if (token) {
+			response.cookies.set("kimani_token", token, {
+				path: "/",
+				httpOnly: true,
+			});
+		}
+
+		if (origin) {
+			response.cookies.set("kimani_origin", origin, {
+				path: "/",
+				httpOnly: true,
+			});
+		}
+
+		return response;
 	}
 
 	return NextResponse.next();
 }
+
+export const config = {
+	matcher: ["/experiences/:path*"],
+};

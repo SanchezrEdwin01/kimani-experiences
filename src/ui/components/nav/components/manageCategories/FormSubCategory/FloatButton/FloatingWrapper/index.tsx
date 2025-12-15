@@ -14,7 +14,7 @@ export const ClientFloatingWrapperSub = ({ children, parent, baseCreateRoute }: 
 	const router = useRouter();
 
 	const handleFloatingClick = () => {
-		const defaultRoute = "/marketplace/service-providers/admin-category/event-planning/create-sub-category";
+		const defaultRoute = "/experiences/service-providers/admin-category/event-planning/create-sub-category";
 		const routeToUse = baseCreateRoute || defaultRoute;
 		const url = parent ? `${routeToUse}?parent=${parent}` : routeToUse;
 		try {

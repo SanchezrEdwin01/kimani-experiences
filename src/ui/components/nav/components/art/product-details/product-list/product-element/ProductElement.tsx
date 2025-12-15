@@ -64,7 +64,7 @@ export function ProductElement({
 
 	return (
 		<li key={product.id} data-testid="ProductElement">
-			<Link href={`/marketplace/art/${product.slug}`}>
+			<Link href={`/experiences/art/${product.slug}`}>
 				<div>
 					{product.thumbnail?.url && (
 						<div className="relative h-0 w-full overflow-hidden rounded-lg pb-[56.25%]">

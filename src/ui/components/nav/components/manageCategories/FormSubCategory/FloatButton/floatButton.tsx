@@ -29,7 +29,7 @@ export const FloatingButtonLayoutCreate: React.FC<FloatingButtonLayoutProps> = (
         focus:outline-none focus:ring-2
         focus:ring-yellow-300
       "
-			style={{ backgroundColor: "#fcc419" }}
+			style={{ backgroundColor: "#ffffffff" }}
 		>
 			<PlusIcon className="h-6 w-6" />
 		</button>

@@ -1,0 +1,32 @@
+.floating-button-layout__container {
+	position: relative;
+	padding-bottom: 4rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	width: 100%;
+	box-sizing: border-box;
+
+	@media (max-width: 768px) {
+		padding-bottom: 10rem;
+	}
+
+	.floatingButton {
+		position: fixed;
+		bottom: 5rem;
+		right: 2rem;
+		z-index: 100;
+		transform: translate3d(0, 0, 0);
+		-webkit-transform: translate3d(0, 0, 0);
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+
+		@media (max-width: 768px) {
+			bottom: 7.5rem;
+		}
+
+		@media (max-width: 480px) {
+			bottom: 7rem;
+			right: 1.5rem;
+		}
+	}
+}

@@ -13,7 +13,7 @@ export const ClientFloatingWrapperArt = ({ children, parent }: Props) => {
 	const router = useRouter();
 
 	const handleFloatingClick = () => {
-		const base = "/marketplace/art/create-art";
+		const base = "/experiences/art/create-art";
 		const url = parent ? `${base}?parent=${parent}` : base;
 		try {
 			void router.push(url);

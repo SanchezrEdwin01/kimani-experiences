@@ -14,13 +14,9 @@ interface UserIconProps {
 	className?: string;
 }
 
-// Imagen fallback SVG (usuario genérico)
 const FALLBACK_AVATAR =
 	"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSIjNjY2Ij48Y2lyY2xlIGN4PSIxNiIgY3k9IjEyIiByPSI2IiBmaWxsPSIjODg4Ii8+PHBhdGggZD0iTTQgMjh2LTJhOCA4IDAgMCAxIDgtOGg4YTggOCAwIDAgMSA4IDh2MiIgZmlsbD0iIzg4OCIvPjwvc3ZnPg==";
 
-/**
- * Genera URL para archivos/avatares del servidor Autumn
- */
 function generateFileURL(
 	file?: string | { _id: string; tag?: string; filename?: string } | null,
 	options?: { max_side?: number },
@@ -45,9 +41,6 @@ function generateFileURL(
 	return `${baseUrl}/autumn/avatars/${fileId}?max_side=${maxSide}`;
 }
 
-/**
- * Hook para obtener el color del indicador de estado del usuario
- */
 export function useStatusColour(user?: User | null): string {
 	if (!user) return "#808080";
 
@@ -66,66 +59,81 @@ export function useStatusColour(user?: User | null): string {
 		}
 	}
 
+	if (typeof user.online === "boolean") {
+		return user.online ? "#3ABF7E" : "#808080";
+	}
+
 	return "#3ABF7E";
 }
 
 export function UserIcon({ target, size = 32, status = false, style, className }: UserIconProps) {
 	const avatarUrl = React.useMemo(() => {
 		if (!target) return FALLBACK_AVATAR;
-
-		// Intentar obtener avatar del usuario
 		const avatar = target.avatar;
 		const generatedUrl = generateFileURL(avatar, { max_side: 256 });
 		if (generatedUrl) return generatedUrl;
-
 		return FALLBACK_AVATAR;
 	}, [target]);
 
 	const statusColor = useStatusColour(target);
-	const maskId = React.useId();
+
+	// Calcular tamaño del indicador de status proporcionalmente
+	const statusSize = Math.max(8, size * 0.3);
+	const statusBorderSize = Math.max(2, size * 0.06);
 
 	return (
-		<svg
-			width={size}
-			height={size}
-			viewBox="0 0 32 32"
+		<div
 			className={className}
-			style={style}
-			aria-hidden="true"
+			style={{
+				position: "relative",
+				width: size,
+				height: size,
+				flexShrink: 0,
+				...style,
+			}}
 		>
-			<defs>
-				{status && (
-					<mask id={`user-mask-${maskId}`}>
-						<rect width="32" height="32" fill="white" rx="16" />
-						<circle cx="27" cy="27" r="6" fill="black" />
-					</mask>
-				)}
-			</defs>
-
-			<foreignObject
-				x="0"
-				y="0"
-				width="32"
-				height="32"
-				mask={status ? `url(#user-mask-${maskId})` : undefined}
+			{/* Imagen de avatar */}
+			<div
+				style={{
+					width: "100%",
+					height: "100%",
+					borderRadius: "50%",
+					overflow: "hidden",
+					position: "relative",
+				}}
 			>
 				<Image
 					src={avatarUrl}
 					alt="User avatar"
-					width={32}
-					height={32}
+					width={size}
+					height={size}
 					draggable={false}
 					unoptimized
 					style={{
 						width: "100%",
 						height: "100%",
 						objectFit: "cover",
-						borderRadius: "50%",
+						display: "block",
 					}}
 				/>
-			</foreignObject>
+			</div>
 
-			{status && <circle cx="27" cy="27" r="5" fill={statusColor} />}
-		</svg>
+			{/* Indicador de status */}
+			{status && (
+				<div
+					style={{
+						position: "absolute",
+						bottom: 0,
+						right: 0,
+						width: statusSize,
+						height: statusSize,
+						backgroundColor: statusColor,
+						borderRadius: "50%",
+						border: `${statusBorderSize}px solid #020202`,
+						boxSizing: "content-box",
+					}}
+				/>
+			)}
+		</div>
 	);
 }

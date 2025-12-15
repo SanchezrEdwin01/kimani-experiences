@@ -10,7 +10,7 @@ export function ProductElement({
 }: { product: ProductListItemFragment } & { loading: "eager" | "lazy"; priority?: boolean }) {
 	return (
 		<li data-testid="ProductElement">
-			<Link href={`/marketplace/service-providers/${product.slug}`} key={product.id}>
+			<Link href={`/experiences/service-providers/${product.slug}`} key={product.id}>
 				<div>
 					{product?.thumbnail?.url && (
 						<ProductImageWrapper

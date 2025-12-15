@@ -12,7 +12,7 @@ import "./index.scss";
 export function Header() {
 	const router = useRouter();
 	const baseURL = useBaseURL();
-	const [activeTab, setActiveTab] = useState<string>("Marketplace");
+	const [activeTab, setActiveTab] = useState<string>("Experiences");
 
 	const navigate = (path: string) => {
 		if (path.startsWith("http")) {
@@ -27,6 +27,7 @@ export function Header() {
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: `${baseURL}/events` },
 		{ title: "Marketplace", url: `${baseURL}/marketplace/real-estate` },
+		{ title: "Experiences", url: `${baseURL}/experiences` },
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },

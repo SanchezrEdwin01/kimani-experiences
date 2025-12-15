@@ -13,7 +13,7 @@ export const ClientFloatingWrapperReal = ({ children, parent }: Props) => {
 	const router = useRouter();
 
 	const handleFloatingClick = () => {
-		const base = "/marketplace/real-estate/create-real-estate";
+		const base = "/experiences/real-estate/create-real-estate";
 		const url = parent ? `${base}?parent=${parent}` : base;
 		try {
 			void router.push(url);

@@ -211,7 +211,7 @@ export function ProductPageServiceProviders({ slug }: ProductPageProps) {
 	};
 
 	function handleEditProduct() {
-		router.push("/marketplace/service-providers/edit-service-provider/" + product?.slug);
+		router.push("/experiences/service-providers/edit-service-provider/" + product?.slug);
 	}
 
 	const currentUrl = typeof window !== "undefined" ? window.location.href : "";
