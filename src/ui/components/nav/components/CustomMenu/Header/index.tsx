@@ -8,10 +8,12 @@ import { TabbedNavigation } from "../TabbedNavigation";
 import { Dropdown } from "../Dropdown/index";
 import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 import "./index.scss";
+import { useMarketplaceURL } from "@/checkout/hooks/useMarketplaceURL";
 
 export function Header() {
 	const router = useRouter();
 	const baseURL = useBaseURL();
+	const marketURL = useMarketplaceURL();
 	const [activeTab, setActiveTab] = useState<string>("Experiences");
 
 	const navigate = (path: string) => {
@@ -26,8 +28,8 @@ export function Header() {
 		{ title: "Local", url: `${baseURL}/communities` },
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: `${baseURL}/events` },
-		{ title: "Marketplace", url: `${baseURL}/marketplace/real-estate` },
-		{ title: "Experiences", url: `${baseURL}/experiences` },
+		{ title: "Marketplace", url: `${marketURL}/marketplace/real-estate` },
+		{ title: "Experiences", url: "#" },
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },
