@@ -111,10 +111,6 @@ function ExperienceCard({
 
 	const isOwnerOrAdmin = isOwner || isAdmin;
 
-	const handleContactClick = () => {
-		console.log("Contact clicked for:", product.name);
-	};
-
 	const handleEditClick = () => {
 		router.push(`/experiences/edit-experience/${product.slug}`);
 	};
@@ -132,15 +128,14 @@ function ExperienceCard({
 					/>
 
 					<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-					<div className="absolute bottom-0 left-0 right-0 p-4">
-						<h3 className="line-clamp-1 text-lg font-semibold text-white sm:text-xl">{product.name}</h3>
-					</div>
 				</div>
 			</div>
 
 			{/* DESCRIPCIÓN */}
 			<div className="flex flex-grow flex-col p-4 sm:p-5">
+				<h3 className="mb-2 text-lg font-semibold uppercase tracking-wide text-white sm:text-xl">
+					{product.name}
+				</h3>
 				<p className="line-clamp-3 text-base leading-relaxed text-gray-300 sm:text-lg">{description}</p>
 
 				{visibleAttributes && visibleAttributes.length > 0 && (
@@ -159,13 +154,6 @@ function ExperienceCard({
 
 				{/* BOTONES — CONTACT IZQUIERDA, EDIT DERECHA */}
 				<div className="mt-auto flex items-center justify-between pt-4">
-					<button
-						onClick={handleContactClick}
-						className="rounded-lg bg-white px-6 py-2 text-base font-medium text-zinc-900 transition-colors hover:bg-gray-200 active:bg-gray-300"
-					>
-						Contact
-					</button>
-
 					{isOwnerOrAdmin && (
 						<button
 							onClick={handleEditClick}
@@ -174,6 +162,12 @@ function ExperienceCard({
 							<PencilSquareIcon className="h-6 w-6 text-white" />
 						</button>
 					)}
+					<button
+						onClick={handleOpenExperience}
+						className="rounded-lg bg-white px-6 py-2 text-base font-medium text-zinc-900 transition-colors hover:bg-gray-200 active:bg-gray-300"
+					>
+						More information
+					</button>
 				</div>
 			</div>
 		</div>

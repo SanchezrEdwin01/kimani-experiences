@@ -94,7 +94,6 @@ export default function ExperiencePage({ params }: ExperiencePageProps) {
 
 	const ownerUserId = getAttr("user-id");
 	const email = getAttr("email");
-	const phone = getAttr("phone-number");
 
 	const isOwner = ownerUserId === user?._id;
 	const canEdit = isOwner || isAdmin;
@@ -198,16 +197,12 @@ export default function ExperiencePage({ params }: ExperiencePageProps) {
 				</button>
 			)}
 
-			{phone && (
-				<button className={styles.contactButton} onClick={() => (window.location.href = `tel:${phone}`)}>
-					Call
-				</button>
-			)}
-
 			{/* ================= ADMIN / OWNER ================= */}
 			{canEdit && (
 				<div className={styles.adminActions}>
-					<button onClick={handleEdit}>Edit</button>
+					<button className={styles.editButton} onClick={handleEdit}>
+						Edit
+					</button>
 					<button className={styles.deleteButton} onClick={handleDelete}>
 						Delete
 					</button>
