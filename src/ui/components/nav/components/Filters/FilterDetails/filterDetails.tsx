@@ -116,38 +116,6 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 					</select>
 				</div>
 
-				<div className="filter-section">
-					<label>Price range</label>
-					<div className="price-range">
-						<input
-							type="number"
-							placeholder="Min"
-							value={minPrice}
-							onChange={(e) => setMinPrice(e.target.value)}
-						/>
-						<input
-							type="number"
-							placeholder="Max"
-							value={maxPrice}
-							onChange={(e) => setMaxPrice(e.target.value)}
-						/>
-					</div>
-				</div>
-
-				<div className="filter-section">
-					<label>Sort by</label>
-					<select
-						value={sortOption}
-						onChange={(e) => setSortOption(e.target.value)}
-						className="w-full max-w-full truncate rounded border border-gray-600 bg-gray-800 px-3 py-2 text-xs text-white"
-					>
-						<option value="price-asc">Price: Low to high</option>
-						<option value="price-desc">Price: High to low</option>
-						<option value="date-desc">Date: Newest first</option>
-						<option value="date-asc">Date: Oldest first</option>
-					</select>
-				</div>
-
 				<div className="filter-actions">
 					<button onClick={handleClearModalFilters} className="clear-btn">
 						Clear Modal

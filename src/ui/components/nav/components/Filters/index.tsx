@@ -2,9 +2,7 @@
 
 import { useState, useEffect, type ChangeEvent } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, XCircleIcon } from "@heroicons/react/24/outline";
-import { FilterModal } from "./FilterDetails/filterDetails";
-import { EVENT_TYPE_ALL, REAL_ESTATE_CATEGORY_SLUG } from "@/checkout/utils/constants";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import type { FiltersState } from "@/app/(main)/experiences/page";
 import "./index.scss";
 
@@ -22,17 +20,8 @@ interface FiltersComponentProps {
 	subCategoryOptions: { slug: string; name: string }[];
 }
 
-export function Filters({
-	currentFilters,
-	onSearchChange,
-	onApplyModalFilters,
-	onResetAllFilters,
-	parentCategorySlug,
-	subCategoryOptions,
-}: FiltersComponentProps) {
+export function Filters({ currentFilters, onSearchChange }: FiltersComponentProps) {
 	const [internalSearchValue, setInternalSearchValue] = useState<string>(currentFilters.search || "");
-	const [showModal, setShowModal] = useState(false);
-
 	useEffect(() => {
 		setInternalSearchValue(currentFilters.search || "");
 	}, [currentFilters.search]);
@@ -44,17 +33,6 @@ export function Filters({
 	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setInternalSearchValue(e.target.value);
 		debouncedSearch(e.target.value);
-	};
-
-	const isAnyFilterActive = () => {
-		return (
-			currentFilters.search !== "" ||
-			currentFilters.mainCategorySlug !== EVENT_TYPE_ALL ||
-			currentFilters.subCategorySlug !== undefined ||
-			currentFilters.location !== undefined ||
-			currentFilters.priceRange.min !== 0 ||
-			currentFilters.priceRange.max !== Infinity
-		);
 	};
 
 	return (
@@ -73,35 +51,6 @@ export function Filters({
 						onChange={handleInputChange}
 					/>
 				</div>
-				<button
-					type="button"
-					className="search_bar__funnel"
-					aria-label="Toggle advanced filters"
-					onClick={() => setShowModal(true)}
-				>
-					<AdjustmentsHorizontalIcon width={25} />
-				</button>
-				{isAnyFilterActive() && (
-					<button
-						type="button"
-						onClick={onResetAllFilters}
-						className="search_bar__reset ml-2 p-1 text-slate-400 hover:text-white"
-						aria-label="Reset all filters"
-					>
-						<XCircleIcon width={25} />
-					</button>
-				)}
-
-				<FilterModal
-					isOpen={showModal}
-					onClose={() => setShowModal(false)}
-					currentFilters={currentFilters}
-					onApply={onApplyModalFilters}
-					categorySlugForModalLoad={
-						parentCategorySlug === EVENT_TYPE_ALL ? REAL_ESTATE_CATEGORY_SLUG : parentCategorySlug
-					}
-					subCategoryOptions={subCategoryOptions}
-				/>
 			</div>
 		</div>
 	);
