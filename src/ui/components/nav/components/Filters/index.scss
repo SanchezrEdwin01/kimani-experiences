@@ -1,6 +1,7 @@
 .filters {
 	margin: 5px 10px;
 	display: flex;
+	margin-bottom: 20px;
 	flex-direction: column;
 	flex-wrap: wrap;
 	position: relative;
@@ -111,7 +112,7 @@
 
 		&:hover {
 			background-color: #e5e7eb;
-			color: #2e2c2c;
+			color: #ff0000;
 		}
 	}
 }

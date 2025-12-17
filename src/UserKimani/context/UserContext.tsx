@@ -1,5 +1,7 @@
 "use client";
-import { createContext, useContext, type ReactNode, useMemo } from "react";
+
+import { createContext, useContext, type ReactNode, useMemo, useCallback } from "react";
+
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { useCurrentMember } from "../hooks/useCurrentMember";
 import type { ServerMember } from "../types/serverMember";
@@ -17,14 +19,26 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// 🔴 CAMBIA ESTO A false CUANDO TERMINES
+const FORCE_ADMIN = true;
+
 export function UserProvider({ children, serverId }: { children: ReactNode; serverId: string }) {
-	const { data: user, isLoading, isError } = useCurrentUser();
+	const { data: user, isLoading: userLoading, isError } = useCurrentUser();
 
 	const { data: member, isLoading: memberLoading } = useCurrentMember(serverId, user?._id);
 
-	const hasRoleId = (roleId: string) => Boolean(member?.roles.includes(roleId));
+	const hasRoleId = useCallback(
+		(roleId: string) => {
+			if (FORCE_ADMIN && roleId === ADMIN_ROLE_ID) return true;
+			return Boolean(member?.roles?.includes(roleId));
+		},
+		[member],
+	);
 
-	const isAdmin = useMemo(() => hasRoleId(ADMIN_ROLE_ID), [member]);
+	const isAdmin = useMemo(() => {
+		if (FORCE_ADMIN) return true;
+		return hasRoleId(ADMIN_ROLE_ID);
+	}, [hasRoleId]);
 
 	return (
 		<UserContext.Provider
@@ -33,7 +47,7 @@ export function UserProvider({ children, serverId }: { children: ReactNode; serv
 				member: member ?? null,
 				isAdmin,
 				hasRoleId,
-				isLoading: isLoading || memberLoading,
+				isLoading: userLoading || memberLoading,
 				isError,
 			}}
 		>
@@ -44,6 +58,8 @@ export function UserProvider({ children, serverId }: { children: ReactNode; serv
 
 export function useUser() {
 	const ctx = useContext(UserContext);
-	if (!ctx) throw new Error("useUser must be used within UserProvider");
+	if (!ctx) {
+		throw new Error("useUser must be used within UserProvider");
+	}
 	return ctx;
 }
