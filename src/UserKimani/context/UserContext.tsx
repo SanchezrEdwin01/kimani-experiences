@@ -24,7 +24,6 @@ export function UserProvider({ children, serverId }: { children: ReactNode; serv
 
 	const hasRoleId = useCallback(
 		(roleId: string) => {
-			if (roleId === ADMIN_ROLE_ID) return true;
 			return Boolean(member?.roles?.includes(roleId));
 		},
 		[member],
