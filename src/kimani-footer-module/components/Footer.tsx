@@ -6,11 +6,11 @@ import { HomeIcon, ChatBubbleLeftRightIcon, UserGroupIcon } from "@heroicons/rea
 import { useUser } from "../../UserKimani/context/UserContext";
 import styles from "./Footer.module.scss";
 import { UserIcon } from "./UserIcon";
-import { getStoredBaseUrl } from "@/UserKimani/lib/useUrlParamsProcessor";
+import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 
 const FooterComponent = () => {
 	const { user } = useUser();
-	const BASE_URL = getStoredBaseUrl();
+	const BASE_URL = useBaseURL();
 
 	return (
 		<footer className={styles.footer}>
