@@ -20,7 +20,7 @@ function TabbedNavigationComponent({ tabs, active }: Props) {
 		<nav className="tabs">
 			{tabs.map((tab, idx) => (
 				<div key={idx} className={cn("tab", { active: tab.title === active })} onClick={tab.onClick}>
-					{tab.title}
+					<span>{tab.title}</span>
 				</div>
 			))}
 		</nav>
