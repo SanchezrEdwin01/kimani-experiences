@@ -377,17 +377,6 @@ export default function ExperiencesClientPage() {
 		setFilters((f) => ({ ...f, search: term }));
 	};
 
-	const handleLocationChange = (country?: SimpleCountry, city?: SimpleCity) => {
-		if (!country) {
-			setFilters((f) => ({ ...f, location: undefined }));
-		} else {
-			setFilters((f) => ({
-				...f,
-				location: city ? { country: country.name, city: city.name } : { country: country.name },
-			}));
-		}
-	};
-
 	const handleMainCategoryChange = (slug?: string) => {
 		setFilters((f) => ({
 			...f,
@@ -426,10 +415,8 @@ export default function ExperiencesClientPage() {
 		<div className="min-h-screen bg-black pb-20">
 			<FluidHideOnScrollHeader>
 				<MarketplaceControls
-					sectionSlug={EXPERIENCES_CATEGORY_SLUG}
 					currentFilters={filters}
 					onSearchChange={handleSearchChange}
-					onLocationChange={handleLocationChange}
 					onMainCategoryChange={handleMainCategoryChange}
 					onApplyModalFilters={handleModalFiltersApply}
 					onResetAllFilters={resetAllFilters}

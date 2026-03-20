@@ -24,12 +24,38 @@ export function Header() {
 		}
 	};
 
+	const buildSessionQuery = (originParam: "origin" | "native") => {
+		if (typeof window === "undefined") return "";
+
+		const params = new URLSearchParams();
+		const token = localStorage.getItem("authToken");
+
+		params.set(originParam, window.location.origin);
+
+		if (token) {
+			params.set("token", token);
+		}
+
+		return params.toString();
+	};
+
+	const withSessionParams = (url: string, originParam: "origin" | "native") => {
+		const query = buildSessionQuery(originParam);
+		if (!query) return url;
+
+		const separator = url.includes("?") ? "&" : "?";
+		return `${url}${separator}${query}`;
+	};
+
 	const tabs = [
 		{ title: "Local", url: `${baseURL}/communities` },
 		{ title: "Global", url: `${baseURL}/global` },
-		{ title: "Events", url: `${baseURL}/events` },
+		{ title: "Events", url: withSessionParams(`${baseURL}/events`, "native") },
 		{ title: "Experiences", url: "#" },
-		{ title: "Marketplace", url: `${marketURL}/marketplace/real-estate` },
+		{
+			title: "Marketplace",
+			url: withSessionParams(`${marketURL}/marketplace/portal`, "origin"),
+		},
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },

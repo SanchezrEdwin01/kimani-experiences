@@ -3,21 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
-import { useState } from "react";
-import type {
-	ICountry as CountryStateCity_ICountry,
-	ICity as CountryStateCity_ICity,
-} from "country-state-city";
-import { MarketplaceActions } from "@/ui/components/nav/components/MarketplaceActions";
 import { Filters } from "@/ui/components/nav/components/Filters";
-import { SettingsMenu } from "@/ui/components/nav/components/settingsAdmin/settings";
-import type { FiltersState, SimpleCountry, SimpleCity } from "@/app/(main)/experiences/page";
+import type { FiltersState } from "@/app/(main)/experiences/page";
 
 interface MarketplaceControlsProps {
-	sectionSlug?: string;
 	currentFilters: FiltersState;
 	onSearchChange: (term: string) => void;
-	onLocationChange: (country?: SimpleCountry, city?: SimpleCity) => void;
 	onMainCategoryChange: (slug?: string) => void;
 	onApplyModalFilters: (filters: {
 		subCategorySlug?: string;
@@ -29,30 +20,13 @@ interface MarketplaceControlsProps {
 }
 
 export function MarketplaceControls({
-	sectionSlug,
 	currentFilters,
 	onSearchChange,
-	onLocationChange,
 	onMainCategoryChange,
 	onApplyModalFilters,
 	onResetAllFilters,
 	subCategoryOptionsForModal,
 }: MarketplaceControlsProps) {
-	const [showSettings, setShowSettings] = useState(false);
-
-	const handleLocationChangeForActions = (
-		country?: CountryStateCity_ICountry,
-		city?: CountryStateCity_ICity,
-	) => {
-		if (!country) {
-			onLocationChange();
-			return;
-		}
-		const simpleCountry: SimpleCountry = { name: country.name, isoCode: country.isoCode };
-		const simpleCity: SimpleCity | undefined = city ? { name: city.name } : undefined;
-		onLocationChange(simpleCountry, simpleCity);
-	};
-
 	return (
 		<div
 			style={{
@@ -60,12 +34,6 @@ export function MarketplaceControls({
 				overflowX: "hidden",
 			}}
 		>
-			<MarketplaceActions
-				onSettingsClick={() => setShowSettings(!showSettings)}
-				onLocationChange={handleLocationChangeForActions}
-				currentLocation={currentFilters.location}
-			/>
-			<SettingsMenu open={showSettings} sectionSlug={sectionSlug} />
 			<Filters
 				currentFilters={currentFilters}
 				onSearchChange={onSearchChange}
