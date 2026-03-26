@@ -29,8 +29,12 @@ export function Header() {
 
 		const params = new URLSearchParams();
 		const token = localStorage.getItem("authToken");
+		const sessionOrigin =
+			localStorage.getItem("originAfterLogin") || localStorage.getItem("kimani_base_url") || baseURL;
 
-		params.set(originParam, window.location.origin);
+		if (sessionOrigin) {
+			params.set(originParam, sessionOrigin);
+		}
 
 		if (token) {
 			params.set("token", token);
