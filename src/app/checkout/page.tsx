@@ -1,9 +1,15 @@
+import { type Viewport } from "next";
 import { invariant } from "ts-invariant";
 import { RootWrapper } from "./pageWrapper";
 
 export const metadata = {
 	title: "Checkout · Saleor Storefront example",
-	viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
+
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1,
+	viewportFit: "cover",
 };
 
 export default function CheckoutPage({

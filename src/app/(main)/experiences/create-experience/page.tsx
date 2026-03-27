@@ -1,8 +1,13 @@
 // app/experiences/create-experience/page.tsx
 "use client";
+import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { ExperienceForm } from "../FormExperiences";
+
+const ExperienceForm = dynamic(
+	() => import("../FormExperiences").then((m) => ({ default: m.ExperienceForm })),
+	{ ssr: false },
+);
 import { UserProvider } from "@/UserKimani/context/UserContext";
 import { Footer } from "@/kimani-footer-module";
 import { SERVER_ID } from "@/UserKimani/constants/server";

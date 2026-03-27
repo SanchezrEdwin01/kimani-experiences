@@ -2,10 +2,11 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	width: 110%;
+	width: 100%;
+	box-sizing: border-box;
 	overflow-x: auto;
 	overflow-y: hidden;
-	padding: 4px 10% 8px 0;
+	padding: 4px 12px 8px 4px;
 	margin-top: 8px;
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
@@ -27,7 +28,7 @@
 	font-size: 12px;
 	transition: all 0.1s ease-in-out;
 	position: relative;
-	margin: 0 -0.25px;
+	flex-shrink: 0;
 	font-weight: 400;
 	line-height: 1.2;
 	white-space: nowrap;
@@ -44,4 +45,42 @@
 .tab.active {
 	background-color: white;
 	color: #020202;
+}
+
+/* Phones < 360px (iPhone SE, small Galaxy) */
+@media (max-width: 359px) {
+	.tab {
+		padding: 4px 8px;
+		font-size: 11px;
+		border-radius: 6px;
+	}
+}
+
+/* Standard phones 360px–413px */
+@media (min-width: 360px) and (max-width: 413px) {
+	.tab {
+		padding: 5px 10px;
+		font-size: 12px;
+	}
+}
+
+/* Large phones / phablets 414px–767px */
+@media (min-width: 414px) and (max-width: 767px) {
+	.tab {
+		padding: 5px 12px;
+		font-size: 12px;
+	}
+}
+
+/* Tablets 768px+ */
+@media (min-width: 768px) {
+	.tabs {
+		gap: 12px;
+	}
+
+	.tab {
+		padding: 6px 14px;
+		font-size: 13px;
+		border-radius: 10px;
+	}
 }
