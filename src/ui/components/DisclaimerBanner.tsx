@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useBaseURL } from "@/checkout/hooks/useBaseURL";
+import { navigateToParentIfNeeded } from "@/lib/iframeBridge";
 
 export function DisclaimerCard() {
 	const [visible, setVisible] = useState(false);
@@ -20,6 +21,7 @@ export function DisclaimerCard() {
 	};
 
 	const decline = () => {
+		if (navigateToParentIfNeeded(`${useBase}/`, useBase)) return;
 		window.location.href = useBase;
 	};
 

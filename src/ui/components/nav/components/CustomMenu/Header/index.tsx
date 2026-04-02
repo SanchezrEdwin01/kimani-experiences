@@ -9,6 +9,7 @@ import { Dropdown } from "../Dropdown/index";
 import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 import "./index.scss";
 import { useMarketplaceURL } from "@/checkout/hooks/useMarketplaceURL";
+import { navigateToParentIfNeeded } from "@/lib/iframeBridge";
 
 export function Header() {
 	const router = useRouter();
@@ -17,11 +18,13 @@ export function Header() {
 	const [activeTab, setActiveTab] = useState<string>("Experiences");
 
 	const navigate = (path: string) => {
+		if (path === "#") return;
+		if (navigateToParentIfNeeded(path, baseURL)) return;
 		if (path.startsWith("http")) {
 			window.location.href = path;
-		} else {
-			router.push(path);
+			return;
 		}
+		router.push(path);
 	};
 
 	const buildSessionQuery = (originParam: "origin" | "native") => {

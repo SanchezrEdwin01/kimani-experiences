@@ -4,6 +4,13 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
 	const url = request.url;
 	const searchParams = new URL(url).searchParams;
+	const isHttps = request.nextUrl.protocol === "https:";
+	const cookieOptions = {
+		path: "/",
+		httpOnly: true,
+		sameSite: isHttps ? ("none" as const) : ("lax" as const),
+		secure: isHttps,
+	};
 
 	console.log(`🔍 Middleware: ${url}`);
 
@@ -31,15 +38,13 @@ export function middleware(request: NextRequest) {
 
 		if (token) {
 			response.cookies.set("kimani_token", token, {
-				path: "/",
-				httpOnly: true,
+				...cookieOptions,
 			});
 		}
 
 		if (origin) {
 			response.cookies.set("kimani_origin", origin, {
-				path: "/",
-				httpOnly: true,
+				...cookieOptions,
 			});
 		}
 
