@@ -8,13 +8,11 @@ import { TabbedNavigation } from "../TabbedNavigation";
 import { Dropdown } from "../Dropdown/index";
 import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 import "./index.scss";
-import { useMarketplaceURL } from "@/checkout/hooks/useMarketplaceURL";
 import { navigateToParentIfNeeded } from "@/lib/iframeBridge";
 
 export function Header() {
 	const router = useRouter();
 	const baseURL = useBaseURL();
-	const marketURL = useMarketplaceURL();
 	const [activeTab, setActiveTab] = useState<string>("Experiences");
 
 	const navigate = (path: string) => {
@@ -59,10 +57,7 @@ export function Header() {
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: withSessionParams(`${baseURL}/events`, "native") },
 		{ title: "Experiences", url: "#" },
-		{
-			title: "Marketplace",
-			url: withSessionParams(`${marketURL}/marketplace/portal`, "origin"),
-		},
+		{ title: "Marketplace", url: `${baseURL}/marketplace` },
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },
