@@ -8,7 +8,10 @@ import { TabbedNavigation } from "../TabbedNavigation";
 import { Dropdown } from "../Dropdown/index";
 import { useBaseURL } from "@/checkout/hooks/useBaseURL";
 import "./index.scss";
-import { navigateToParentIfNeeded } from "@/lib/iframeBridge";
+import { navigateToParentIfNeeded, isEmbeddedWindow } from "@/lib/iframeBridge";
+
+const MARKETPLACE_PORTAL_URL =
+	process.env.NEXT_PUBLIC_MARKETPLACE_URL || "https://marketplace.kimanilife.com";
 
 export function Header() {
 	const router = useRouter();
@@ -52,12 +55,24 @@ export function Header() {
 		return `${url}${separator}${query}`;
 	};
 
+	// When running embedded in a KIMANI iframe, `${baseURL}/marketplace` is a
+	// "signal URL": same origin as the parent, so navigateToParentIfNeeded sends
+	// KIMANI_NAVIGATE to the parent which calls showFrame("marketplace").
+	//
+	// When running in the legacy Capacitor InAppBrowser (not embedded), there is
+	// no parent to intercept the signal. We go directly to the marketplace portal
+	// URL with the token already stored in localStorage — bypassing PortalRedirect
+	// which has no session context yet and would redirect to login.
+	const marketplaceUrl = isEmbeddedWindow()
+		? `${baseURL}/marketplace`
+		: withSessionParams(`${MARKETPLACE_PORTAL_URL}/marketplace/portal`, "origin");
+
 	const tabs = [
 		{ title: "Local", url: `${baseURL}/communities` },
 		{ title: "Global", url: `${baseURL}/global` },
 		{ title: "Events", url: withSessionParams(`${baseURL}/events`, "native") },
 		{ title: "Experiences", url: "#" },
-		{ title: "Marketplace", url: `${baseURL}/marketplace` },
+		{ title: "Marketplace", url: marketplaceUrl },
 		{ title: "Concierge", url: `${baseURL}/concierge/request` },
 		{ title: "Corporate", url: `${baseURL}/corporate` },
 		{ title: "Resident", url: `${baseURL}/resident` },
