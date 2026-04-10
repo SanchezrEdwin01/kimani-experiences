@@ -13,13 +13,22 @@ const config = {
 	async headers() {
 		return [
 			{
+				source: "/.well-known/apple-app-site-association",
+				headers: [
+					{
+						key: "Content-Type",
+						value: "application/json",
+					},
+				],
+			},
+			{
 				// Allow KIMANI app to embed experiences in an iframe (web + Capacitor native)
 				source: "/(.*)",
 				headers: [
 					{
 						key: "Content-Security-Policy",
 						value:
-							"frame-ancestors 'self' http://localhost:* capacitor://localhost https://community.kimanilife.com https://staging.kimanilife.com",
+							"frame-ancestors 'self' http://localhost:* capacitor://localhost https://app.kimaniclub.com https://dev.kimaniclub.com",
 					},
 				],
 			},

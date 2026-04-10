@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["D39NG88228.com.kimanilife.community"],
+        "components": [
+          {
+            "/": "/experiences/*",
+            "comment": "Open experiences paths in the KIMANI app"
+          },
+          {
+            "/": "/api/*",
+            "exclude": true,
+            "comment": "Do not intercept API calls"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["D39NG88228.com.kimanilife.community"]
+  }
+}
