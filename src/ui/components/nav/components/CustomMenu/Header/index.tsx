@@ -11,21 +11,24 @@ import "./index.scss";
 import { navigateToParentIfNeeded, isEmbeddedWindow } from "@/lib/iframeBridge";
 
 const MARKETPLACE_PORTAL_URL =
-	process.env.NEXT_PUBLIC_MARKETPLACE_URL || "https://marketplace.kimanilife.com";
+	process.env.NEXT_PUBLIC_MARKETPLACE_URL || "https://marketplace.kimaniclub.com";
 
 export function Header() {
 	const router = useRouter();
 	const baseURL = useBaseURL();
 	const [activeTab, setActiveTab] = useState<string>("Experiences");
 
-	const navigate = (path: string) => {
-		if (path === "#") return;
-		if (navigateToParentIfNeeded(path, baseURL)) return;
+	// Returns true when the navigation was delegated to the parent app,
+	// false when it stays within this portal.
+	const navigate = (path: string): boolean => {
+		if (path === "#") return false;
+		if (navigateToParentIfNeeded(path, baseURL)) return true;
 		if (path.startsWith("http")) {
 			window.location.href = path;
-			return;
+			return false;
 		}
 		router.push(path);
+		return false;
 	};
 
 	const buildSessionQuery = (originParam: "origin" | "native") => {
@@ -79,8 +82,10 @@ export function Header() {
 	].map((tab) => ({
 		title: tab.title,
 		onClick: () => {
-			setActiveTab(tab.title);
-			navigate(tab.url);
+			// Only update the visual active tab when the user stays inside this portal.
+			// When navigate() delegates to the parent the iframe will be hidden; keeping
+			// the state at the portal's own name ensures it looks correct on return.
+			if (!navigate(tab.url)) setActiveTab(tab.title);
 		},
 	}));
 
@@ -92,12 +97,7 @@ export function Header() {
 					onClick={() => navigate(`${baseURL}/communities`)}
 					style={{ cursor: "pointer" }}
 				>
-					<Image
-						src="https://community.kimanilife.com/assets/logo.webp"
-						alt="Kimani Life"
-						width={96}
-						height={24}
-					/>
+					<Image src="https://app.kimaniclub.com/assets/logo.webp" alt="Kimani Life" width={96} height={24} />
 				</div>
 
 				<div className="menu">

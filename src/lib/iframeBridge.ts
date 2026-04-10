@@ -11,7 +11,7 @@ export const KIMANI_MESSAGE_TYPES = {
 	NAVIGATE: "KIMANI_NAVIGATE",
 } as const;
 
-const ALLOWED_PARENT_HOSTS = new Set(["community.kimanilife.com", "staging.kimanilife.com"]);
+const ALLOWED_PARENT_HOSTS = new Set(["app.kimaniclub.com", "dev.kimaniclub.com"]);
 
 function isLocalhostOrigin(origin: string) {
 	return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);

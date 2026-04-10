@@ -6,7 +6,7 @@ import { create } from "zustand";
 // CONFIGURACIÓN
 // ============================================
 const DEFAULT_CONFIG = {
-	BASE_URL: "https://community.kimanilife.com",
+	BASE_URL: "https://app.kimaniclub.com",
 	DEFAULT_SERVER_ID: process.env.NEXT_PUBLIC_KIMANI_SERVER_ID || "01HP41709DFJP1DRSTSA88J81A",
 };
 

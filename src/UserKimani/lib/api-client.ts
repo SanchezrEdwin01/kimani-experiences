@@ -6,7 +6,7 @@ const BASE_URL_KEY = "kimani_base_url";
 const TOKEN_KEY = "authToken"; // Mantener consistencia con el proyecto existente
 
 // URL por defecto
-const DEFAULT_API_URL = "https://community.kimanilife.com/api";
+const DEFAULT_API_URL = "https://app.kimaniclub.com/api";
 
 /**
  * Obtiene la API URL dinámica.

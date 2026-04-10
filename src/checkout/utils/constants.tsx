@@ -1,10 +1,10 @@
 // src/constants/env.ts
-export const BASE_URL: string = process.env.NEXT_PUBLIC_BASE_URL ?? "https://staging.kimanilife.com";
+export const BASE_URL: string = process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.kimaniclub.com";
 
-export const API_URL: string = process.env.NEXT_PUBLIC_API_URL ?? "https://staging.kimanilife.com/api";
+export const API_URL: string = process.env.NEXT_PUBLIC_API_URL ?? "https://app.kimaniclub.com/api";
 
 export const AUTUMN_API_URL: string =
-	process.env.NEXT_PUBLIC_AUTUMN_API_URL ?? "https://staging.kimanilife.com/autumn";
+	process.env.NEXT_PUBLIC_AUTUMN_API_URL ?? "https://app.kimaniclub.com/autumn";
 
 export const PLATFORM_URL: string = `${BASE_URL}/service-providers`;
 

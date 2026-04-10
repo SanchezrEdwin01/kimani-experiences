@@ -67,8 +67,8 @@ export function getStoredToken(): string | null {
  * Obtiene la base URL guardada
  */
 export function getStoredBaseUrl(): string {
-	if (typeof window === "undefined") return "https://community.kimanilife.com";
-	return localStorage.getItem(BASE_URL_KEY) || "https://community.kimanilife.com";
+	if (typeof window === "undefined") return "https://app.kimaniclub.com";
+	return localStorage.getItem(BASE_URL_KEY) || "https://app.kimaniclub.com";
 }
 
 /**
