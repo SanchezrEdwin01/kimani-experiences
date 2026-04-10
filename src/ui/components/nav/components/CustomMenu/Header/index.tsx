@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { MenuOutline } from "styled-icons/evaicons-outline";
 import { TabbedNavigation } from "../TabbedNavigation";
 import { Dropdown } from "../Dropdown/index";
@@ -97,7 +96,7 @@ export function Header() {
 					onClick={() => navigate(`${baseURL}/communities`)}
 					style={{ cursor: "pointer" }}
 				>
-					<Image src="https://app.kimaniclub.com/assets/logo.webp" alt="Kimani Life" width={96} height={24} />
+					<img src="https://app.kimaniclub.com/assets/logo.webp" alt="Kimani Life" />
 				</div>
 
 				<div className="menu">
