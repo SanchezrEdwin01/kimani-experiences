@@ -51,9 +51,11 @@
 }
 
 .logo {
-	picture {
+	picture,
+	img {
 		display: block;
 		width: 96px;
-		max-height: 24px;
+		height: 24px;
+		object-fit: contain;
 	}
 }
