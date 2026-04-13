@@ -8,6 +8,7 @@ import styles from "./index.module.scss";
 
 import { useUser } from "@/UserKimani/context/UserContext";
 import { executeGraphQL } from "@/lib/graphql";
+import { ShareButtonWithModal } from "@/ui/components/nav/components/ShareButtonWithModal";
 import {
 	ProductDetailsBySlugDocument,
 	type ProductDetailsBySlugQuery,
@@ -100,6 +101,7 @@ export function ExperiencePageClient({ params }: ExperiencePageClientProps) {
 
 	const images = product?.media?.map((m) => m.url) ?? [];
 	const title = product?.name ?? "Experience";
+	const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
 	/* ============================================================
 	   ACTIONS
@@ -180,7 +182,14 @@ export function ExperiencePageClient({ params }: ExperiencePageClientProps) {
 			</div>
 
 			{/* ================= TITLE ================= */}
-			<h1 className={styles.title}>{title}</h1>
+			<div className={styles.titleRow}>
+				<h1 className={styles.title}>{title}</h1>
+				<ShareButtonWithModal
+					title={title}
+					text={`Check out ${title} on KIMANI Experiences`}
+					url={shareUrl}
+				/>
+			</div>
 
 			{/* ================= DESCRIPTION ================= */}
 			<section className={styles.descriptionSection}>
